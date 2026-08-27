@@ -1,0 +1,38 @@
+title My Notifications Page Sequence
+
+User->Notifications_Block: open /my-dam/my-notifications
+Notifications_Block->Notifications_Client: loadBlendedMessages()
+Notifications_Client->Messages_API: GET /api/messages?locale=<currentLocale>
+Messages_API->Notifications_API: listNotifications()
+Notifications_API->MESSAGES_KV: list + get user notifications
+Notifications_API->EDS_Sheet: fetch /{locale}/system-notifications
+Notifications_API-->Notifications_Client: merged messages[]
+Notifications_Client-->Notifications_Block: messages[]
+Notifications_Block->LocalStorage: cleanup read/deleted SYSTEM ids
+Notifications_Block->Notifications_Block: remove deleted SYSTEM messages
+Notifications_Block->Notifications_Block: sort + filter + render + update badge
+
+opt user marks message as read
+  User->Notifications_Block: expand unread row
+  Notifications_Block->Notifications_Client: markAsRead(message)
+  alt owner == SYSTEM
+    Notifications_Client->LocalStorage: add SYSTEM read id
+  else owner != SYSTEM
+    Notifications_Client->Messages_API: POST /api/messages/:id {status: "read"}
+  end
+end
+
+opt user deletes message
+  User->Notifications_Block: click delete and confirm
+  Notifications_Block->Notifications_Client: deleteMessage(message)
+  alt owner == SYSTEM
+    Notifications_Client->LocalStorage: add SYSTEM deleted id
+  else owner != SYSTEM
+    Notifications_Client->Messages_API: DELETE /api/messages/:id
+  end
+end
+
+opt expired cleanup run
+  Notifications_Block->Notifications_Client: deleteMessages(expiredMessages)
+  Notifications_Block->Notifications_Block: refresh list and badge
+end

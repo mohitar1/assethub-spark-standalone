@@ -1,0 +1,328 @@
+Key	Text
+assetTypeImage	IMAGE
+assetTypeVideo	VIDEO
+assetTypeAudio	AUDIO
+assetTypeDocument	DOCUMENT
+rightsStatusAuthorized	AUTHORIZED
+rightsStatusExtensionRequired	EXTENSION REQUIRED
+rightsStatusRightsFree	RIGHTS FREE
+statusActive	Active
+statusInactive	Inactive
+statusApproved	Approved
+statusRejected	Rejected
+statusPending	Pending
+statusCompleted	Completed
+statusInProgress	In Progress
+statusExpired	Expired
+statusPublished	Published
+masterOrAdaptationMaster	Master
+masterOrAdaptationAdaptation	Adaptation
+Brand	Brand
+Campaign	Campaign
+Country	Country
+Asset Type	Asset Type
+Agency	Agency
+Agency Name	Agency Name
+Campaign Name	Campaign Name
+Campaign Brand	Campaign Brand
+Beverage Type	Beverage Type
+Theme / Initiative	Theme / Initiative
+Keywords	Keywords
+Intended Use	Intended Use
+Intended Market	Intended Market
+Intended Channel	Intended Channel
+Market	Market
+Language	Language
+Status	Status
+Tags	Tags
+Type	Type
+Job	Job
+Template	Template
+Acme	Acme
+Fanta	Fanta
+Sprite	Sprite
+Aquarius	Aquarius
+Canada Dry	Canada Dry
+Dasani	Dasani
+Minute Maid	Minute Maid
+Nestea	Nestea
+Schweppes	Schweppes
+Powerade	Powerade
+Georgia	Georgia
+Acme Light/Diet	Acme Light/Diet
+Acme Zero Sugar	Acme Zero Sugar
+Fanta Zero/diet/light	Fanta Zero/diet/light
+Nestle	Nestle
+Dr Pepper	Dr Pepper
+Fresca	Fresca
+Hi-C	Hi-C
+I Lohas	I Lohas
+Ilohas	Ilohas
+Inca Kola	Inca Kola
+Lift	Lift
+Mello Yello	Mello Yello
+Miami	Miami
+Quatro	Quatro
+Real Gold	Real Gold
+Santa Clara	Santa Clara
+Vitaminwater	Vitaminwater
+Ayataka	Ayataka
+Sokenbicha	Sokenbicha
+Mate Tea of the Sun	Mate Tea of the Sun
+Taiyo no Mate Cha	Taiyo no Mate Cha
+Toreta!	Toreta!
+Tsumugi	Tsumugi
+Victoria	Victoria
+Acme-All Other Brands	Acme-All Other Brands
+All Other Manufacturers - All Brands	All Other Manufacturers - All Brands
+Cadbury-Schweppes - All Other Brands	Cadbury-Schweppes - All Other Brands
+Acme-All Other Schweppes Brands	Acme-All Other Schweppes Brands
+7-Up-Cadbury-Schweppes	7-Up-Cadbury-Schweppes
+Asia Pacific	Asia Pacific
+Europe, Middle East and Africa	Europe, Middle East and Africa
+Latin America	Latin America
+North America	North America
+ASEAN	ASEAN
+Greater China and Korea	Greater China and Korea
+India & Southwest Asia	India & Southwest Asia
+Japan	Japan
+South Pacific	South Pacific
+Central and Eastern Europe	Central and Eastern Europe
+Middle East & North Africa	Middle East & North Africa
+South and East Africa	South and East Africa
+Turkey & CCA	Turkey & CCA
+West Africa	West Africa
+Western Europe	Western Europe
+Global	Global
+Local	Local
+FIFA 2018	FIFA 2018
+Taste the Feeling	Taste the Feeling
+Christmas 2017	Christmas 2017
+Rio Olympics 2016	Rio Olympics 2016
+Ramadan 2017	Ramadan 2017
+100 Years	100 Years
+Acme Side of Life	Acme Side of Life
+Acme Summer 2016	Acme Summer 2016
+Open Happiness	Open Happiness
+COPA 2016	COPA 2016
+EURO 2016	EURO 2016
+Halloween 2016	Halloween 2016
+Ramadan 2016	Ramadan 2016
+Acme Summer 2017	Acme Summer 2017
+Christmas 2016	Christmas 2016
+Copa Acme	Copa Acme
+Yes	Yes
+No	No
+Description	Description
+Create Date	Create Date
+Created By	Created By
+Start Date	Start Date
+End Date	End Date
+Date Created	Date Created
+Date Modified	Date Modified
+Date Published	Date Published
+Date Uploaded	Date Uploaded
+Date Last Modified	Date Last Modified
+Published By	Published By
+Modified By	Modified By
+First Name	First Name
+Last Name	Last Name
+Email Address	Email Address
+Phone Number	Phone Number
+Company	Company
+Department	Department
+Active	Active
+Inactive	Inactive
+Approved	Approved
+Created	Created
+Published	Published
+Rejected	Rejected
+Completed	Completed
+In Progress	In Progress
+Under Evaluation	Under Evaluation
+Under AM Review	Under AM Review
+Under RM Review	Under RM Review
+Asset Details	Asset Details
+Asset ID	Asset ID
+Asset Title (English)	Asset Title (English)
+Asset Type/Execution	Asset Type/Execution
+Asset Status	Asset Status
+Asset Expiry Date	Asset Expiry Date
+Asset Production	Asset Production
+Original Create Date	Original Create Date
+Master or Adaptation?	Master or Adaptation?
+Featured Asset	Featured Asset
+Key Asset	Key Asset
+Related Assets	Related Assets
+Template Details	Template Details
+Template ID	Template ID
+Template Status	Template Status
+Parent Template	Parent Template
+Featured Template	Featured Template
+Related Templates	Related Templates
+Template Component?	Template Component?
+Is resizable?	Is resizable?
+Brand Entity	Brand Entity
+Brand Details	Brand Details
+Brand ID	Brand ID
+Brand Name	Brand Name
+Brand Description	Brand Description
+Brand/Product	Brand/Product
+Hero Image	Hero Image
+Is this asset associated with a brand?	Is this asset associated with a brand?
+Campaign Entity	Campaign Entity
+Campaign Details	Campaign Details
+Campaign ID	Campaign ID
+Campaign Type	Campaign Type
+Campaign Status	Campaign Status
+Related Campaigns	Related Campaigns
+Campaigns	Campaigns
+Rights Profile Entity	Rights Profile Entity
+Rights Profile Details	Rights Profile Details
+Rights Profile ID	Rights Profile ID
+Rights Profile Name	Rights Profile Name
+Rights Profile Title	Rights Profile Title
+Rights Profile Status	Rights Profile Status
+Rights Start Date	Rights Start Date
+Rights End Date	Rights End Date
+Market(s) Covered	Market(s) Covered
+Secured Rights Media	Secured Rights Media
+Year of Copyright	Year of Copyright
+Rights Notes	Rights Notes
+Rights User Alert	Rights User Alert
+Time Type	Time Type
+Fixed Duration	Fixed Duration
+Perpetual Usage	Perpetual Usage
+Triggered Duration	Triggered Duration
+Related Rights Profiles	Related Rights Profiles
+Licensor	Licensor
+Talent	Talent
+Technical	Technical
+File Size	File Size
+Resolution (dpi)	Resolution (dpi)
+Dimensions	Dimensions
+Duration	Duration
+Video	Video
+Ratio	Ratio
+Broadcast Format	Broadcast Format
+Layout	Layout
+Package/Container	Package/Container
+Package/Container Type	Package/Container Type
+Package/Container Material	Package/Container Material
+Package/Container Size	Package/Container Size
+Agency Entity	Agency Entity
+Agency Details	Agency Details
+Agency ID	Agency ID
+Agency Country	Agency Country
+Agency City	Agency City
+Agency Contributors	Agency Contributors
+Job Entity	Job Entity
+Job Details	Job Details
+Job ID	Job ID
+Job Description	Job Description
+Job Status	Job Status
+Legacy Job Number	Legacy Job Number
+Target Completion Date	Target Completion Date
+Acme Lead Associate	Acme Lead Associate
+Related Jobs	Related Jobs
+Adaptations	Adaptations
+Market Entity	Market Entity
+Market Details	Market Details
+Market ID	Market ID
+Market Name	Market Name
+Country Code	Country Code
+Country Entity	Country Entity
+Country Name	Country Name
+Acme Division	Acme Division
+Acme Op Group	Acme Op Group
+Parent Market	Parent Market
+Countries	Countries
+Intended Partner Country	Intended Partner Country
+Intended Business Unit (BU) or Market	Intended Business Unit (BU) or Market
+Intended Customer Commercial Market	Intended Customer Commercial Market
+Funding Business Unit (BU) or Market	Funding Business Unit (BU) or Market
+Bottling Partner Entity	Bottling Partner Entity
+Bottling Partner Details	Bottling Partner Details
+Bottling Partner ID	Bottling Partner ID
+Bottling Partner Name	Bottling Partner Name
+Bottling Partner States/Territories	Bottling Partner States/Territories
+Bottling Partner Contact	Bottling Partner Contact
+Producing Bottling Partner	Producing Bottling Partner
+Customer Entity	Customer Entity
+Customer Details	Customer Details
+Customer ID	Customer ID
+Customer Name	Customer Name
+Customer Contact	Customer Contact
+Customer Restriction	Customer Restriction
+Intended Customer	Intended Customer
+Printer Entity	Printer Entity
+Printer Details	Printer Details
+Printer ID	Printer ID
+Printer Name	Printer Name
+Printer Market	Printer Market
+Printer States/Territories	Printer States/Territories
+Printer Address	Printer Address
+Printer Contact	Printer Contact
+Printer Manager	Printer Manager
+Related Printer	Related Printer
+Contract Entity	Contract Entity
+Contract Details	Contract Details
+Contract ID	Contract ID
+Contract Name	Contract Name
+Related Contracts	Related Contracts
+Amendment?	Amendment?
+Amendment Cost (in USD)	Amendment Cost (in USD)
+Corporate Memorabilia?	Corporate Memorabilia?
+Library of Congress in Perpetuity?	Library of Congress in Perpetuity?
+Licensor Entity	Licensor Entity
+Licensor Details	Licensor Details
+Licensor ID	Licensor ID
+Licensor Company Name	Licensor Company Name
+Licensor Company Website	Licensor Company Website
+Licensor Address	Licensor Address
+Talent Entity	Talent Entity
+Talent Details	Talent Details
+Talent ID	Talent ID
+Talent Name	Talent Name
+Talent Direct Contact Info	Talent Direct Contact Info
+Representing Agency Name	Representing Agency Name
+Agency Website	Agency Website
+Agency Contact	Agency Contact
+Search	Search
+Admin	Admin
+Source	Source
+Source Name	Source Name
+Source ID	Source ID
+Source Upload Date	Source Upload Date
+Source Uploader	Source Uploader
+Contacts	Contacts
+Notes	Notes
+Titling	Titling
+Title (English)	Title (English)
+Employee Type	Employee Type
+Review Status	Review Status
+Publication Status	Publication Status
+Publication	Publication
+Document Type	Document Type
+Expiry Date	Expiry Date
+Descriptive	Descriptive
+Related Content	Related Content
+Related Guidelines/Toolkits	Related Guidelines/Toolkits
+Related Customizable Templates	Related Customizable Templates
+Customizable Template Entity	Customizable Template Entity
+Cost Avoidance Category	Cost Avoidance Category
+Email Suffix	Email Suffix
+Heritage Comm	Heritage Comm
+Company Platform	Company Platform
+Food Tags	Food Tags
+Track Name	Track Name
+BAM Review Status	BAM Review Status
+BAM Comments	BAM Comments
+RM Review Status	RM Review Status
+RM Comments	RM Comments
+Job Details and Related Assets	Job Details and Related Assets
+ISSCOM Code	ISSCOM Code
+ISSCOM Type	ISSCOM Type
+Trademark	Trademark
+Manufacturer	Manufacturer
+

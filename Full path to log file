@@ -1,0 +1,81 @@
+2026-06-23T12:04:29.176Z: Using Bearer auth with PAT
+2026-06-23T12:04:29.178Z: Making request to: https://jira.corp.adobe.com/rest/api/2/search?jql=text+%7E+%22link+share%22+AND+text+%7E+%22vulnerability%22+AND+text+%7E+%22content+hub%22+ORDER+BY+created+DESC&maxResults=20&fields=summary%2Cstatus%2Cpriority%2Cassignee%2Creporter%2Ccreated%2Cupdated%2Cdescription%2Cissuetype%2Clabels%2Ccomponents
+2026-06-23T12:04:29.178Z: Method: GET
+2026-06-23T12:04:29.179Z: Headers: {
+  "Content-Type": "application/json",
+  "Accept": "application/json",
+  "X-Atlassian-Token": "no-check",
+  "User-Agent": "modelcontextprotocol/servers/jira/v0.1.0 Node.js/20.9.0 (darwin; arm64)",
+  "Authorization": "[REDACTED]"
+}
+2026-06-23T12:04:30.360Z: Response status: 401 
+2026-06-23T12:04:30.361Z: Response headers: {
+  "cache-control": "no-transform",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-length": "103",
+  "content-security-policy": "sandbox",
+  "content-type": "application/json;charset=UTF-8",
+  "date": "Tue, 23 Jun 2026 12:04:30 GMT",
+  "keep-alive": "timeout=20",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "server": "Application Server",
+  "server-timing": "threadId;desc=4607",
+  "set-cookie": "JiraDC-BigIP=1625436682.57646.0000; expires=Tue, 23-Jun-2026 17:04:30 GMT; path=/; Httponly; Secure",
+  "strict-transport-security": "max-age=31536000",
+  "vary": "User-Agent",
+  "www-authenticate": "OAuth realm=\"https%3A%2F%2Fjira.corp.adobe.com\"",
+  "x-anodeid": "or1dra096.corp.adobe.com",
+  "x-arequestid": "724x3266753x15",
+  "x-ausername": "anonymous",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "SAMEORIGIN",
+  "x-xss-protection": "1; mode=block"
+}
+2026-06-23T12:04:30.364Z: Response body: {
+  "message": "Client must be authenticated to access this resource.",
+  "status-code": 401,
+  "sub-code": -1
+}
+2026-06-23T12:04:30.365Z: Request failed: Client must be authenticated to access this resource.
+2026-06-23T12:05:35.616Z: Verifying Jira authentication...
+2026-06-23T12:05:35.617Z: Using Bearer auth with PAT
+2026-06-23T12:05:35.617Z: Making request to: https://jira.corp.adobe.com/rest/api/2/myself
+2026-06-23T12:05:35.618Z: Method: GET
+2026-06-23T12:05:35.618Z: Headers: {
+  "Content-Type": "application/json",
+  "Accept": "application/json",
+  "X-Atlassian-Token": "no-check",
+  "User-Agent": "modelcontextprotocol/servers/jira/v0.1.0 Node.js/20.9.0 (darwin; arm64)",
+  "Authorization": "[REDACTED]"
+}
+2026-06-23T12:05:36.485Z: Response status: 401 
+2026-06-23T12:05:36.486Z: Response headers: {
+  "cache-control": "no-transform",
+  "connection": "keep-alive",
+  "content-encoding": "gzip",
+  "content-length": "103",
+  "content-security-policy": "sandbox",
+  "content-type": "application/json;charset=UTF-8",
+  "date": "Tue, 23 Jun 2026 12:05:36 GMT",
+  "keep-alive": "timeout=20",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "server": "Application Server",
+  "server-timing": "threadId;desc=12920",
+  "set-cookie": "JiraDC-BigIP=1625436682.57646.0000; expires=Tue, 23-Jun-2026 17:05:36 GMT; path=/; Httponly; Secure",
+  "strict-transport-security": "max-age=31536000",
+  "vary": "User-Agent",
+  "www-authenticate": "OAuth realm=\"https%3A%2F%2Fjira.corp.adobe.com\"",
+  "x-anodeid": "or1dra096.corp.adobe.com",
+  "x-arequestid": "725x3269914x12",
+  "x-ausername": "anonymous",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "SAMEORIGIN",
+  "x-xss-protection": "1; mode=block"
+}
+2026-06-23T12:05:36.486Z: Response body: {
+  "message": "Client must be authenticated to access this resource.",
+  "status-code": 401,
+  "sub-code": -1
+}
+2026-06-23T12:05:36.487Z: Request failed: Client must be authenticated to access this resource.

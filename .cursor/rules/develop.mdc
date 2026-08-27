@@ -1,0 +1,18 @@
+---
+description: Development stack
+globs:
+alwaysApply: true
+---
+
+The full stack inside this monorepo includes:
+
+- Cloudflare worker inside the `cloudflare` folder
+- Adobe Experience Manager EDS / Helix (https://aem.live) in the root folder, notably folders `scripts`, `styles`, `blocks`.
+- The EDS content is not in this git repositoriy, but authored in DA.
+
+To run and debug the full stack locally:
+
+- The local development stack can be run using `npm run dev`. Stop with `Ctrl+C`.
+- The server will be available at <http://localhost:8787>.
+- It uses a cookie called `Session` for authentication. Ask the developer for the cookie from their browser when making test requests from Cursor.
+- More documentation in `README.md` under `Local development`.

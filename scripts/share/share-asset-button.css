@@ -1,0 +1,38 @@
+.share-asset-button {
+  background-color: transparent;
+  height: 34px;
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  border: 1px solid #9a9a9a;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--icon-color, var(--dark-color));
+}
+
+.share-asset-button .icon-mask {
+  background-color: currentcolor;
+}
+
+.share-asset-button:hover:not(:disabled),
+.share-asset-button:focus-visible:not(:disabled) {
+  background-color: transparent;
+  border-color: var(--primary-color);
+  color: var(--icon-color-active, var(--primary-color));
+}
+
+.share-asset-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.share-asset-tooltip {
+  display: flex;
+}

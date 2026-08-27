@@ -1,0 +1,32 @@
+{
+  "name": "@spark-eds/cloudflare-worker",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "predev": "./scripts/local-secret-store.sh && ./scripts/local-d1-setup.sh",
+    "dev": "wrangler dev",
+    "deploy": "./scripts/deploy.sh",
+    "tail": "wrangler tail",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --fix",
+    "lint-ci": "biome ci --reporter=github || biome lint",
+    "format": "biome format",
+    "format:fix": "biome format --fix"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.0",
+    "@cloudflare/vitest-pool-workers": "^0.12.8",
+    "@vitest/ui": "^3.1.4",
+    "vitest": "^3.1.4",
+    "wrangler": "^4.38.0"
+  },
+  "dependencies": {
+    "escape-html": "^1.0.3",
+    "itty-router": "^5.0.22",
+    "jose": "^6.0.13"
+  }
+}

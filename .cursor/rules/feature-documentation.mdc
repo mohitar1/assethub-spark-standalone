@@ -1,0 +1,43 @@
+# Feature Documentation Standards
+
+When documenting features in this project, always follow the guidelines in `docs/features/README.md`.
+
+## Structure
+
+Features are documented in `docs/features/{feature-name}/` with:
+- **README.md** (required) - Main feature documentation
+- **requirements.md** (optional) - Business requirements, user stories, acceptance criteria
+- **api.md** (required if APIs exist) - Complete API reference documentation
+- **demo-script.md** (optional) - Demo walkthrough for stakeholders
+- **images/** (as needed) - Screenshots, diagrams, architecture (NO videos - link to SharePoint)
+- **examples/** (optional) - Code examples, sample data
+
+## Key Principles
+
+1. **APIs get their own file**: If feature has backend endpoints, create `api.md` - don't bloat README
+2. **Requirements documented early**: Create `requirements.md` before/during development
+3. **Demos are happy path**: Demo scripts focus on showcasing, not comprehensive testing
+4. **External links for large files**: Videos → SharePoint, Architecture → Lucidchart/Miro
+5. **Document what applies**: If feature stores data, has APIs, sends notifications - document it!
+
+## When Creating Feature Docs
+
+1. Ask: Does feature have APIs? Data storage? UI? Notifications?
+2. Create appropriate files (api.md if APIs, requirements.md if known)
+3. Use templates from `docs/features/README.md`
+4. Follow naming: kebab-case folders, README.md for main file
+5. Link related docs in README header
+
+## What NOT to Do
+
+- ❌ Don't put API docs in README - use separate api.md
+- ❌ Don't commit video files - link to SharePoint
+- ❌ Don't create architecture/ folder - use images/ for diagrams or link to Lucidchart
+- ❌ Don't create demos/ folder - put demo-script.md at root level
+- ❌ Don't skip documenting data storage, APIs, or notifications
+
+## Reference Files
+
+- Guidelines: `docs/features/README.md`
+- Example: `docs/features/rights-requests/`
+- Command: Use `/document-feature` to get guided help

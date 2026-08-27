@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+# check we don't add internal artifactory dependencies to the repo
+if grep "artifactory" **/package-lock.json; then
+  echo
+  echo "Error: Adobe internal Artifactory detected in a package-lock.json ^^^^"
+  echo "       Please use public npm as your main registry (https://registry.npmjs.org/)"
+  echo "       and avoid adding Adobe internal dependencies to the repo."
+  exit 1
+fi
+
+# Disable react build - no longer used
+#
+# STAGED_FILES=$(git diff-index --cached --name-only HEAD)
+# if echo "$STAGED_FILES" | grep -q "^spark-react/"; then
+#   echo "Staged files include changes to spark-react/*. Running react build and adding output to git commit..."
+#   cd spark-react && npm run build-and-copy:spark-react
+#   git add ../tools/assets-browser/
+# fi

@@ -1,0 +1,328 @@
+Key	Text
+assetTypeImage	画像
+assetTypeVideo	ビデオ
+assetTypeAudio	オーディオ
+assetTypeDocument	ドキュメント
+rightsStatusAuthorized	承認済み
+rightsStatusExtensionRequired	使用権延長必要
+rightsStatusRightsFree	権利フリー
+statusActive	アクティブ
+statusInactive	非アクティブ
+statusApproved	承認済み
+statusRejected	拒否済み
+statusPending	保留中
+statusCompleted	完了
+statusInProgress	進行中
+statusExpired	失効済み
+statusPublished	発行済み
+masterOrAdaptationMaster	マスター
+masterOrAdaptationAdaptation	適応
+Brand	ブランド
+Campaign	キャンペーン
+Country	国
+Asset Type	資産の種別
+Agency	代理店
+Agency Name	代理店名
+Campaign Name	キャンペーン名
+Campaign Brand	キャンペーンブランド
+Beverage Type	飲料タイプ
+Theme / Initiative	テーマ／イニシアチブ
+Keywords	キーワード
+Intended Use	使用目的
+Intended Market	ターゲット市場
+Intended Channel	ターゲットチャネル
+Market	マーケット
+Language	言語
+Status	ステータス
+Tags	タグ
+Type	タイプ
+Job	ジョブ
+Template	テンプレート
+Acme	Acme
+Fanta	ファンタ
+Sprite	スプライト
+Aquarius	アクエリアス
+Canada Dry	カナダドライ
+Dasani	ダサニ
+Minute Maid	ミニッツメイド
+Nestea	ネスティー
+Schweppes	シュウェップス
+Powerade	パワーエイド
+Georgia	ジョージア
+Acme Light/Diet	Acme ライト／ダイエット
+Acme Zero Sugar	Acme ゼロ
+Fanta Zero/diet/light	ファンタ ゼロ／ダイエット／ライト
+Nestle	ネスレ
+Dr Pepper	ドクターペッパー
+Fresca	フレスカ
+Hi-C	ハイシー
+I Lohas	い・ろ・は・す
+Ilohas	い・ろ・は・す
+Inca Kola	インカ・コーラ
+Lift	リフト
+Mello Yello	メローイエロー
+Miami	マイアミ
+Quatro	クワトロ
+Real Gold	リアルゴールド
+Santa Clara	サンタクララ
+Vitaminwater	ビタミンウォーター
+Ayataka	綾鷹
+Sokenbicha	爽健美茶
+Mate Tea of the Sun	太陽のマテ茶
+Taiyo no Mate Cha	太陽のマテ茶
+Toreta!	Toreta!（とれた）
+Tsumugi	つむぎ
+Victoria	ビクトリア
+Acme-All Other Brands	Acme の他のすべてのブランド
+All Other Manufacturers - All Brands	他のすべての製造者 - すべてのブランド
+Cadbury-Schweppes - All Other Brands	キャドバリー・シュウェップス - 他のすべてのブランド
+Acme-All Other Schweppes Brands	Acme の他のすべてのシュウェップスブランド
+7-Up-Cadbury-Schweppes	7-Up：キャドバリー・シュウェップス
+Asia Pacific	アジア太平洋
+Europe, Middle East and Africa	ヨーロッパ、中東、アフリカ
+Latin America	ラテンアメリカ
+North America	北アメリカ
+ASEAN	ASEAN
+Greater China and Korea	中国、韓国
+India & Southwest Asia	インド、南西アジア
+Japan	日本
+South Pacific	南太平洋
+Central and Eastern Europe	中央ヨーロッパ、東ヨーロッパ
+Middle East & North Africa	中東、北アフリカ
+South and East Africa	南アフリカ、東アフリカ
+Turkey & CCA	トルコ、CCA
+West Africa	西アフリカ
+Western Europe	西ヨーロッパ
+Global	グローバル
+Local	ローカル
+FIFA 2018	2018 年 FIFA
+Taste the Feeling	Taste the Feeling
+Christmas 2017	2017 年クリスマス
+Rio Olympics 2016	2016 年リオオリンピック
+Ramadan 2017	2017 年ラマダン
+100 Years	100 周年
+Acme Side of Life	Acme のきいた人生を
+Acme Summer 2016	Acme 2016 年夏
+Open Happiness	ハッピーをあけよう。
+COPA 2016	2016 年 COPA
+EURO 2016	2016 年 EURO
+Halloween 2016	2016 年ハロウィーン
+Ramadan 2016	2016 年ラマダン
+Acme Summer 2017	Acme 2017 年夏
+Christmas 2016	2016 年クリスマス
+Copa Acme	コパ Acme
+Yes	はい
+No	いいえ
+Description	説明
+Create Date	作成日
+Created By	作成者
+Start Date	開始日
+End Date	終了日
+Date Created	作成日
+Date Modified	変更日
+Date Published	発行日
+Date Uploaded	アップロード日
+Date Last Modified	最終編集日
+Published By	発行者
+Modified By	編集者
+First Name	名
+Last Name	姓
+Email Address	メールアドレス
+Phone Number	電話番号
+Company	会社名
+Department	部署
+Active	アクティブ
+Inactive	非アクティブ
+Approved	承認済み
+Created	作成済み
+Published	発行済み
+Rejected	拒否済み
+Completed	完了
+In Progress	進行中
+Under Evaluation	評価中
+Under AM Review	AM レビュー中
+Under RM Review	RM レビュー中
+Asset Details	資産の詳細
+Asset ID	資産 ID
+Asset Title (English)	資産名（英語）
+Asset Type/Execution	資産の種別／活用
+Asset Status	資産のステータス
+Asset Expiry Date	資産の有効期限
+Asset Production	資産の生産
+Original Create Date	元の作成日
+Master or Adaptation?	マスターか、適応か？
+Featured Asset	主な資産
+Key Asset	重要な資産
+Related Assets	関連資産
+Template Details	テンプレート詳細
+Template ID	テンプレート ID
+Template Status	テンプレートのステータス
+Parent Template	親テンプレート
+Featured Template	主なテンプレート
+Related Templates	関連テンプレート
+Template Component?	テンプレートのコンポーネントか？
+Is resizable?	サイズ変更可能か？
+Brand Entity	ブランドエンティティ
+Brand Details	ブランド詳細
+Brand ID	ブランド ID
+Brand Name	ブランド名
+Brand Description	ブランドの説明
+Brand/Product	ブランド／製品
+Hero Image	ヒーローイメージ
+Is this asset associated with a brand?	この資産はブランドに関連付けられているか？
+Campaign Entity	キャンペーンエンティティ
+Campaign Details	キャンペーン詳細
+Campaign ID	キャンペーン ID
+Campaign Type	キャンペーンタイプ
+Campaign Status	キャンペーンのステータス
+Related Campaigns	関連キャンペーン
+Campaigns	キャンペーン
+Rights Profile Entity	権利プロファイルエンティティ
+Rights Profile Details	権利プロファイル詳細
+Rights Profile ID	権利プロファイル ID
+Rights Profile Name	権利プロファイル名
+Rights Profile Title	権利プロファイルタイトル
+Rights Profile Status	権利プロファイルのステータス
+Rights Start Date	権利開始日
+Rights End Date	権利終了日
+Market(s) Covered	対応マーケット
+Secured Rights Media	保護された権利メディア
+Year of Copyright	著作権発行年号
+Rights Notes	権利覚書
+Rights User Alert	権利ユーザーアラート
+Time Type	時間タイプ
+Fixed Duration	固定期間
+Perpetual Usage	永続使用
+Triggered Duration	トリガー期間
+Related Rights Profiles	関連する権利プロファイル
+Licensor	ライセンサー
+Talent	タレント
+Technical	テクニカル
+File Size	ファイルサイズ
+Resolution (dpi)	解像度（dpi）
+Dimensions	寸法
+Duration	期間
+Video	ビデオ
+Ratio	比率
+Broadcast Format	ブロードキャスト形式
+Layout	レイアウト
+Package/Container	パッケージ／コンテナ
+Package/Container Type	パッケージ／コンテナのタイプ
+Package/Container Material	パッケージ／コンテナの材質
+Package/Container Size	パッケージ／コンテナのサイズ
+Agency Entity	代理店エンティティ
+Agency Details	代理店詳細
+Agency ID	代理店 ID
+Agency Country	代理店の国
+Agency City	代理店の市
+Agency Contributors	代理店の貢献者
+Job Entity	ジョブエンティティ
+Job Details	ジョブ詳細
+Job ID	ジョブ ID
+Job Description	ジョブの説明
+Job Status	ジョブのステータス
+Legacy Job Number	レガシージョブ番号
+Target Completion Date	目標完了日
+Acme Lead Associate	Acme リードアソシエイト
+Related Jobs	関連ジョブ
+Adaptations	適応
+Market Entity	マーケットエンティティ
+Market Details	マーケット詳細
+Market ID	マーケット ID
+Market Name	マーケット名
+Country Code	国コード
+Country Entity	国エンティティ
+Country Name	国名
+Acme Division	Acme 部門
+Acme Op Group	Acme Op グループ
+Parent Market	親マーケット
+Countries	国
+Intended Partner Country	ターゲットパートナーの国
+Intended Business Unit (BU) or Market	ターゲットの事業単位（BU）またはマーケット
+Intended Customer Commercial Market	ターゲット顧客の商業マーケット
+Funding Business Unit (BU) or Market	ファンディングの事業単位（BU）またはマーケット
+Bottling Partner Entity	ボトリングパートナーエンティティ
+Bottling Partner Details	ボトリングパートナー詳細
+Bottling Partner ID	ボトリングパートナー ID
+Bottling Partner Name	ボトリングパートナー名
+Bottling Partner States/Territories	ボトリングパートナーの国／区域
+Bottling Partner Contact	ボトリングパートナー連絡先
+Producing Bottling Partner	ボトリングパートナーの創出
+Customer Entity	顧客エンティティ
+Customer Details	顧客詳細
+Customer ID	顧客 ID
+Customer Name	顧客名
+Customer Contact	顧客連絡先
+Customer Restriction	顧客の制限事項
+Intended Customer	ターゲット顧客
+Printer Entity	印刷会社エンティティ
+Printer Details	印刷会社詳細
+Printer ID	印刷会社 ID
+Printer Name	印刷会社名
+Printer Market	印刷会社マーケット
+Printer States/Territories	印刷会社の国／領域
+Printer Address	印刷会社の住所
+Printer Contact	印刷会社連絡先
+Printer Manager	印刷会社責任者
+Related Printer	関連印刷業者
+Contract Entity	請負会社エンティティ
+Contract Details	請負会社詳細
+Contract ID	請負会社 ID
+Contract Name	請負会社名
+Related Contracts	関連契約
+Amendment?	修正するか？
+Amendment Cost (in USD)	修正コスト（USD）
+Corporate Memorabilia?	会社の記念品？
+Library of Congress in Perpetuity?	米国議会図書館に永久収蔵？
+Licensor Entity	ライセンサーエンティティ
+Licensor Details	ライセンサー詳細
+Licensor ID	ライセンサー ID
+Licensor Company Name	ライセンサー会社名
+Licensor Company Website	ライセンサー会社の Web サイト
+Licensor Address	ライセンサー住所
+Talent Entity	タレントエンティティ
+Talent Details	タレント詳細
+Talent ID	タレント ID
+Talent Name	タレント名
+Talent Direct Contact Info	タレント直接連絡先情報
+Representing Agency Name	代表代理店名
+Agency Website	代理店の Web サイト
+Agency Contact	代理店連絡先
+Search	検索
+Admin	管理
+Source	ソース
+Source Name	ソース名
+Source ID	ソース ID
+Source Upload Date	ソースのアップロード日
+Source Uploader	ソースアップローダー
+Contacts	連絡先
+Notes	メモ
+Titling	タイトル
+Title (English)	タイトル（英語）
+Employee Type	雇用形態
+Review Status	レビューのステータス
+Publication Status	発行のステータス
+Publication	発行
+Document Type	ドキュメントタイプ
+Expiry Date	有効期限
+Descriptive	解説
+Related Content	関連コンテンツ
+Related Guidelines/Toolkits	関連ガイドライン／ツールキット
+Related Customizable Templates	カスタマイズ可能な関連テンプレート
+Customizable Template Entity	カスタマイズ可能なテンプレートエンティティ
+Cost Avoidance Category	コスト回避カテゴリー
+Email Suffix	メール接尾部
+Heritage Comm	ヘリテージコミュニティ
+Company Platform	企業プラットフォーム
+Food Tags	食品タグ
+Track Name	追跡名
+BAM Review Status	BAM レビューのステータス
+BAM Comments	BAM コメント
+RM Review Status	RM レビューのステータス
+RM Comments	RM コメント
+Job Details and Related Assets	ジョブ詳細と関連資産
+ISSCOM Code	ISSCOM コード
+ISSCOM Type	ISSCOM タイプ
+Trademark	商標
+Manufacturer	製造者
+

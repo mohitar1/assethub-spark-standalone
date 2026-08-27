@@ -1,0 +1,17 @@
+/* Main App Layout Styles */
+
+/* Main content area */
+.search-results .main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Responsive layout */
+@media (width >= 768px) {
+  .search-results .main-content {
+    flex-direction: column;
+  }
+}

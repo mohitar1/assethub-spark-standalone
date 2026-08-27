@@ -1,0 +1,102 @@
+/* Inherit all card/facets/gallery styles from search-results.css (loaded at runtime) */
+
+.collection-details-wrapper {
+  padding: 0;
+}
+
+/* Make the inner wrapper fill the section like search-results does */
+main > .section > div:has(.collection-details-inner) {
+  max-width: 100%;
+  padding: 0;
+}
+
+main > .section:has(.collection-details-inner) {
+  padding: 0;
+  margin: 0;
+}
+
+.collection-details-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: white;
+  padding: 1rem 1.5rem;
+  box-sizing: border-box;
+}
+
+/* Header row: breadcrumb on the left, action bar on the right */
+.cd-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.cd-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Breadcrumb */
+.cd-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-02);
+  color: #888;
+}
+
+.cd-breadcrumb a {
+  color: #888;
+  text-decoration: none;
+}
+
+.cd-breadcrumb a:hover {
+  color: #1e1e1e;
+  text-decoration: underline;
+}
+
+.cd-breadcrumb-sep {
+  color: #bbb;
+}
+
+.cd-breadcrumb-name {
+  color: #1e1e1e;
+  font-weight: 600;
+}
+
+/* Error / access-denied state — matches .search-results .no-images card */
+.cd-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  margin-top: 24px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
+  border-radius: 8px;
+  font-size: var(--font-size-02);
+  color: var(--text-color, #333);
+}
+
+.cd-error p {
+  margin: 0.25rem 0;
+  text-align: center;
+}
+
+.cd-error p:first-child {
+  font-weight: 600;
+}
+
+.cd-error a:any-link {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.cd-error a:hover {
+  color: var(--color-action-main-hover);
+}

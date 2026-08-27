@@ -1,0 +1,31 @@
+title Priority Modal Sequence (Non-Notification Pages)
+
+Browser->Scripts_JS: loadLazy()
+Scripts_JS->Priority_Modal: checkAndShowPriorityMessages()
+Priority_Modal->Notifications_Client: loadBlendedMessages()
+Notifications_Client->Messages_API: GET /api/messages?locale=<currentLocale>
+Messages_API->Notifications_API: listNotifications()
+Notifications_API->MESSAGES_KV: list + get user notifications
+Notifications_API->EDS_Sheet: fetch /{locale}/system-notifications
+Notifications_API-->Notifications_Client: merged messages[]
+Notifications_Client-->Priority_Modal: messages[]
+Priority_Modal->Priority_Modal: cleanup local state + update badge
+Priority_Modal->Priority_Modal: filter important unread
+
+alt page is /my-dam/my-notifications
+  Priority_Modal-->Browser: skip popup flow
+else multiple unread alerts (>1)
+  Priority_Modal->Global_Modal: show generic alert summary
+  Global_Modal-->User: show Dismiss + View Notifications CTA
+else single alert or non-alert priority messages
+  loop for each priority message
+    Priority_Modal->Global_Modal: show message modal
+    User->Global_Modal: acknowledge
+    Priority_Modal->Notifications_Client: markAsRead(message)
+    alt owner == SYSTEM
+      Notifications_Client->LocalStorage: add read id
+    else owner != SYSTEM
+      Notifications_Client->Messages_API: POST /api/messages/:id {status: "read"}
+    end
+  end
+end

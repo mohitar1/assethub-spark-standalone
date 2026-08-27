@@ -1,0 +1,304 @@
+/* Asset Preview Modal Styles - Aligned with React */
+
+.asset-preview-modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgb(0 0 0 / 80%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* Card preview modal: generous padding and rounded corners on all four sides */
+.asset-preview-modal-inner {
+    padding: 32px;
+    background: white;
+    border-radius: 12px;
+    max-width: 35%;
+    max-height: 80vh;
+    overflow: hidden auto;
+    position: relative;
+    box-shadow: 0 20px 40px rgb(0 0 0 / 30%);
+
+}
+
+@media (width <= 1400px) {
+  .asset-preview-modal-inner {
+    max-width: 50%;
+  }
+}
+
+.asset-preview-modal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+
+.asset-preview-modal .modal-header {
+    padding-right: 24px;
+}
+
+.asset-preview-modal .preview-tags {
+    margin-bottom: 10px;
+}
+
+.asset-preview-modal-container .modal-header .modal-title {
+  font-size: var(--font-size-02);
+  padding-top: 0
+}
+
+.asset-preview-modal .preview-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    overflow-wrap: break-word;
+}
+
+.asset-preview-modal .preview-tag.custom-tag {
+    background: #fff0da;
+    color: #a46801;
+    font-family: var(--heading-font-family, sans-serif);
+    font-size: var(--font-size-00);
+    font-weight: 700;
+
+    &::after {
+        content: '';
+        font-family: FontAwesome, sans-serif;
+        display: none;
+        margin-left: 4px;
+    }
+
+    &.empty {
+        visibility: hidden;
+    }
+
+    &:hover {
+        text-decoration: underline;
+
+        &::after {
+            content: "\f08e";
+            font-family: FontAwesome, sans-serif;
+            display: inline-block;
+            margin-left: 4px;
+        }
+    }
+}
+
+/* Modal title styling handled by global .portal-modal .modal-title in search-results.css */
+
+/* Background box for image - defined container with padding where the preview image is placed (square corners) */
+.asset-preview-modal .modal-image-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 380px;
+    max-height: 50vh;
+    overflow: hidden;
+    background-color: var(--light-color);
+    border: 2px solid #e0e0e0;
+    border-radius: 0;
+    box-sizing: border-box;
+}
+
+.asset-preview-modal .modal-image-container picture {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 100%;
+}
+
+.asset-preview-modal .modal-image-container .modal-image {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    max-height: 50vh;
+    object-fit: contain;
+    border-radius: 0;
+}
+
+/* PDF Preview Magnifying Glass Button */
+.asset-preview-modal .pdf-preview-magnify-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    background-color: rgb(74 74 74 / 90%);
+    border: 1px solid rgb(0 0 0 / 10%);
+    border-radius: 6px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
+    padding: 0;
+}
+
+.asset-preview-modal .pdf-preview-magnify-button:hover {
+    opacity: 1;
+    background-color: var(--primary-color);
+}
+
+.asset-preview-modal .pdf-preview-magnify-button img {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1);
+}
+
+.asset-preview-modal .preview-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-auto-rows: auto;
+    gap: 20px;
+}
+
+.asset-preview-modal .preview-modal-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+}
+
+.asset-preview-modal .preview-metadata-label {
+    color: #707070;
+    font-size: var(--font-size-01);
+    font-weight: 400;
+    line-height: var(--line-height-01);
+    letter-spacing: 0.8px;
+    font-family: var(--body-font-family, sans-serif);
+    text-transform: uppercase;
+    overflow-wrap: break-word;
+}
+
+.asset-preview-modal .preview-metadata-value {
+    color: #0e202e;
+    font-size: var(--font-size-01);
+    font-weight: 700;
+    line-height: var(--line-height-01);
+    font-family: var(--heading-font-family, sans-serif);
+    overflow-wrap: break-word;
+}
+
+.asset-preview-modal .product-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-top: 20px;
+    border-top: 1px solid #e1e1e1;
+}
+
+.asset-preview-modal .left-buttons-wrapper,
+.asset-preview-modal .right-buttons-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+}
+
+.asset-preview-modal .left-buttons-wrapper button,
+.asset-preview-modal .right-buttons-wrapper button {
+    margin: 0;
+}
+
+.asset-preview-modal .modal-close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgb(0 0 0 / 70%);
+    border-radius: 50%;
+    font-size: var(--font-size-02);
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    color: white;
+    transition: background-color 0.2s;
+    padding: 0;
+    margin: 0;
+}
+
+.asset-preview-modal .modal-close-button:hover {
+    background: rgb(0 0 0 / 90%);
+}
+
+/* Responsive Modal */
+@media (width <= 768px) {
+    .asset-preview-modal .asset-preview-modal-inner {
+        margin: 10px;
+        max-height: 95vh;
+    }
+
+    .asset-preview-modal .preview-modal-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 15px;
+    }
+}
+
+/* PDF Modal Styles */
+.pdf-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgb(0 0 0 / 95%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    box-sizing: border-box;
+    pointer-events: auto;
+}
+
+.pdf-modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 1000px;
+    height: 100%;
+    max-height: 800px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgb(0 0 0 / 30%);
+    overflow: hidden;
+}
+
+/* Responsive - Mobile */
+@media (width <= 768px) {
+    .pdf-modal-overlay {
+        padding: 0;
+    }
+
+    .pdf-modal-content {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+}
+
+/* Responsive - Tablet */
+@media (width >= 769px) and (width <= 1024px) {
+    .pdf-modal-content {
+        width: 90%;
+        height: 90%;
+        max-width: 900px;
+        max-height: 750px;
+    }
+}

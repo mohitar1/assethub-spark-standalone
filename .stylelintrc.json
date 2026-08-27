@@ -1,0 +1,11 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "no-descending-specificity": [
+      true,
+      {
+        "severity": "warning"
+      }
+    ]
+  }
+}

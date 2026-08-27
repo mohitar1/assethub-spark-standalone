@@ -1,0 +1,165 @@
+/* FAQ Block - Combines Tabs and Accordion */
+
+/* Tab styling */
+.faq .tabs-list {
+    display: flex;
+    gap: 8px;
+    max-width: 100%;
+    font-size: var(--body-font-size-xs);
+    border-bottom: 2px solid var(--primary-color);
+    background-color: var(--background-color);
+    margin: 16px 0;
+}
+
+@media (width >= 600px) {
+    .faq .tabs-list {
+        font-size: var(--body-font-size-s);
+    }
+}
+
+@media (width >= 900px) {
+    .faq .tabs-list {
+        font-size: var(--body-font-size-m);
+    }
+}
+
+.faq .tabs-list button {
+    flex: 0 0 max-content;
+    margin: 0;
+    border: 1px solid #e4e4e4;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 12px 20px;
+    background-color: #efefef;
+    color: #333;
+    font-weight: normal;
+    line-height: 1.2;
+    text-align: center;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+.faq .tabs-list button:last-child {
+    border-right: none;
+}
+
+.faq .tabs-list button p {
+    margin: 0;
+    font-family: var(--heading-font-family);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.faq .tabs-list button[aria-selected='true'] {
+    border: 1px solid var(--primary-color);
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    margin-bottom: -2px;
+}
+
+.faq .tabs-list button:hover:not([aria-selected='true']) {
+    background-color: #e4e4e4;
+}
+
+.faq .tabs-panel {
+    margin-top: 0;
+    padding: 16px;
+    border: none;
+}
+
+.faq .tabs-panel[aria-hidden='true'] {
+    display: none;
+}
+
+/* Expand All Toggle */
+.faq .expand-all-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+.faq .expand-all-label {
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: normal;
+}
+
+/* Toggle uses shared .toggle-switch-btn from styles.css */
+
+/* Accordion styling */
+.faq .accordion details {
+    border: none;
+    border-bottom: 1px solid #e4e4e4;
+    margin: 0;
+    font-family: var(--heading-font-family);
+}
+
+.faq .accordion details summary {
+    position: relative;
+    padding: 20px 30px 20px 0;
+    cursor: pointer;
+    list-style: none;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--text-color);
+}
+
+.faq .accordion details summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Arrow indicators */
+.faq .accordion details summary::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 21px;
+    height: 20px;
+    background-image: url('/icons/arrow-down-nav-menu.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    filter: brightness(0) saturate(100%) invert(12%) sepia(0%) saturate(0%) hue-rotate(347deg) brightness(98%) contrast(89%);
+    transition: all 0.2s ease;
+}
+
+.faq .accordion details[open] summary::after {
+    background-image: url('/icons/up-arrow-red-icon.svg');
+    filter: none;
+}
+
+.faq .accordion details .accordion-item-body {
+    padding: 0 0 24px;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease-out;
+    overflow: hidden;
+}
+
+.faq .accordion details[open] .accordion-item-body {
+    grid-template-rows: 1fr;
+}
+
+.faq .accordion details .accordion-item-body > * {
+    min-height: 0;
+}
+
+.faq .accordion details .accordion-item-body p {
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.faq .accordion details .accordion-item-body a {
+    color: var(--text-color);
+    text-decoration: underline;
+}
+
+.faq .accordion details .accordion-item-body a:hover {
+    color: var(--primary-color);
+}

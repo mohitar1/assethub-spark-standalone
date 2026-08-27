@@ -1,0 +1,368 @@
+.cards > ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columns */
+  grid-gap: 24px;
+}
+
+.cards > ul > li {
+  background-color: var(--background-color);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+  box-shadow: var(--shape-shadow-card);
+  height: 120px;
+}
+
+.cards > ul > li:hover {
+  /* No visual effects on hover for the card */
+}
+
+.cards > ul > li:hover .cards-card-body {
+  background-color: white;
+}
+
+.cards .cards-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: var(--light-color);
+  transition: background-color 0.3s ease;
+  padding: 16px;
+  padding-top: 20px;
+}
+
+.cards h2 {
+  font-family: var(--heading-font-family);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cards h2::after {
+  display: none;
+}
+
+.cards a {
+  color: inherit;
+  text-decoration: none;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.cards a:hover {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cards .cards-card-image {
+  line-height: 0;
+  flex: 0 0 40%; /* Fixed width for image (40% of card width) */
+}
+
+.cards > ul > li img {
+  width: 100%;
+  height: 100%; /* Make image fill the full height of the card */
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+/* Responsive: Adjust for smaller screens */
+@media (width < 1200px) {
+  .cards > ul {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
+  }
+}
+
+@media (width < 600px) {
+  .cards > ul {
+    grid-template-columns: 1fr; /* 1 column on mobile */
+  }
+
+  .cards > ul > li {
+    flex-direction: column; /* Stack vertically on mobile */
+    height: auto; /* Allow height to adjust on mobile */
+  }
+
+  .cards .cards-card-image {
+    flex: none; /* Reset flex on mobile */
+  }
+
+  .cards > ul > li img {
+    height: auto; /* Reset height on mobile */
+  }
+}
+
+/* Two-up variant: 2-column grid for sections with fewer cards */
+.cards.two-up > ul {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Three-up variant: 3-column grid */
+.cards.three-up > ul {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (width < 600px) {
+  .cards.two-up > ul,
+  .cards.three-up > ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Highlights variant styling */
+.cards.highlights > ul > li {
+  background-color: var(--dark-color);
+  color: white;
+  position: relative;
+  flex-direction: column; /* Stack image on top, text at bottom */
+  height: 218px; /* Fixed height */
+  border-radius: 8px; /* Smaller border radius for highlights */
+  transition: background-color 0.3s ease; /* Smooth background transition */
+}
+
+.cards.highlights > ul > li:hover {
+  background-color: var(--primary-color);
+}
+
+.cards.highlights .cards-card-body {
+  width: 100%; /* Full width */
+  padding: 12px; /* Remove vertical padding, use only horizontal */
+  justify-content: center; /* Center text vertically in the area */
+  align-items: flex-start; /* Align text to the left */
+  flex: 0 0 48px;
+  box-sizing: border-box; /* Include padding in height calculation */
+  overflow: hidden;
+  position: absolute;
+  bottom: 0;
+  background-color: rgb(0 0 0 / 80%);
+  height: 52px;
+  transition: background-color 1s ease;
+}
+
+.cards.highlights .cards-card-image {
+  flex: 1; /* Take remaining space after text */
+  width: 100%; /* Full width */
+  overflow: hidden; /* Hide overflow */
+  order: -1; /* Ensure image appears first (on top) */
+}
+
+.cards.highlights > ul > li img {
+  width: 100%;
+  height: 100%; /* Fill the image container */
+  object-fit: contain;
+  background-color: white;
+  transition: transform 0.5s ease; /* Smooth zoom transition */
+}
+
+.cards.highlights > ul > li:hover img {
+  transform: scale(1.05); /* Slight zoom on hover */
+}
+
+/* Override general card body hover effect for highlights */
+.cards.highlights > ul > li:hover .cards-card-body {
+  background-color: var(--primary-color);
+}
+
+.cards.highlights h2 {
+  color: white;
+  font-size: 20px;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+  font-weight: normal;
+}
+
+.cards.highlights a {
+  color: white;
+}
+
+/* Add arrow icon for highlights */
+.cards.highlights > ul > li::after {
+  content: '›';
+  position: absolute;
+  right: 16px;
+  bottom: 0; /* Start from bottom */
+  height: 48px; /* Match content area height */
+  display: flex;
+  align-items: center; /* Center arrow vertically within its container */
+  font-size: 24px;
+  color: white;
+  font-weight: bold;
+  line-height: 1; /* Remove line-height spacing */
+}
+
+/* Light variant: lighter label overlay for JP portal cards */
+.cards.highlights.light .cards-card-body {
+  background-color: rgb(0 0 0 / 25%);
+  font-weight: bold;
+}
+
+/* Frescopa section card variants */
+.numbered > .cards-wrapper {
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.numbered > .cards-wrapper ul {
+  display: flex;
+  flex-direction: column;
+}
+
+.numbered > .cards-wrapper ul > li {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: none;
+  height: auto;
+}
+
+.numbered .cards-card-image {
+  border-radius: 20px;
+  overflow: hidden;
+  width: 100%;
+  max-width: none;
+  flex: none;
+}
+
+.numbered .cards-card-image img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+.numbered .cards-card-body {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  text-align: center;
+  background-color: transparent;
+}
+
+.numbered .cards-card-body::before {
+  counter-increment: my-card-counter;
+  content: counter(my-card-counter);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font: normal normal normal 300px/300px Baskerville, serif;
+  color: rgb(0 0 0 / 10%);
+}
+
+.home .cards ul {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home .cards ul li {
+  margin: 0;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  flex-direction: column;
+  background: var(--background-color);
+  border-radius: 12px;
+  box-shadow: var(--shape-shadow-card);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.home .cards ul li:hover {
+  box-shadow: 0 12px 28px rgb(0 0 0 / 14%);
+  transform: translateY(-2px);
+}
+
+.home .cards-card-image {
+  border-radius: 0;
+  overflow: hidden;
+  flex: none;
+  aspect-ratio: 16 / 9;
+  line-height: 0;
+}
+
+.home .cards-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.home .cards-card-body {
+  margin: 0;
+  padding: 24px;
+  background-color: transparent;
+}
+
+.home .cards h2 {
+  font-family: var(--heading-font-family);
+  font-size: var(--heading-font-size-xs);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.home .cards a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.home .cards a:hover {
+  color: var(--primary-color);
+}
+
+.card-tiles .cards ul {
+  display: flex;
+  gap: 20px;
+  margin-top: 40px;
+  flex-flow: row wrap;
+  justify-content: space-evenly;
+}
+
+.card-tiles .cards ul li {
+  margin: 16px 0;
+  height: auto;
+  flex-direction: column;
+  border-radius: 12px;
+  box-shadow: var(--shape-shadow-card);
+}
+
+.card-tiles .cards ul li h5 {
+  text-align: center;
+}
+
+@media (width >= 600px) {
+  .numbered > .cards-wrapper ul > li {
+    flex-direction: row;
+    gap: 40px;
+  }
+
+  .numbered > .cards-wrapper ul > li:nth-child(even) {
+    flex-direction: row-reverse;
+  }
+}
+
+@media (width >= 900px) {
+  .home .cards ul {
+    gap: 24px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .numbered > .cards-wrapper {
+    padding: 20px 90px;
+  }
+}

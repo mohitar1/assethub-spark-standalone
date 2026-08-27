@@ -1,0 +1,158 @@
+/* Override section/wrapper styles for error page */
+main .section.fragment-container,
+main .section.error-page-container,
+main .fragment-wrapper,
+main .error-page-wrapper {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+main .fragment-wrapper > div,
+main .error-page-wrapper > div,
+main .section.fragment-container > div,
+main .section.error-page-container > div {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+/* Ensure all nested sections inside fragments don't constrain width */
+main .fragment-container .section > div {
+  max-width: none !important;
+  padding: 0 !important;
+}
+
+.error-page {
+  width: 100%;
+  max-width: none;
+  min-height: calc(100vh - var(--nav-height) - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  text-align: center;
+  margin: 0;
+}
+
+.error-page .error-page-content {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  text-align: center;
+}
+
+/* Logo as image */
+.error-page .error-logo-image {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  margin: 0 auto 40px;
+  display: block;
+}
+
+/* Logo as text (fallback) */
+.error-page .error-logo-text {
+  font-family: var(--heading-font-family);
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 40px;
+  letter-spacing: -2px;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.error-page .error-message {
+  font-family: var(--body-font-family);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 auto 24px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.error-page .error-description {
+  font-family: var(--body-font-family);
+  font-size: 17px;
+  color: var(--text-color);
+  margin: 0 auto 36px;
+  line-height: 1.6;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
+/* Keep email addresses on one line to prevent awkward breaks (e.g. "coca-" / "cola") */
+.error-page .error-description .error-page-email,
+.error-page .error-description a[href^="mailto:"] {
+  white-space: nowrap;
+}
+
+.error-page .error-description a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.error-page .error-description a:hover {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+.error-page .button-container {
+  margin-top: 36px;
+  text-align: center;
+}
+
+.error-page .button-container .button {
+  min-width: 220px;
+  margin: 0 auto;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Responsive design */
+@media (width <= 768px) {
+  .error-page {
+    padding: 32px 0;
+  }
+  
+  .error-page .error-page-content {
+    max-width: 100%;
+    padding: 0 20px;
+  }
+  
+  .error-page .error-logo-text {
+    font-size: 48px;
+    margin-bottom: 24px;
+  }
+  
+  .error-page .error-logo-image {
+    max-width: 450px;
+    margin-bottom: 24px;
+  }
+
+  .error-page .error-message {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .error-page .error-description {
+    font-size: 16px;
+    margin-bottom: 28px;
+  }
+
+  .error-page .button-container {
+    margin-top: 28px;
+  }
+
+  .error-page .button-container .button {
+    min-width: 200px;
+    padding: 12px 28px;
+    font-size: 14px;
+  }
+}

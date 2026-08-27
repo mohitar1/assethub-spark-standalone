@@ -1,0 +1,118 @@
+/* ========================================
+   CSS Variables & Theme (inherits global semantic tokens)
+   ======================================== */
+
+:root {
+  /* Primary colors — align with global :root */
+  --primary-color-hover: #004d61;
+  --primary-color-active: #003d4d;
+  --primary-color-disabled: var(--color-neutral-300, #e8e8e8);
+
+  /* Color scales (Light mode) */
+  --gray-50: #fff;
+  --gray-100: #e8e8e8;
+  --gray-200: #d6d6d6;
+  --gray-300: #b8b8b8;
+  --gray-400: #8f8f8f;
+  --gray-500: #666;
+  --purple-100: rgb(0 100 125 / 12%);
+  --purple-200: rgb(0 100 125 / 20%);
+  --purple-300: rgb(0 100 125 / 30%);
+  --purple-400: var(--primary-color);
+  --purple-500: #004d61;
+  --purple-600: #003d4d;
+  --red-100: rgb(163 53 50 / 12%);
+  --red-200: rgb(163 53 50 / 25%);
+  --red-300: var(--color-red);
+  --red-400: var(--color-red);
+  --red-500: #95351D;
+  --red-600: #7a2b17;
+  --highlight-hover: rgb(0 0 0 / 7%);
+  --highlight-pressed: rgb(0 0 0 / 15%);
+
+  /* Semantic colors */
+  --focus-ring-color: var(--primary-color);
+  --text-color-base: var(--color-neutral-600, #8f8f8f);
+  --text-color-hover: var(--text-color);
+  --text-color-disabled: var(--gray-200);
+  --text-color-placeholder: var(--gray-400);
+  --link-color-secondary: var(--gray-500);
+  --link-color-pressed: var(--primary-color);
+  --border-color: var(--color-neutral-400, #d6d6d6);
+  --border-color-hover: var(--color-neutral-600, #8f8f8f);
+  --border-color-pressed: var(--color-neutral-700, #666);
+  --border-color-disabled: var(--gray-100);
+  --field-background: var(--gray-50);
+  --field-text-color: var(--text-color);
+  --overlay-background: var(--gray-50);
+  --button-background: var(--gray-50);
+  --button-background-pressed: var(--light-color);
+  --highlight-background: var(--primary-color);
+  --highlight-background-pressed: #004d61;
+  --highlight-background-invalid: var(--color-red);
+  --highlight-foreground: white;
+  --highlight-foreground-pressed: var(--light-color);
+  --highlight-overlay: rgb(0 100 125 / 15%);
+  --invalid-color: var(--color-red);
+  --invalid-color-pressed: #95351D;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #1d1d1d;
+    --gray-50: #101010;
+    --gray-100: #393939;
+    --gray-200: #4f4f4f;
+    --gray-300: #686868;
+    --gray-400: #848484;
+    --gray-500: #a7a7a7;
+    --gray-600: #cfcfcf;
+    --purple-100: #003d4d;
+    --purple-200: #004d61;
+    --purple-300: #00647D;
+    --purple-400: #3d8fa3;
+    --purple-500: #6ab4c4;
+    --purple-600: #a8d4de;
+    --red-100: #5c1f1e;
+    --red-200: #7a2b17;
+    --red-300: #A33532;
+    --red-400: #c44a47;
+    --red-500: #dc6e52;
+    --red-600: #eba439;
+    --highlight-hover: rgb(255 255 255 / 10%);
+    --highlight-pressed: rgb(255 255 255 / 20%);
+  }
+}
+
+/* Windows high contrast mode */
+@media (forced-colors: active) {
+  :root {
+    --background-color: Canvas;
+    --focus-ring-color: Highlight;
+    --text-color: ButtonText;
+    --text-color-base: ButtonText;
+    --text-color-hover: ButtonText;
+    --text-color-disabled: GrayText;
+    --text-color-placeholder: ButtonText;
+    --link-color: LinkText;
+    --link-color-secondary: LinkText;
+    --link-color-pressed: LinkText;
+    --border-color: ButtonBorder;
+    --border-color-hover: ButtonBorder;
+    --border-color-pressed: ButtonBorder;
+    --border-color-disabled: GrayText;
+    --field-background: Field;
+    --field-text-color: FieldText;
+    --overlay-background: Canvas;
+    --button-background: ButtonFace;
+    --button-background-pressed: ButtonFace;
+    --highlight-background: Highlight;
+    --highlight-background-pressed: Highlight;
+    --highlight-background-invalid: LinkText;
+    --highlight-foreground: HighlightText;
+    --highlight-foreground-pressed: HighlightText;
+    --invalid-color: LinkText;
+    --invalid-color-pressed: LinkText;
+  }
+}

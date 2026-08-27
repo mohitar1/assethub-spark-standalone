@@ -1,0 +1,332 @@
+/**
+ * Date Picker Styles
+ * Converted from React MyDatePicker.css
+ */
+
+/* Component base styling */
+.my-date-picker {
+  padding: 0 10px;
+  color: #333;
+  font-family: var(--body-font-family, sans-serif);
+}
+
+.my-date-picker .date-picker-wrapper {
+  position: relative;
+  display: block;
+}
+
+.my-date-picker .date-input-group {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+  min-height: 32px;
+}
+
+.my-date-picker .date-input-group:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgb(99 102 241 / 10%);
+}
+
+.my-date-picker .date-input-segments {
+  flex: 1;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-02);
+  font-family: var(--body-font-family, sans-serif);
+}
+
+.my-date-picker .date-segment {
+  display: inline-block;
+  padding: 2px 4px;
+  border-radius: 3px;
+  outline: none;
+  background: transparent;
+  color: #333;
+  font-size: var(--font-size-02);
+  cursor: text;
+  user-select: text;
+  min-width: 20px;
+  text-align: center;
+  border: none;
+  position: relative;
+  z-index: 1;
+}
+
+.my-date-picker .date-segment[data-segment="year"] {
+  min-width: 40px;
+}
+
+.my-date-picker .date-segment.placeholder {
+  color: #999;
+}
+
+/* Text selection styling */
+.my-date-picker .date-segment::selection {
+  background: rgb(224 231 255 / 30%);
+  color: var(--primary-color);
+}
+
+.my-date-picker .date-segment:focus {
+  background: #e0e7ff !important;
+  color: var(--primary-color) !important;
+  outline: none;
+  z-index: 2;
+}
+
+/* Remove browser selection highlight when focused */
+.my-date-picker .date-segment:focus::selection {
+  background: transparent;
+}
+
+.my-date-picker .date-separator {
+  color: #666;
+  font-size: var(--font-size-02);
+  user-select: none;
+}
+
+.my-date-picker .dropdown-button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  width: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-01);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin: 0;
+  padding: 0;
+}
+
+.my-date-picker .clear-button {
+  position: absolute;
+  right: 36px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  color: #999;
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-02);
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+  font-family: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+.my-date-picker .clear-button:hover {
+  color: #666;
+  background: #f5f5f5;
+}
+
+/* Calendar popup (portal pattern - rendered in body) */
+.my-date-picker-portal .calendar-popup {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 25%);
+  padding: 12px;
+  min-width: 260px;
+}
+
+.my-date-picker-portal .calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.my-date-picker-portal .calendar-title {
+  font-size: var(--font-size-02);
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+  cursor: pointer;
+  font-family: var(--body-font-family, sans-serif);
+}
+
+.my-date-picker-portal .calendar-nav {
+  background: transparent;
+  color: #666;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-01);
+  cursor: pointer;
+}
+
+.my-date-picker-portal .calendar-nav:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+/* Calendar table */
+.my-date-picker-portal .calendar-popup table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  padding: 0;
+}
+
+.my-date-picker-portal .calendar-popup th {
+  font-size: var(--font-size-00);
+  font-weight: 700;
+  font-family: var(--body-font-family, sans-serif);
+  color: #666;
+  text-align: center;
+  padding: 4px;
+  border: none;
+  background: transparent;
+}
+
+.my-date-picker-portal .calendar-day {
+  text-align: center;
+  border: none;
+  padding: 4px;
+  background: transparent;
+  vertical-align: middle;
+}
+
+.my-date-picker-portal .calendar-day:not(.empty) {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: var(--font-size-01);
+  font-family: var(--body-font-family, sans-serif);
+  color: #333;
+  transition: all 0.2s;
+  line-height: var(--line-height-07);
+}
+
+.my-date-picker-portal .calendar-day:not(.empty):hover {
+  background: #f3f4f6;
+}
+
+.my-date-picker-portal .calendar-day.selected {
+  background: var(--primary-color);
+  color: white;
+}
+
+.my-date-picker-portal .calendar-day.today {
+  border: 2px solid var(--primary-color);
+  box-sizing: border-box;
+}
+
+.my-date-picker-portal .calendar-day.empty {
+  cursor: default;
+}
+
+.my-date-picker-portal .calendar-day.disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.my-date-picker-portal .calendar-day.disabled:hover {
+  background: transparent;
+}
+
+/* Month grid picker */
+.my-date-picker-portal .month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+
+.my-date-picker-portal .month-grid .month-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #333;
+  user-select: none;
+  font-size: var(--font-size-02);
+}
+
+.my-date-picker-portal .month-grid .month-cell:hover {
+  background: #f3f3f3;
+}
+
+.my-date-picker-portal .month-grid .month-cell.selected {
+  outline: 2px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.my-date-picker-portal .month-grid .month-cell.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.my-date-picker-portal .month-grid .month-cell.disabled:hover {
+  background: transparent;
+}
+
+/* Year grid picker (12 years, e.g. 2021–2032 for 2026) */
+.my-date-picker-portal .year-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+
+.my-date-picker-portal .year-grid .year-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #333;
+  user-select: none;
+  font-size: var(--font-size-02);
+}
+
+.my-date-picker-portal .year-grid .year-cell:hover {
+  background: #f3f3f3;
+}
+
+.my-date-picker-portal .year-grid .year-cell.selected {
+  outline: 2px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.my-date-picker-portal .year-grid .year-cell.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.my-date-picker-portal .year-grid .year-cell.disabled:hover {
+  background: transparent;
+}

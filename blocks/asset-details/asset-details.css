@@ -1,0 +1,102 @@
+/* Asset Details Block - Standalone page styles */
+
+/* Import modal styles from search-results (needed on standalone pages) */
+@import url('../search-results/styles/theme.css');
+@import url('../search-results/styles/asset-details.css');
+@import url('../search-results/styles/action-button.css');
+@import url('../search-results/styles/download-renditions.css');
+@import url('../../scripts/share/share-asset-button.css');
+@import url('../search-results/styles/adobe-pdf-viewer.css');
+
+/* Portal modal styles */
+.portal-modal .modal-title {
+  overflow-wrap: break-word;
+  margin: 0;
+  color: var(--text-color);
+  font-size: var(--font-size-04);
+  font-weight: 700;
+  line-height: var(--line-height-04);
+  font-family: var(--heading-font-family), sans-serif;
+  max-width: 90%;
+}
+
+.portal-modal .modal-description {
+  margin: 0;
+  overflow-wrap: break-word;
+  color: var(--text-color);
+  font-size: var(--font-size-02);
+  font-weight: 400;
+  line-height: var(--line-height-02);
+}
+
+/* Remove default heading underlines in modal */
+:is(.portal-modal h1, .portal-modal h2, .portal-modal h3, .portal-modal h4, .portal-modal h5, .portal-modal h6)::after {
+  content: inherit;
+  display: inherit;
+  width: inherit;
+  height: inherit;
+  margin-top: inherit;
+  margin-bottom: inherit;
+  background-color: inherit;
+}
+
+/* Hide block container - modal renders in portal */
+.asset-details {
+  display: none;
+}
+
+/* Loading state */
+.asset-details-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+  font-family: var(--body-font-family), sans-serif;
+}
+
+.asset-details-loading .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error state */
+.asset-details-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+  text-align: center;
+  color: #666;
+  font-family: var(--body-font-family), sans-serif;
+}
+
+.asset-details-error a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.asset-details-error a:hover {
+  text-decoration: underline;
+}
+
+/* Show block when loading or error */
+.asset-details:has(.asset-details-loading),
+.asset-details:has(.asset-details-error) {
+  display: block;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}

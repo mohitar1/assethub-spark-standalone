@@ -1,0 +1,311 @@
+/* Report Hub Block */
+.report-hub {
+  padding: 40px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Access Denied State */
+.reports-hub-denied {
+  text-align: center;
+  padding: 80px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.reports-hub-denied .denied-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+  opacity: 0.3;
+}
+
+.reports-hub-denied h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 16px;
+}
+
+.reports-hub-denied p {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  margin: 8px 0;
+}
+
+/* Hub Container */
+.reports-hub-container {
+  min-height: 400px;
+}
+
+/* Page Header */
+.reports-hub-header {
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 3px solid var(--report-primary-color, var(--primary-color));
+}
+
+.reports-hub-header h1 {
+  font-family: var(--body-font-family);
+  font-size: 40px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 8px;
+}
+
+.reports-hub-header h1::after {
+  display: none;
+}
+
+.reports-hub-subtitle {
+  font-size: 18px;
+  color: #666;
+  margin: 0;
+}
+
+/* Report Section */
+.reports-section {
+  margin-bottom: 48px;
+}
+
+.reports-section:last-child {
+  margin-bottom: 0;
+}
+
+.reports-section-header {
+  margin-bottom: 20px;
+}
+
+.reports-section-title {
+  font-family: var(--body-font-family);
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 8px;
+}
+
+.reports-section-title::after {
+  display: none;
+}
+
+.reports-section-description {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+
+/* Reports Grid */
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Report Card */
+.report-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border: 2px solid #e5e5e5;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.report-card:hover {
+  border-color: var(--report-primary-color, var(--primary-color));
+  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+  transform: translateY(-2px);
+}
+
+.report-card.coming-soon {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.report-card.coming-soon:hover {
+  border-color: #e5e5e5;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Card Content */
+.report-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Card Header (Icon + Title Row) */
+.report-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+/* Card Icon */
+.report-card-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-neutral-200);
+  border-radius: 6px;
+  font-size: 16px;
+
+  /* Inline SVGs use fill: currentColor — render them in the brand colour */
+  color: var(--primary-color);
+}
+
+.report-card:hover .report-card-icon {
+  background: var(--light-color);
+}
+
+.report-card.coming-soon:hover .report-card-icon {
+  background: #f5f5f5;
+}
+
+.report-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  flex: 1;
+  word-wrap: break-word;
+}
+
+.report-card-description {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.report-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 10px;
+  background: #e5e5e5;
+  color: #666;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Card Arrow */
+.report-card-arrow {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #999;
+  transition: transform 0.2s ease;
+  align-self: center;
+}
+
+.report-card:hover .report-card-arrow {
+  color: var(--report-primary-color, var(--primary-color));
+  transform: translateX(4px);
+}
+
+.report-card.coming-soon .report-card-arrow {
+  opacity: 0.5;
+}
+
+.report-card.coming-soon:hover .report-card-arrow {
+  color: #999;
+  transform: none;
+}
+
+/* Placeholder glyphs for the few icons still rendered as spans.
+   Report-card icons are now inline brand-coloured SVGs (see report-hub.js),
+   so their former emoji placeholders have been removed to avoid off-brand
+   multicolour glyphs. */
+.icon-arrow-right::before {
+  content: '→';
+}
+
+.icon-lock::before {
+  content: '🔒';
+}
+
+/* Responsive Design */
+@media (width <= 768px) {
+  .report-hub {
+    padding: 24px 16px;
+  }
+
+  .reports-hub-header h1 {
+    font-size: 32px;
+  }
+
+  .reports-hub-subtitle {
+    font-size: 16px;
+  }
+
+  .reports-section {
+    margin-bottom: 40px;
+  }
+
+  .reports-section-title {
+    font-size: 24px;
+  }
+
+  .reports-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .report-card {
+    padding: 14px;
+  }
+
+  .report-card-header {
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .report-card-icon {
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+  }
+
+  .report-card-title {
+    font-size: 14px;
+  }
+
+  .report-card-description {
+    font-size: 12px;
+  }
+
+  .report-card-arrow {
+    font-size: 16px;
+  }
+}
+
+@media (width >= 768px) {
+  .reports-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width >= 1000px) {
+  .reports-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (width >= 1100px) {
+  .reports-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+

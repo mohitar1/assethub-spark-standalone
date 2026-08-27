@@ -1,0 +1,103 @@
+/* Base button styles - applied to all action buttons */
+.action-button {
+  text-size-adjust: 100%;
+  word-wrap: break-word;
+  list-style: none;
+  box-sizing: inherit;
+  margin: 0;
+  overflow: visible;
+  text-transform: none;
+  appearance: auto;
+  font: inherit;
+  background: #fff;
+  border: 1px solid #9a9a9a;
+  border-radius: 50px;
+  height: 34px;
+  position: relative;
+  width: 34px;
+  padding: 0;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 16px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:disabled {
+  background-color: #ccc;
+  color: #999;
+  cursor: not-allowed;
+  border: none;
+}
+
+.action-button:disabled:hover {
+  background-color: #ccc;
+  color: #999;
+  cursor: not-allowed;
+  border: none;
+  filter: none;
+}
+
+/* Tooltip container */
+.action-button-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 34px;
+
+  /* Ensure tooltip doesn't get clipped by parent containers */
+  overflow: visible;
+}
+
+/* Tooltip */
+.action-button-tooltip {
+  display: none; /* Controlled by JS or hover */
+  visibility: hidden;
+  opacity: 0;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 99999;
+  
+  /* Default positioning (bottom-right relative to button, appears above) */
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 10px;
+
+  /* Fit content width */
+  width: max-content;
+  max-width: 200px;
+
+  /* Typography and behavior */
+  font-size: var(--font-size-01);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+/* Tooltip arrow */
+.action-button-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: var(--arrow-left, 50%);
+  right: var(--arrow-right, auto);
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent;
+}
+
+/* Show the tooltip on hover */
+.action-button-container:hover .action-button-tooltip {
+  visibility: visible;
+  opacity: 1;
+
+  /* display: block !important; Removed to allow JS control */
+}
+

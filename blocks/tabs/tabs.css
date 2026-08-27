@@ -1,0 +1,123 @@
+.tabs .tabs-list {
+    display: flex;
+    gap: 8px;
+    max-width: 100%;
+    font-size: var(--body-font-size-xs);
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox — hide scrollbar track */
+    border-bottom: 2px solid var(--primary-color);
+    background-color: var(--background-color);
+    margin: 16px 0;
+}
+
+/* Chrome/Safari — hide scrollbar track while keeping scroll functionality */
+.tabs .tabs-list::-webkit-scrollbar {
+    display: none;
+}
+
+@media (width >= 600px) {
+    .tabs .tabs-list {
+        font-size: var(--body-font-size-s);
+    }
+}
+
+@media (width >= 900px) {
+    .tabs .tabs-list {
+        font-size: var(--body-font-size-m);
+    }
+}
+
+.tabs .tabs-list button {
+    flex: 0 0 max-content;
+    margin: 0;
+    border: 1px solid var(--border-color, #e4e4e4);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 12px 20px;
+    background-color: var(--background-color, #efefef);
+    color: var(--text-color, #333);
+    font-weight: normal;
+    line-height: 1.2;
+    text-align: center;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+}
+
+.tabs .tabs-list button:last-child {
+    border-right: none;
+}
+
+.tabs .tabs-list button p {
+    margin: 0;
+    font-family: var(--heading-font-family);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.tabs .tabs-list button[aria-selected='true'] {
+    border: 1px solid var(--primary-color);
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    margin-bottom: -2px;
+}
+
+.tabs .tabs-list button:hover:not([aria-selected='true']) {
+    background-color: var(--border-color, #e4e4e4);
+}
+
+.tabs .tabs-panel {
+    margin-top: 0;
+    padding: 16px 0;
+    border: none;
+    overflow: auto;
+}
+
+.tabs .tabs-panel[aria-hidden='true'] {
+    display: none;
+}
+
+.tabs .tabs-image-grid {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 16px;
+}
+
+.tabs .tabs-image-grid picture {
+    display: block;
+}
+
+.tabs .tabs-image-grid img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+@media (width < 600px) {
+    .tabs .tabs-image-grid {
+        flex-direction: column;
+    }
+}
+
+/* Single images inside tab panels */
+.tabs .tabs-panel picture {
+    display: block;
+    text-align: center;
+}
+
+.tabs .tabs-panel picture img {
+    max-width: 100%;
+    max-height: 500px;
+    width: auto;
+    height: auto;
+}
+
+/* Button-list inside tabs — full width (single column) with spacing above */
+.tabs .button-list-wrapper {
+    margin-top: 24px;
+}
+
+.tabs .button-list-wrapper .button-list ul {
+    grid-template-columns: 1fr;
+}

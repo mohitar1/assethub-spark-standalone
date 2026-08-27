@@ -1,0 +1,107 @@
+/* ==========================================================================
+   Search Results - Unified Checkbox Styles
+   
+   Single base style - positioning handled by context (asset-card.css, etc.)
+   ========================================================================== */
+
+input[type="checkbox"].search-results-checkbox {
+  /* Size */
+  --checkbox-size: 20px;
+  --checkbox-inner-size: 13px;
+  --checkbox-check-width: 5px;
+  --checkbox-check-height: 9px;
+  --checkbox-check-thickness: 3px;
+
+  /* Layout */
+  position: relative;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  flex-shrink: 0;
+
+  /* Appearance */
+  cursor: pointer;
+  appearance: none;
+  background-color: white;
+  border: 0 solid #ddd;
+  border-radius: 4px;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Inner box */
+input[type="checkbox"].search-results-checkbox::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--checkbox-inner-size);
+  height: var(--checkbox-inner-size);
+  background-color: white;
+  border: 2px solid #6d6d6d;
+  border-radius: 3px;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+input[type="checkbox"].search-results-checkbox:hover::before {
+  border-color: var(--primary-color);
+}
+
+input[type="checkbox"].search-results-checkbox:checked::before {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Checkmark */
+input[type="checkbox"].search-results-checkbox::after {
+  content: "";
+  display: none;
+}
+
+input[type="checkbox"].search-results-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: var(--checkbox-check-width);
+  height: var(--checkbox-check-height);
+  border: solid white;
+  border-width: 0 var(--checkbox-check-thickness) var(--checkbox-check-thickness) 0;
+  display: block;
+}
+
+input[type="checkbox"].search-results-checkbox:checked {
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+}
+
+input[type="checkbox"].search-results-checkbox:focus {
+  outline: none;
+}
+
+/* Indeterminate state (for select-all checkboxes) */
+input[type="checkbox"].search-results-checkbox:indeterminate {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+input[type="checkbox"].search-results-checkbox:indeterminate::before {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  z-index: 1;
+}
+
+input[type="checkbox"].search-results-checkbox:indeterminate::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 3px;
+  background-color: white;
+  border: none;
+  display: block;
+  z-index: 2;
+}

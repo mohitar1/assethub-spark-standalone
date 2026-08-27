@@ -1,0 +1,563 @@
+/**
+ * Analytics Report Shared Styles
+ * 
+ * Common CSS patterns for analytics reports (logins, searches, downloads, etc.)
+ * This file reduces duplication and ensures visual consistency across all reports.
+ * 
+ * Usage: @import url('../../scripts/analytics/report-styles.css');
+ * 
+ * @module scripts/analytics/report-styles
+ */
+
+/* =============================================================================
+   CSS CUSTOM PROPERTIES (Design Tokens)
+   ============================================================================= */
+
+:root {
+  /* Colors */
+  --report-primary-color: var(--primary-color);
+  --report-primary-hover: var(--primary-color-hover);
+  --report-secondary-color: var(--accent-tertiary);
+  --report-text-dark: var(--text-color);
+  --report-border-light: var(--light-color);
+  --report-background-white: #fff;
+  --report-background-light: #fafafa;
+  --report-background-lighter: #f9f9f9;
+  --report-error-color: #f44336;
+  --report-error-bg: #ffebee;
+  
+  /* Shadows */
+  --report-shadow-sm: 0 2px 8px rgb(0 0 0 / 10%);
+  --report-shadow-md: 0 4px 12px rgb(0 0 0 / 15%);
+  --report-shadow-focus: 0 0 0 3px rgb(0 100 125 / 15%);
+  
+  /* Border Radius */
+  --report-radius-sm: 6px;
+  --report-radius-md: 8px;
+  --report-radius-lg: 12px;
+  
+  /* Spacing */
+  --report-spacing-xs: 8px;
+  --report-spacing-sm: 12px;
+  --report-spacing-md: 15px;
+  --report-spacing-lg: 20px;
+  --report-spacing-xl: 24px;
+  --report-spacing-2xl: 30px;
+  
+  /* Typography */
+  --report-font-size-xs: 11px;
+  --report-font-size-sm: 12px;
+  --report-font-size-md: 14px;
+  --report-font-size-lg: 18px;
+  --report-font-size-xl: 20px;
+  --report-font-size-2xl: 28px;
+  --report-font-size-3xl: 32px;
+  
+  /* Transitions */
+  --report-transition-fast: 0.2s ease;
+  --report-transition-normal: 0.3s ease;
+  --report-transition-slow: 0.4s ease-in-out;
+  
+  /* Layout */
+  --report-max-width: 1400px;
+}
+
+/* =============================================================================
+   REPORT CONTAINER
+   ============================================================================= */
+
+.analytics-report-container {
+  padding: var(--report-spacing-lg);
+  max-width: var(--report-max-width);
+  margin: 0 auto;
+  overflow: visible;
+}
+
+/* =============================================================================
+   REPORT HEADER
+   ============================================================================= */
+
+.analytics-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--report-spacing-2xl);
+  padding-bottom: var(--report-spacing-lg);
+  border-bottom: 3px solid var(--report-primary-color);
+}
+
+.analytics-report-title {
+  font-size: var(--report-font-size-3xl);
+  font-weight: 700;
+  color: var(--report-text-dark);
+  margin: 0;
+}
+
+/* Hide default AEM title underline */
+.analytics-report-title::after {
+  display: none;
+}
+
+/* =============================================================================
+   LOADING AND ERROR STATES
+   ============================================================================= */
+
+.analytics-loading-state,
+.analytics-error-state {
+  text-align: center;
+  padding: 60px var(--report-spacing-lg);
+  font-size: var(--report-font-size-lg);
+  color: var(--report-text-medium);
+}
+
+.analytics-error-state {
+  color: var(--report-error-color);
+  background-color: var(--report-error-bg);
+  border-radius: var(--report-radius-md);
+  margin: var(--report-spacing-lg) 0;
+}
+
+/* =============================================================================
+   METRICS CARDS
+   ============================================================================= */
+
+.analytics-metrics {
+  display: grid;
+  gap: var(--report-spacing-md);
+  margin-bottom: var(--report-spacing-lg);
+}
+
+.analytics-metrics.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.analytics-metrics.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.analytics-metrics.cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.analytics-metric-card {
+  background: var(--report-background-white);
+  border-radius: var(--report-radius-md);
+  padding: 16px;
+  box-shadow: var(--report-shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--report-transition-fast), box-shadow var(--report-transition-fast);
+}
+
+.analytics-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--report-shadow-md);
+}
+
+.analytics-metric-content {
+  text-align: center;
+  width: 100%;
+}
+
+.analytics-metric-value {
+  font-size: var(--report-font-size-2xl);
+  font-weight: 700;
+  color: #000;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.analytics-metric-label {
+  font-size: var(--report-font-size-sm);
+  color: var(--report-text-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* =============================================================================
+   CHART CARDS
+   ============================================================================= */
+
+.analytics-charts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--report-spacing-md);
+  margin-bottom: var(--report-spacing-lg);
+}
+
+.analytics-chart-card {
+  background: var(--report-background-white);
+  border-radius: var(--report-radius-md);
+  padding: 16px;
+  box-shadow: var(--report-shadow-sm);
+  transition: transform var(--report-transition-fast), box-shadow var(--report-transition-fast);
+}
+
+.analytics-chart-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--report-shadow-md);
+}
+
+.analytics-chart-title {
+  font-size: var(--report-font-size-md);
+  font-weight: 700;
+  color: var(--report-text-dark);
+  margin-bottom: var(--report-spacing-sm);
+  text-align: center;
+  padding-bottom: var(--report-spacing-xs);
+  border-bottom: 2px solid var(--report-border-light);
+}
+
+.analytics-chart-container {
+  position: relative;
+  height: 240px;
+}
+
+.analytics-chart-card.chart-pie .analytics-chart-container {
+  height: 300px;
+}
+
+/* =============================================================================
+   TABLES
+   ============================================================================= */
+
+.analytics-table-container {
+  margin-top: var(--report-spacing-2xl);
+  background: var(--report-background-white);
+  border-radius: var(--report-radius-lg);
+  padding: var(--report-spacing-xl);
+  box-shadow: var(--report-shadow-sm);
+  overflow-x: auto;
+}
+
+.analytics-table-title {
+  font-size: var(--report-font-size-xl);
+  font-weight: 700;
+  color: var(--report-text-dark);
+  margin: 0 0 var(--report-spacing-lg);
+  padding-bottom: var(--report-spacing-sm);
+  border-bottom: 2px solid var(--report-border-light);
+}
+
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--report-font-size-md);
+  background: var(--report-background-white);
+}
+
+/* Table Header with Gradient */
+.analytics-table thead {
+  background: linear-gradient(to right, var(--report-primary-color), #e00008);
+}
+
+.analytics-table thead th {
+  color: var(--report-background-white);
+  padding: var(--report-spacing-sm) 16px;
+  text-align: left;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: var(--report-font-size-sm);
+  letter-spacing: 0.5px;
+  border-right: 1px solid rgb(255 255 255 / 20%);
+}
+
+.analytics-table thead th:last-child {
+  border-right: none;
+}
+
+.analytics-table thead th.center {
+  text-align: center;
+}
+
+/* Table Body */
+.analytics-table tbody tr {
+  border-bottom: 1px solid #eee;
+  transition: background-color var(--report-transition-fast);
+}
+
+.analytics-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.analytics-table tbody tr:hover {
+  background-color: var(--report-background-lighter);
+}
+
+/* Zebra striping */
+.analytics-table tbody tr:nth-child(odd) {
+  background-color: var(--report-background-light);
+}
+
+.analytics-table tbody tr:nth-child(odd):hover {
+  background-color: #f5f5f5;
+}
+
+.analytics-table tbody td {
+  padding: var(--report-spacing-sm) 16px;
+  color: var(--report-text-dark);
+}
+
+.analytics-table tbody td.center {
+  text-align: center;
+}
+
+.analytics-table tbody td.numeric {
+  font-weight: 500;
+}
+
+/* Highlighted cells (e.g., totals) */
+.analytics-table tbody td.highlight {
+  background: var(--light-color);
+  font-weight: 700;
+  color: var(--report-primary-color);
+}
+
+/* =============================================================================
+   COLLAPSIBLE SECTIONS
+   ============================================================================= */
+
+.analytics-collapsible-section {
+  overflow: visible;
+}
+
+.analytics-collapsible-title {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: color var(--report-transition-fast);
+  padding: 0 0 var(--report-spacing-sm);
+  margin: 0 0 var(--report-spacing-lg);
+  border-bottom: 2px solid var(--report-border-light);
+}
+
+.analytics-collapsible-title:hover .analytics-title-text {
+  color: var(--report-primary-color);
+}
+
+.analytics-title-text {
+  font-size: var(--report-font-size-xl);
+  font-weight: 700;
+  color: var(--report-text-dark);
+}
+
+.analytics-collapse-icon {
+  font-size: 1rem;
+  color: var(--report-primary-color);
+  transition: transform var(--report-transition-normal);
+  font-weight: bold;
+}
+
+.analytics-collapsible-section.collapsed .analytics-collapse-icon {
+  transform: rotate(-90deg);
+}
+
+.analytics-collapsible-content {
+  max-height: 5000px;
+  overflow: visible;
+  transition: max-height var(--report-transition-slow), opacity var(--report-transition-normal);
+  opacity: 1;
+}
+
+.analytics-collapsible-section.collapsed .analytics-collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height var(--report-transition-normal), opacity var(--report-transition-fast);
+}
+
+/* =============================================================================
+   FILTER COMPONENTS
+   ============================================================================= */
+
+.analytics-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.analytics-filter-group label {
+  font-size: var(--report-font-size-md);
+  font-weight: 600;
+  color: var(--report-text-dark);
+  white-space: nowrap;
+}
+
+.analytics-filter-select {
+  padding: var(--report-spacing-xs) var(--report-spacing-sm);
+  border: 1px solid var(--report-border-color);
+  border-radius: var(--report-radius-sm);
+  font-size: var(--report-font-size-md);
+  color: var(--report-text-dark);
+  background: var(--report-background-white);
+  cursor: pointer;
+  min-width: 120px;
+  transition: border-color var(--report-transition-fast);
+}
+
+.analytics-filter-select:hover {
+  border-color: var(--report-primary-color);
+}
+
+.analytics-filter-select:focus {
+  outline: none;
+  border-color: var(--report-primary-color);
+  box-shadow: var(--report-shadow-focus);
+}
+
+/* Filter Toggle (for collapsible filters) */
+.analytics-filters-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--report-spacing-xs);
+  margin-left: auto;
+  cursor: pointer;
+  user-select: none;
+}
+
+.analytics-filters-toggle-label {
+  font-size: var(--report-font-size-md);
+  font-weight: 600;
+  color: var(--report-primary-color);
+  white-space: nowrap;
+}
+
+.analytics-filters-toggle {
+  font-size: 1rem;
+  color: var(--report-primary-color);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-weight: bold;
+  line-height: 1;
+  transition: transform var(--report-transition-normal);
+}
+
+.analytics-filters-toggle::after {
+  content: '▼';
+}
+
+.analytics-filters-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+/* Tablet */
+@media (width <= 1200px) {
+  .analytics-charts {
+    grid-template-columns: 1fr;
+  }
+  
+  .analytics-metrics.cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile */
+@media (width <= 768px) {
+  .analytics-report-container {
+    padding: var(--report-spacing-md);
+  }
+  
+  .analytics-report-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--report-spacing-md);
+  }
+  
+  .analytics-report-title {
+    font-size: 24px;
+  }
+  
+  .analytics-metrics.cols-2,
+  .analytics-metrics.cols-3,
+  .analytics-metrics.cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .analytics-chart-container {
+    height: 250px;
+  }
+}
+
+/* Small Mobile */
+@media (width <= 480px) {
+  .analytics-report-title {
+    font-size: var(--report-font-size-xl);
+  }
+  
+  .analytics-metrics.cols-2,
+  .analytics-metrics.cols-3,
+  .analytics-metrics.cols-4 {
+    grid-template-columns: 1fr;
+    gap: var(--report-spacing-sm);
+  }
+  
+  .analytics-metric-value {
+    font-size: 24px;
+  }
+  
+  .analytics-metric-label {
+    font-size: var(--report-font-size-sm);
+  }
+}
+
+/* =============================================================================
+   UTILITY CLASSES
+   ============================================================================= */
+
+.analytics-text-center {
+  text-align: center;
+}
+
+.analytics-text-right {
+  text-align: right;
+}
+
+.analytics-fw-bold {
+  font-weight: 700;
+}
+
+.analytics-fw-semibold {
+  font-weight: 600;
+}
+
+.analytics-fw-medium {
+  font-weight: 500;
+}
+
+.analytics-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.analytics-mb-sm {
+  margin-bottom: var(--report-spacing-sm);
+}
+
+.analytics-mb-md {
+  margin-bottom: var(--report-spacing-md);
+}
+
+.analytics-mb-lg {
+  margin-bottom: var(--report-spacing-lg);
+}
+
+.analytics-mt-sm {
+  margin-top: var(--report-spacing-sm);
+}
+
+.analytics-mt-md {
+  margin-top: var(--report-spacing-md);
+}
+
+.analytics-mt-lg {
+  margin-top: var(--report-spacing-lg);
+}

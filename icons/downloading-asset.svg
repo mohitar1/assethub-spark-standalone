@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
+  <style>
+    @keyframes dropArrow {
+    0% { transform: translateY(-20px); opacity: 0; }
+    20% { transform: translateY(0); opacity: 1; }
+    35% { transform: translateY(-6px); }
+    50% { transform: translateY(0); }
+    100% { transform: translateY(0); opacity: 1; }
+    }
+    .arrow-anim {
+    animation: dropArrow 1s ease-in-out infinite;
+    }
+</style>
+  <path
+    d="M10.1042 10.4414L13.9941 6.55155L15.3864 7.94388L9.11898 14.2113L2.85156 7.94388L4.24389 6.55155L8.13372 10.4414V0.015625H10.104L10.1042 10.4414Z"
+    fill="#1E1E1E" class="arrow-anim" />
+  <path
+    d="M0.253906 15.7756V11.8359H2.22329V15.7756H16.0118V11.8359H17.9812V15.7756C17.9812 16.8633 17.0994 17.745 16.0118 17.745H2.22329C1.13564 17.745 0.253906 16.8633 0.253906 15.7756Z"
+    fill="#1E1E1E" />
+</svg>

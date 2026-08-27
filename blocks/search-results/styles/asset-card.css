@@ -1,0 +1,597 @@
+/* Asset Card Styles */
+
+/* Shared base styles */
+.asset-card-view-grid,
+.asset-card-view-list {
+  display: flex;
+  border: 1px solid #e1e1e1;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
+  padding: 0;
+  position: relative;
+  transition: box-shadow 0.3s ease;
+}
+
+.asset-card-view-grid:hover,
+.asset-card-view-list:hover {
+  box-shadow: 0 8px 24px rgb(0 0 0 / 25%);
+}
+
+/* Image wrapper shared styles */
+.asset-card-view-grid .image-wrapper,
+.asset-card-view-list .image-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Image link - enables "Open in New Tab" context menu on card image */
+.asset-card-view-grid .image-link,
+.asset-card-view-list .image-link {
+  display: block;
+  cursor: pointer;
+}
+
+/* Checkbox positioning for asset cards (only positioning, appearance in checkbox.css) */
+.asset-card-view-grid .image-wrapper .search-results-checkbox,
+.asset-card-view-list .image-wrapper .search-results-checkbox {
+  position: absolute;
+  top: 20px;
+  left: 15px;
+  z-index: 1;
+}
+
+.asset-card-view-grid .image-wrapper picture,
+.asset-card-view-list .image-wrapper picture {
+  position: relative;
+  display: block;
+}
+
+.asset-card-view-grid .image-wrapper .image-container,
+.asset-card-view-list .image-wrapper .image-container {
+  object-fit: contain;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+  transition: opacity 0.2s ease, transform 0.3s ease;
+}
+
+.asset-card-view-grid:hover .image-wrapper .image-container,
+.asset-card-view-list:hover .image-wrapper .image-container {
+  transform: scale(1.12);
+}
+
+/* Preview button */
+.asset-card-view-grid .image-preview-button,
+.asset-card-view-list .image-preview-button {
+  position: absolute;
+  top: 20px;
+  right: 15px;
+  width: 28px;
+  height: 28px;
+  background-color: rgb(74 74 74 / 90%);
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 6px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  z-index: 1;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
+  font-size: var(--font-size-03);
+}
+
+.asset-card-view-grid .image-preview-button:hover,
+.asset-card-view-list .image-preview-button:hover {
+  opacity: 1;
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.asset-card-view-grid .image-preview-button svg,
+.asset-card-view-list .image-preview-button svg {
+  pointer-events: none;
+  width: 16px;
+  height: 16px;
+  fill: #fff;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Product title */
+.asset-card-view-grid .product-title,
+.asset-card-view-list .product-title {
+  width: fit-content;
+  color: var(--text-color);
+  font-family: var(--body-font-family, sans-serif);
+  font-size: var(--font-size-02);
+  font-weight: 700;
+  line-height: var(--line-height-02);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Product title link - enables "Open in New Tab" context menu */
+.asset-card-view-grid .product-title-link,
+.asset-card-view-list .product-title-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: var(--heading-font-family, sans-serif);
+  font-weight: 700;
+}
+
+.asset-card-view-grid .product-title:hover,
+.asset-card-view-list .product-title:hover,
+.asset-card-view-grid .product-title-link:hover,
+.asset-card-view-list .product-title-link:hover {
+  color: var(--primary-color);
+}
+
+/* Product tags */
+.asset-card-view-grid .product-tag,
+.asset-card-view-list .product-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  overflow-wrap: break-word;
+  margin-right: 6px;
+  margin-bottom: 4px;
+}
+
+/* Add to collection overlay */
+.asset-card-view-grid .add-to-collection-overlay,
+.asset-card-view-list .add-to-collection-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background-color: rgb(0 0 0 / 90%);
+  border-radius: 0;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+  white-space: nowrap;
+}
+
+.asset-card-view-grid:hover .add-to-collection-overlay,
+.asset-card-view-list:hover .add-to-collection-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+.asset-card-view-grid .add-to-collection-overlay:hover,
+.asset-card-view-list .add-to-collection-overlay:hover {
+  background-color: rgb(0 0 0);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 40%);
+}
+
+.asset-card-view-grid .add-to-collection-content,
+.asset-card-view-list .add-to-collection-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  color: white !important;
+  font-size: var(--font-size-02);
+  font-weight: 400;
+  text-align: center;
+  height: 100%;
+}
+
+.asset-card-view-grid .icon.add.circle::before,
+.asset-card-view-list .icon.add.circle::before {
+  content: "";
+  cursor: pointer;
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  background: url('/icons/add-to-collection.svg') 50% center no-repeat !important;
+  background-size: 16px 16px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Meta labels */
+.asset-card-view-grid .product-meta-label,
+.asset-card-view-list .product-meta-label {
+  color: #9a9a9a;
+  font-size: var(--font-size-01);
+  font-weight: 400;
+  line-height: var(--line-height-01);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.search-results .asset-card-view-grid .product-meta-value,
+.search-results .asset-card-view-list .product-meta-value {
+  color: var(--text-color);
+  font-size: var(--font-size-01);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.asset-card-view-grid .product-meta-value.custom-metadata-value,
+.asset-card-view-list .product-meta-value.custom-metadata-value {
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  display: block;
+  white-space: normal;
+  box-sizing: border-box;
+}
+
+.asset-card-view-grid .product-meta-item,
+.asset-card-view-list .product-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Authorization status */
+.asset-card-view-grid .product-authorized-status,
+.asset-card-view-list .product-authorized-status {
+  font-family: var(--heading-font-family, sans-serif) !important;
+  font-size: var(--font-size-00) !important;
+  font-weight: 700 !important;
+  line-height: var(--line-height-01) !important;
+}
+
+.asset-card-view-grid .product-authorized-status.green,
+.asset-card-view-list .product-authorized-status.green {
+  color: #239c5d !important;
+}
+
+.asset-card-view-grid .product-authorized-status.red,
+.asset-card-view-list .product-authorized-status.red {
+  color: #c9372c !important;
+}
+
+/* Grid view specific */
+.asset-card-view-grid {
+  flex-direction: column;
+  align-self: stretch;
+}
+
+.asset-card-view-grid-inner {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  height: 100%;
+  min-height: 0;
+}
+
+.asset-card-view-grid .image-wrapper picture {
+  width: 100%;
+  height: 300px;
+}
+
+.asset-card-view-grid .image-wrapper .image-container {
+  width: 100%;
+  height: 100%;
+}
+
+.asset-card-view-grid .image-container {
+  width: 100%;
+  height: 300px;
+  position: relative;
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
+}
+
+.asset-card-view-grid .product-info-container {
+  padding: 16px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #e1e1e1;
+  min-height: 0;
+  justify-content: space-between;
+}
+
+.asset-card-view-grid .product-actions {
+  padding: 16px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.asset-card-view-grid .product-tags {
+  margin-bottom: 10px;
+}
+
+.asset-card-view-grid .product-title {
+  margin: 0;
+  -webkit-line-clamp: 3;
+  width: auto;
+}
+
+.asset-card-view-grid .product-title-section {
+  margin-bottom: 20px;
+}
+
+.asset-card-view-grid .product-description {
+  margin: 0;
+  font-size: var(--font-size-01);
+  color: #666;
+  line-height: var(--line-height-02);
+  -webkit-line-clamp: 3;
+}
+
+.asset-card-view-grid .product-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  flex-wrap: wrap;
+  gap: 14px;
+  text-transform: uppercase;
+  flex-grow: 1;
+  align-content: flex-start;
+}
+
+/* List view specific */
+.asset-card-view-list {
+  flex-direction: column;
+  min-height: 192px;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.asset-card-view-list-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 0;
+  position: relative;
+  min-height: 192px;
+  height: auto !important;
+}
+
+.asset-card-view-list .image-wrapper {
+  flex: 0 0 318px;
+  min-height: 192px;
+  align-self: stretch;
+  overflow: hidden;
+  position: relative;
+}
+
+.asset-card-view-list .image-wrapper picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.asset-card-view-list .image-wrapper .image-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 7px 0 0 7px;
+  object-fit: contain;
+}
+
+.asset-card-view-list .product-info-container {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-bottom: none;
+  margin-bottom: 0;
+  min-width: 0;
+  width: calc(100% - 318px);
+  position: relative;
+  height: auto;
+}
+
+.asset-card-view-list .product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-width: 0;
+  overflow: visible;
+  height: auto;
+}
+
+.asset-card-view-list .product-actions {
+    flex: 0 0 auto;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px;
+    border-left: 1px solid #e1e1e1;
+    margin: 0;
+}
+
+.asset-card-view-list .product-actions .top-buttons-wrapper {
+    display: none;
+}
+
+.asset-card-view-list .product-actions .bottom-buttons-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.asset-card-view-list .product-title {
+  -webkit-line-clamp: 2;
+}
+
+.asset-card-view-list .product-title-section {
+  margin-bottom: 20px;
+}
+
+.asset-card-view-list .product-tags {
+  margin-bottom: 8px;
+}
+
+.asset-card-view-list .product-description {
+  font-size: var(--font-size-02);
+  -webkit-line-clamp: 2;
+}
+
+.asset-card-view-list .product-meta-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+  flex-grow: 0;
+  flex-shrink: 0;
+  align-content: flex-start;
+  height: auto;
+}
+
+.asset-card-view-list .product-meta-item {
+  width: 18%;
+  min-width: 0;
+  max-width: 18%;
+  height: auto;
+  flex-shrink: 0;
+  flex-grow: 0;
+  overflow: visible;
+}
+
+/* Share button overrides to fix global button styles conflict */
+.search-results .share-asset-button {
+  border-radius: 50%;
+  border: 1px solid #9a9a9a;
+}
+
+.search-results button.primary-button {
+  border-radius: 50px;
+  padding: 0 20px;
+}
+
+/* Button wrapper layout */
+.asset-card-view-grid .left-buttons-wrapper,
+.asset-card-view-list .top-buttons-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Add to collection overlay in preview modal */
+.asset-preview-modal .modal-image-container {
+  position: relative;
+}
+
+.asset-preview-modal .add-to-collection-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background-color: rgb(0 0 0 / 90%);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+  white-space: nowrap;
+}
+
+.asset-preview-modal .modal-image-container:hover .add-to-collection-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+.asset-preview-modal .add-to-collection-overlay:hover {
+  background-color: rgb(0 0 0);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 40%);
+}
+
+.asset-preview-modal .add-to-collection-content {
+  display: flex;
+  align-items: center;
+  color: white !important;
+  font-size: var(--font-size-02);
+  font-weight: 400;
+}
+
+/* Override global .icon styles in preview modal to remove fixed dimensions */
+.asset-preview-modal .icon {
+  display: inline-block;
+  vertical-align: bottom;
+  margin-right: 8px;
+}
+
+.asset-preview-modal .icon.add.circle {
+  display: flex;
+  align-items: center;
+}
+
+.asset-preview-modal .icon.add.circle::before {
+  content: "";
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  background: url('/icons/add-to-collection.svg') 50% center no-repeat !important;
+  background-size: 16px 16px;
+  flex-shrink: 0;
+}
+
+/* Download preview and share buttons in card actions */
+.asset-card-view-grid .right-buttons-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.asset-card-view-list .bottom-buttons-wrapper .action-button-container {
+  flex-shrink: 0;
+}
+
+/* Override global button styles for action buttons inside asset cards */
+.asset-card-view-grid .action-button,
+.asset-card-view-list .action-button {
+  background: transparent;
+  background-color: transparent;
+  border: 1px solid #9a9a9a;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  margin: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 16px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: unset;
+}
+
+.asset-card-view-grid .action-button.download:hover,
+.asset-card-view-list .action-button.download:hover {
+  border: 1px solid var(--primary-color);
+  background-image: url('/icons/download-active.svg') !important;
+  background-color: transparent;
+}

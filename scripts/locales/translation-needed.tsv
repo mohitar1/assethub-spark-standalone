@@ -1,0 +1,200 @@
+Key	English Value	Needs Translation
+access	ACCESS	YES
+accessLabelColon	Access:	YES
+action	ACTION	no
+actionCannotBeUndone	This action cannot be undone.	YES
+actions	Actions	YES
+addToCart	Add To Cart	no
+addToCollection	Add to Collection	no
+agency	Agency	no
+agencyName	Agency Name	no
+alerts	Alerts	YES
+all	All	no
+allNotifications	All Notifications	YES
+allPriorities	All Priorities	YES
+allTypes	All Types	YES
+announcements	Announcements	YES
+apply	Apply	no
+ascending	Ascending	no
+assetAddedToCart	ASSET ADDED TO CART	YES
+assetRemovedFromCart	ASSET REMOVED FROM CART	YES
+assetRemovedFromCollectionSuccessfully	ASSET REMOVED FROM COLLECTION SUCCESSFUL	YES
+assets	Assets	no
+cancel	Cancel	YES
+carousel	Carousel	YES
+carouselSlideControls	Carousel Slide Controls	YES
+category	CATEGORY	YES
+chooseDate	Choose date	YES
+chooseRoleForUsers	Choose the role to be assigned to the ab	YES
+clearAll	CLEAR ALL	YES
+clearDate	Clear date	YES
+clearSearch	Clear search	YES
+close	Close	no
+collapseMessage	Collapse message	YES
+collectionAccess	Collection Access	YES
+collectionAccessRemoved	Collection Access Removed	YES
+collectionCreatedSuccessfully	COLLECTION CREATED SUCCESSFULLY	YES
+collectionDeletedSuccessfully	COLLECTION DELETED SUCCESSFULLY	YES
+collectionDescriptionOptional	Collection Description (optional)	YES
+collectionDetails	Collection Details	YES
+collectionIsEmpty	This collection is empty.	YES
+collectionLinkCopied	Collection link copied to clipboard	YES
+collectionName	Collection Name	YES
+collectionNameRequired	Collection name is required	YES
+collectionSharedSuccessfully	COLLECTION SHARED SUCCESSFULLY WITH {0} 	YES
+collectionUpdatedSuccessfully	COLLECTION UPDATED SUCCESSFULLY	YES
+collectionsServiceNotAvailable	Collections service not available	YES
+copy	Copy	YES
+copyLink	Copy Link	YES
+create	Create	YES
+createCollection	Create Collection	YES
+createNewCollection	Create New Collection	no
+date	DATE	YES
+dateCreated	Date Created	no
+delete	Delete	YES
+deleteCollection	Delete Collection	YES
+deleteCollectionConfirm	Are you sure you want to delete this col	YES
+deleteMessage	Delete message	YES
+deleteNotification	Delete Notification	YES
+deleteNotificationConfirm	Are you sure you want to delete this not	YES
+descending	Descending	no
+download	Download	no
+downloadFailedPleaseTryAgain	Download failed. Please try again.	YES
+downloadStartedSuccessfully	Download started successfully	YES
+downloading	Downloading...	YES
+downloads	Downloads	YES
+edit	Edit	YES
+editAccess	edit	YES
+editCollection	Edit Collection	YES
+editor	Editor	YES
+enterAtLeastOneEmail	Please enter at least one email address	YES
+enterCustomEmployeeType	Enter custom employee type	YES
+enterEmailAddresses	Enter email address(es)	YES
+enterValidEmails	Please enter valid email addresses	YES
+error	Error	YES
+expandAll	Expand All	YES
+expandMessage	Expand message	YES
+failedToCopyLink	Failed to copy link	YES
+failedToCreateCollection	Failed to create collection: {0}	YES
+failedToCreateDownloadArchive	Failed to create download archive	YES
+failedToDeleteCollection	Failed to delete collection: {0}	YES
+failedToDeleteNotification	Failed to delete notification	YES
+failedToInitializeNotifications	Failed to initialize notifications servi	YES
+failedToLoadCollections	Failed to load collections	YES
+failedToLoadNotifications	Failed to load notifications	YES
+failedToMarkAsRead	Failed to mark notification as read	YES
+failedToRemoveAsset	Failed to remove asset: {0}	YES
+failedToRemoveUser	Failed to remove user: {0}	YES
+failedToShareCollection	Failed to share collection: {0}	YES
+failedToUpdateCollection	Failed to update collection: {0}	YES
+fileExtension	FILE EXT	YES
+filter	Filter	no
+filters	Filters	no
+from	FROM	YES
+gridView	Grid View	YES
+help	Help	YES
+hideFilter	Hide Filter	YES
+important	Important	YES
+info	Info	YES
+invalidRemovalRequest	Invalid removal request	YES
+item	Item	YES
+keywords	Keywords	no
+labelTitle	Title	YES
+lastModified	Last Modified	YES
+listView	List View	YES
+loadMore	Load more	no
+loading	Loading...	YES
+loadingRenditions	Loading available renditions...	YES
+logOut	Log Out	no
+loseAccessWarning	You will lose {0} access to this collect	YES
+media	MEDIA	YES
+myAccount	My Account	YES
+myCollections	My Collections	no
+myNotifications	My Notifications	YES
+myProfile	My Profile	no
+name	Name	no
+nextMonth	Next month	YES
+nextSlide	Next Slide	YES
+no	No	no
+noCollectionsFoundMatching	No collections found matching "{0}".	YES
+noCollectionsYet	No collections yet. Create your first co	YES
+noDescription	No description	YES
+noMatchingFilters	No matching filters	YES
+noNotifications	No Notifications	YES
+noNotificationsMessage	You don't have any notifications at this	YES
+noPreviewAvailable	No preview available	YES
+noSubject	(No subject)	YES
+noUsersGrantedAccess	No users have been granted access yet.	YES
+normal	Normal	YES
+notificationDeletedSuccessfully	NOTIFICATION DELETED SUCCESSFULLY	YES
+notificationMarkedAsRead	NOTIFICATION MARKED AS READ	YES
+notifications	Notifications	no
+notificationsOption	Notifications	YES
+of	of	YES
+openCalendar	Open calendar	YES
+openNavigation	Open navigation	YES
+owner	Owner	YES
+preview	Preview	no
+previousMonth	Previous month	YES
+previousSlide	Previous Slide	YES
+priorityLabel	Priority:	YES
+processing	PROCESSING	YES
+read	Read	YES
+remove	Remove	YES
+removeAssetFromCollection	Remove Asset From Collection	YES
+removeAssetFromCollectionConfirm	Do you want to remove this asset from th	YES
+removeFromCart	Remove From Cart	no
+removeMe	Remove Me	YES
+removeUser	Remove user	YES
+removeUserAccess	Remove User Access	YES
+removeUserFromCollection	Remove {0} from "{1}"?	YES
+removingYourselfWarning	You're about to remove yourself as {0} f	YES
+retry	Retry	YES
+rights	Rights	YES
+save	Save	no
+search	Search	no
+searchLinkCopiedToClipboard	SEARCH LINK COPIED TO CLIPBOARD	YES
+searchPlaceholder	What are you looking for?	no
+selectAll	Select All	no
+selectDate	Select date	YES
+share	Share	YES
+shareAccess	Share Access	YES
+shareAsset	Share Asset	YES
+shareCollection	Share Collection	YES
+shareSearch	Share Search	YES
+sharedCount	Shared: {0}	YES
+shoppingCart	Shopping Cart	YES
+showFilter	Show Filter	YES
+showFullDetails	Show full details	YES
+showSlide	Show Page	YES
+showing	Showing	YES
+simulateUser	Simulate User	YES
+simulatingUser	Simulating User	YES
+size	Size	no
+statusLabel	Status:	YES
+subject	SUBJECT	YES
+success	SUCCESS	YES
+tags	Tags	no
+template	Template	no
+templates	Templates	no
+thumbnail	THUMBNAIL	no
+title	TITLE	no
+topResults	Top Results	no
+total	Total	no
+tryDifferentSearchOrClear	Try different search terms or clear sear	YES
+type	TYPE	no
+typeLabel	Type:	YES
+unknown	Unknown	YES
+unread	Unread	YES
+untitled	Untitled	YES
+update	Update	YES
+upload	Upload	YES
+userRemovedFromCollection	USER REMOVED FROM COLLECTION	YES
+viewAccess	view	YES
+viewLargerImage	View larger image	YES
+viewOnly	View Only	YES
+viewer	Viewer	YES
+xOfYNotifications	{0} of {1} notifications	YES
+xUnread	{0} unread	YES
+yes	Yes	no
+youveBeenRemovedFromCollection	YOU'VE BEEN REMOVED FROM '{0}'	YES

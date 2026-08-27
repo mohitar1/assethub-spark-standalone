@@ -1,0 +1,206 @@
+/* Image Gallery Styles */
+
+/* Main gallery container */
+.search-results .images-main {
+  flex: 3 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+
+.search-results .image-gallery {
+  display: flex;
+  flex-direction: column;
+  margin: 0 16px;
+  min-height: 0;
+  flex: 1;
+}
+
+
+
+/* Image Grid */
+.search-results .image-grid-wrapper {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+/* Search Overlay */
+.search-results .search-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(255 255 255 / 70%);
+  z-index: 10;
+}
+
+.search-results .image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-auto-rows: auto;
+  gap: 26px;
+  padding: 20px 20px 20px 16px;
+  flex: 1;
+}
+
+.search-results .image-grid-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: minmax(192px, auto);
+  gap: 20px;
+  padding: 20px 20px 20px 16px;
+  flex: 1;
+}
+
+/* Loading States */
+.search-results .loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  height: calc(100vh - var(--nav-height, 108px) - 320px);
+}
+
+/* Skeleton grid — mirrors .image-grid layout */
+.search-results .skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 26px;
+  padding: 20px 20px 20px 16px;
+  flex: 1;
+}
+
+/* Individual skeleton card */
+.search-results .skeleton-card {
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f0f0f0;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+  display: flex;
+  flex-direction: column;
+}
+
+.search-results .skeleton-card-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.search-results .skeleton-card-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search-results .skeleton-line {
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.search-results .skeleton-line-short {
+  width: 60%;
+}
+
+.search-results .skeleton-line-medium {
+  width: 80%;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.search-results .no-images {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  position: relative;
+  padding: 24px;
+  margin-top: 24px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
+  border-radius: 8px;
+}
+
+.search-results .no-images a {
+  text-decoration: underline;
+  color: var(--primary-color);
+}
+
+.search-results .no-images p {
+  text-align: center;
+}
+
+.search-results .no-images img {
+  margin: auto;
+}
+
+.search-results .loading-container p {
+  margin: 0;
+  margin-top: 15px;
+  font-size: var(--font-size-03);
+  color: #333;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Loading more for pagination */
+.search-results .loading-more-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  margin-top: 20px;
+}
+
+.search-results .loading-more-container p {
+  margin-top: 16px;
+  color: #666;
+  font-size: var(--font-size-02);
+}
+
+/* Load More Button */
+.search-results .load-more-button-container {
+  padding-bottom: 50px;
+  padding-top: 30px;
+}
+
+.search-results .load-more-button {
+  align-items: center;
+  background: none;
+  border: 1px solid var(--primary-color);
+  border-radius: 50px;
+  color: var(--primary-color);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--heading-font-family, sans-serif);
+  font-size: var(--font-size-02);
+  font-weight: 400;
+  height: 50px;
+  left: 50%;
+  line-height: var(--line-height-02);
+  padding: 20px 24px !important;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: auto !important;
+  text-transform: capitalize;
+}
+
+.search-results .load-more-button:hover {
+  background-color: transparent;
+  color: var(--primary-color);
+  transition: all 0.3s ease;
+}
+

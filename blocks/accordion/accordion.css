@@ -1,0 +1,113 @@
+.accordion details {
+    border: none;
+    border-bottom: 1px solid var(--primary-color);
+    margin: 0;
+}
+
+.accordion details summary {
+    position: relative;
+    padding: 20px 30px 20px 0;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--text-color);
+}
+
+.accordion details summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Arrow indicators */
+.accordion details summary::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 21px;
+    height: 20px;
+    background-image: url('/icons/arrow-down-nav-menu.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    filter: brightness(0) saturate(100%) invert(12%) sepia(0%) saturate(0%) hue-rotate(347deg) brightness(98%) contrast(89%);
+    transition: all 0.2s ease;
+}
+
+.accordion details[open] summary::after {
+    background-image: url('/icons/up-arrow-red-icon.svg');
+    filter: none;
+}
+
+.accordion details .accordion-item-body {
+    padding: 0 0 24px;
+}
+
+.accordion details .accordion-item-body p {
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.accordion details .accordion-item-body a {
+    color: var(--text-color);
+    text-decoration: underline;
+}
+
+.accordion details .accordion-item-body a:hover {
+    color: var(--primary-color);
+}
+
+/* Collapsible dropdown wrapping accordion with icon-label header */
+.accordion-collapsible {
+    background-color: var(--color-secondary-light-sky-blue);
+    border-radius: 8px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    box-sizing: border-box;
+}
+
+.accordion-collapsible > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 40px 16px 16px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+    font-size: 16px;
+    position: relative;
+    color: var(--text-color);
+}
+
+.accordion-collapsible > summary::-webkit-details-marker {
+    display: none;
+}
+
+.accordion-collapsible > summary::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    width: 21px;
+    height: 20px;
+    background-image: url('/icons/arrow-down-nav-menu.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    filter: brightness(0) saturate(100%) invert(12%) sepia(0%) saturate(0%) hue-rotate(347deg) brightness(98%) contrast(89%);
+    transition: all 0.2s ease;
+}
+
+.accordion-collapsible[open] > summary::after {
+    background-image: url('/icons/up-arrow-red-icon.svg');
+    filter: none;
+}
+
+.accordion-collapsible > .accordion-wrapper {
+    padding: 0 16px 16px;
+}
+

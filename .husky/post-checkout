@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+# Only run on new worktree creation (prev ref is all zeros)
+if [ "$1" = "0000000000000000000000000000000000000000" ]; then
+  # Find the main worktree root (where .git is a directory, not a file)
+  main_root="$(git rev-parse --path-format=absolute --git-common-dir)"
+  main_root="${main_root%/.git}"
+
+  # Symlink secret/config files (add more lines as needed)
+  ln -s "$main_root/cloudflare/.secrets" "$(pwd)/cloudflare/.secrets"
+
+  # Install dependencies
+  echo "post-checkout: installing dependencies..."
+  npm install
+fi

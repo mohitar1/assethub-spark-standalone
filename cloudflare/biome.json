@@ -1,0 +1,60 @@
+{
+  "files": {
+    "includes": ["src/**", "package.json"]
+  },
+  "linter": {
+    "rules": {
+      "correctness": {
+        "noUndeclaredVariables": "error",
+        "noNodejsModules": "off"
+      },
+      "suspicious": {
+        "noConsole": "off"
+      },
+      "performance": {
+        "useTopLevelRegex": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": {
+            "maxAllowedComplexity": 50
+          }
+        }
+      }
+    }
+  },
+  "formatter": {
+    "includes": ["**", "!**/package.json", "!**/license-checker-config.json"],
+    "indentWidth": 2,
+    "indentStyle": "space",
+    "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single"
+    },
+    "globals": ["HTMLRewriter"]
+  },
+  "overrides": [
+    {
+      "includes": ["**/test/**/*.js"],
+      "javascript": {
+        "globals": ["afterEach", "afterAll", "beforeEach", "beforeAll", "describe", "it"]
+      },
+      "linter": {
+        "rules": {
+          "style": {
+            "noDoneCallback": "off"
+          }
+        }
+      }
+    }
+  ],
+  "vcs": {
+    "enabled": true,
+    "root": "../",
+    "clientKind": "git",
+    "defaultBranch": "main"
+  }
+}

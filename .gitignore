@@ -1,0 +1,63 @@
+.hlx/*
+coverage/
+logs/*
+node_modules/
+
+helix-importer-ui
+.DS_Store
+*.bak
+.idea
+
+.env
+secret.env
+.dev.vars
+.secrets
+.wrangler/
+
+# Generated configuration files with sensitive data
+react/dist/config.js
+tools/assets-browser/config.js
+
+# Template files are safe to commit
+!**/*.template
+
+# Local development config (never commit)
+**/config.local.js
+
+.claude/settings.local.json
+.claude/worktrees/
+
+todo.md
+curl.md
+
+# Cursor commands
+.cursor/commands/
+
+# Internal/private files (local scratch/planning)
+.internal
+
+# Migration data (large files, not for git)
+/migration/**/DATA/
+/migration/**/source.config
+/migration/**/da.upload.config
+/migration/**/user-mapping.csv
+
+# AEM author backup tarballs (local snapshots, never commit)
+10-04-2026/
+**/author/*.tar.gz
+
+# Worktree tools
+.yolo/
+.worktrees/
+
+# FakeSMTP received emails (local testing)
+received-emails/
+
+# Test artifacts
+tests/integration/report/
+tests/authz/report/
+.env.test.local
+
+# User permission tester (secrets + output)
+tools/user-permission-tester/test-inputs/config.json
+tools/user-permission-tester/test-results/

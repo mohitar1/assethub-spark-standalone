@@ -1,0 +1,328 @@
+/* Search Results Block - Main Styles */
+
+/* Import sub-styles */
+@import url('./styles/theme.css');
+@import url('./styles/main-app.css');
+@import url('./styles/image-gallery.css');
+@import url('./styles/asset-card.css');
+@import url('./styles/search-panel.css');
+@import url('./styles/facets.css');
+@import url('./styles/asset-preview.css');
+@import url('./styles/asset-details.css');
+@import url('./styles/action-button.css');
+@import url('./styles/download-renditions.css');
+@import url('./styles/adobe-pdf-viewer.css');
+@import url('../../scripts/share/share-asset-button.css');
+
+/* ========================================
+   Container Styles (equivalent to React .container)
+   ======================================== */
+
+/* Main layout */
+.search-results {
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  box-sizing: border-box;
+  min-height: 100vh;
+  background-color: white;
+  width: 100%;
+}
+
+/* Override EDS section container constraints to make block full-width */
+main > .section > .search-results-wrapper {
+  max-width: 100%;
+  padding: 0;
+}
+
+main > .section:has(.search-results) {
+  padding: 0;
+  margin: 0;
+}
+
+main > .section > div:has(.search-results) {
+  max-width: 100%;
+  padding: 0;
+}
+
+.search-results,
+.search-collection-results,
+.search-collection-results-wrapper,
+.search-results *,
+.search-collection-results * {
+  font-family: var(--body-font-family, sans-serif);
+}
+
+/* Link styles — no frescopa underline inside search UI */
+.search-results a:any-link,
+.search-collection-results a:any-link,
+.search-collection-results-wrapper a:any-link {
+  text-decoration: none;
+  letter-spacing: normal;
+}
+
+.search-results a:any-link:hover,
+.search-collection-results a:any-link:hover,
+.search-collection-results-wrapper a:any-link:hover {
+  text-decoration: none;
+}
+
+/* Link styles */
+.search-results a {
+  text-decoration: none;
+}
+
+/* Heading styles — app scale, not global marketing headings */
+.search-results :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--body-font-family, sans-serif);
+  font-weight: 700;
+  line-height: var(--line-height-02);
+}
+
+.search-results h1,
+.search-results h2,
+.search-results h3,
+.search-results h4,
+.search-results h5 {
+  font-weight: 700;
+  line-height: var(--line-height-02);
+}
+
+.search-results h3 {
+  font-size: var(--font-size-05);
+}
+
+.search-results h3 a {
+  font-family: var(--heading-font-family, sans-serif);
+  font-size: var(--font-size-02);
+  font-style: normal;
+  font-weight: 700;
+  line-height: var(--line-height-02);
+}
+
+.search-results a:hover {
+  text-decoration: none;
+  color: var(--primary-color);
+}
+
+/* Remove default heading underlines */
+:is(.search-results h1, .search-results h2, .search-results h3, .search-results h4, .search-results h5, .search-results h6)::after,
+:is(.portal-modal h1, .portal-modal h2, .portal-modal h3, .portal-modal h4, .portal-modal h5, .portal-modal h6)::after {
+  content: inherit;
+  display: inherit;
+  width: inherit;
+  height: inherit;
+  margin-top: inherit;
+  margin-bottom: inherit;
+  background-color: inherit;
+}
+
+/* ========================================
+   Global button styling
+   ======================================== */
+.search-results button {
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-results a.button:any-link,
+.search-results button {
+  margin: 0;
+}
+
+.search-results a.button:hover,
+.search-results a.button:focus,
+.search-results button:hover,
+.search-results button:focus {
+  cursor: pointer;
+}
+
+.search-results button:disabled,
+.search-results button:disabled:hover {
+  cursor: not-allowed;
+  background-color: var(--primary-color-disabled);
+}
+
+
+/* ========================================
+   Metadata Labels & Values
+   ======================================== */
+.search-results .asset-card-view-grid .custom-metadata-label,
+.search-results .asset-card-view-list .custom-metadata-label {
+  color: #707070;
+  font-size: var(--font-size-01);
+  font-weight: 400;
+  line-height: var(--line-height-01);
+  letter-spacing: 0.5px;
+  font-family: var(--body-font-family, sans-serif);
+}
+
+.search-results .custom-metadata-value {
+  color: #0e202e;
+  font-size: var(--font-size-01);
+  font-weight: 700;
+  line-height: .9rem;
+  font-family: var(--body-font-family, sans-serif);
+  overflow-wrap: break-word;
+}
+
+/* ========================================
+   Tags
+   ======================================== */
+.search-results .custom-tag {
+  background: #fff0da;
+  color: #a46801;
+  font-family: var(--heading-font-family, sans-serif);
+  font-size: var(--font-size-00);
+  font-weight: 700;
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  overflow-wrap: break-word;
+
+}
+
+.search-results .product-tags .custom-tag {
+  &.empty {
+    visibility: hidden;
+  }
+
+  &::after {
+    content: '';
+    font-family: FontAwesome, sans-serif;
+    display: none;
+    margin-left: 4px;
+  }
+
+  &:hover {
+    text-decoration: underline;
+
+    &::after {
+      content: "\f08e";
+      font-family: FontAwesome, sans-serif;
+      display: inline-block;
+      margin-left: 4px;
+    }
+  }
+}
+
+/* ========================================
+   Breadcrumb Navigation
+   ======================================== */
+.search-results .breadcrumbs {
+  padding: 10px;
+  background-color: #f5f5f5;
+  margin-bottom: 10px;
+}
+
+.search-results .breadcrumb-link {
+  cursor: pointer;
+  color: var(--primary-color);
+}
+
+.search-results .breadcrumb-separator {
+  margin: 0 5px;
+}
+
+/* ========================================
+   Image Layout Containers
+   ======================================== */
+.search-results .images-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.search-results .images-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.search-results .images-content-wrapper .footer {
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: 20px;
+}
+
+.search-results .images-content-row {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+  align-items: flex-start;
+}
+
+/* ========================================
+   Item Thumbnails (Renditions, etc.)
+   ======================================== */
+.item-thumbnail {
+  font-size: var(--font-size-01);
+  object-fit: contain;
+}
+
+.search-results .download-renditions-title {
+  font-size: var(--font-size-02);
+  font-weight: 700;
+  color: #333;
+  line-height: var(--line-height-02);
+  font-family: var(--body-font-family, sans-serif);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* Picture background for non-missing images */
+.search-results picture:not(.missing) {
+  background-color: rgb(249 249 249);
+}
+
+/* ========================================
+   Portal Modal Styles
+   ======================================== */
+.portal-modal .modal-title {
+  overflow-wrap: break-word;
+  margin: 0;
+  color: var(--text-color);
+  font-size: var(--font-size-04);
+  font-weight: 700;
+  line-height: var(--line-height-04);
+  font-family: var(--body-font-family, sans-serif);
+  max-width: 90%;
+}
+
+.portal-modal .modal-description {
+  margin: 0;
+  overflow-wrap: break-word;
+  color: var(--text-color);
+  font-size: var(--font-size-02);
+  font-weight: 400;
+  line-height: var(--line-height-02);
+}
+
+/* .portal-modal h1,
+.portal-modal h2,
+.portal-modal h3,
+.portal-modal h4,
+.portal-modal h5 {
+  line-height: var(--line-height-02);
+}
+
+.portal-modal h3 {
+  font-size: var(--font-size-05);
+}
+
+.portal-modal h3 a {
+  font-family: var(--heading-font-family, sans-serif);
+  font-size: var(--font-size-02);
+  font-style: normal;
+  font-weight: 700;
+  line-height: var(--line-height-02);
+} */
+
+/* Responsive layout is defined in styles/main-app.css */
