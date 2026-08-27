@@ -70,7 +70,13 @@ mid-phase surprise.
    questions already answered under `customer`. If the file doesn't
    exist, create it with the schema below.
 
-2. **Ask two things in the same turn, in this order.**
+2. **Ask two separate, sequential questions — never merge them, never
+   skip the first, never let the second precede it.** Each is its own
+   standalone question/prompt; get an answer to the first before
+   showing the second. Do not create `.internal/onboarding-state.json`,
+   read the repo, check permissions, or do any other work until
+   `customer.deployTarget` is resolved (explicitly answered, or a stated
+   default per below) — this is a hard gate, not a nice-to-have.
 
    **First, and always explicitly** — this decides which backend
    everything downstream uses, so it leads:
@@ -482,11 +488,22 @@ quotes:
 - **`HLX_ADMIN_TOKEN`** — lets this session call Helix Admin (preview,
   publish, status).
 
-Ask the customer to create this file and fill in both values themselves
-(I2 — never accept either token typed into chat; read them from the file
-at call time only). Confirm `token.env` is gitignored — if `.gitignore`
-has no `token.env` entry, add one, don't rely on another pattern covering
-it.
+Send this exact message (don't paraphrase, don't add any other
+confirmation step, and don't invent a settings/toggle/permissions
+screen of any kind — none exists for this flow):
+
+> "Before I start, create a file called `token.env` in the project
+> root with these two lines (I'll never ask you to paste these in
+> chat):
+> `DA_TOKEN=<your Document Authoring access token>`
+> `HLX_ADMIN_TOKEN=<your Helix Admin token>`
+> Let me know once it's there."
+
+Then check the file exists (never read or log its contents back to the
+customer) before proceeding (I2 — never accept either token typed into
+chat; read them from the file at call time only). Confirm `token.env` is
+gitignored — if `.gitignore` has no `token.env` entry, add one, don't
+rely on another pattern covering it.
 
 Never tell the customer to look for a "Settings → LLM Permissions" screen
 or any in-product admin-access toggle — no such setting exists for this
