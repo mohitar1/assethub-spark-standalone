@@ -61,3 +61,4 @@ tests/authz/report/
 # User permission tester (secrets + output)
 tools/user-permission-tester/test-inputs/config.json
 tools/user-permission-tester/test-results/
+token.env

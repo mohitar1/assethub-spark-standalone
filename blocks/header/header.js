@@ -594,7 +594,7 @@ export default async function decorate(block) {
     welcomeBar.innerHTML = `
       <a href="/" class="welcome-logo" aria-label="Home">
         <span class="icon icon-frescopa-icon">
-          <img src="/icons/frescopa-icon.svg" alt="Fréscopa" loading="eager" />
+          <img src="/icons/frescopa-icon.svg" alt="Disney" loading="eager" />
         </span>
       </a>`;
     block.append(welcomeBar);

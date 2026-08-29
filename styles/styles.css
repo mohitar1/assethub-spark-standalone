@@ -11,20 +11,20 @@
  */
 
 :root {
-  /* Brand palette (semantic tokens — single source of truth) */
-  --light-color: #F4E9DC;
-  --dark-color: #2C2C2C;
-  --text-color: #58181D;
-  --text-primary: #58181D;
-  --link-color: #58181D;
-  --link-hover-color: #00647D;
-  --primary-color: #00647D;
-  --primary-color-hover: #004d61;
-  --color-red: #A33532;
-  --color-dark-red: #95351D;
-  --accent-secondary: #DC6E52;
-  --accent-tertiary: #EBA439;
-  --secondary-color: #95351D;
+  /* Brand palette (semantic tokens — single source of truth) — Disney */
+  --light-color: #EEF1F6;
+  --dark-color: #0B1F3A;
+  --text-color: #1B1B1B;
+  --text-primary: #1B1B1B;
+  --link-color: #1450A3;
+  --link-hover-color: #0D3A7D;
+  --primary-color: #1450A3;
+  --primary-color-hover: #0D3A7D;
+  --color-red: #ED1C24;
+  --color-dark-red: #B3151B;
+  --accent-secondary: #FFC72C;
+  --accent-tertiary: #6B4FA0;
+  --secondary-color: #ED1C24;
 
   /* Neutral & shape tokens */
   --color-neutral-50: #fff;
@@ -66,8 +66,8 @@
   --color-dark-blue: var(--primary-color);
 
   /* fonts */
-  --body-font-family: var(--type-base-font-family);
-  --heading-font-family: baskerville, serif;
+  --body-font-family: 'Noto Sans', roboto-fallback, helvetica, arial, sans-serif;
+  --heading-font-family: 'Noto Sans', roboto-fallback, helvetica, arial, sans-serif;
 
   /* font sizes */
   --body-font-size-m: 18px;
@@ -120,7 +120,7 @@
 
   /* action button colors */
   --button-primary: var(--primary-color);
-  --button-primary-hover: #004d61;
+  --button-primary-hover: #0D3A7D;
 
   /* label colors */
   --label-color: var(--text-color);
@@ -234,13 +234,13 @@ body:has(.section.welcome) > main {
 
 /* ── Left: Brand Panel ────────────────────────────────────────── */
 
-/* Dark coffee background with the gold beans icon as a large decorative mark */
+/* Deep navy background with the gold star icon as a large decorative mark */
 body:has(.section.welcome) > main::before {
   content: '';
-  background-color: #2f2318;
+  background-color: var(--dark-color);
   background-image:
-    radial-gradient(ellipse 80% 55% at 15% 110%, rgb(234 163 58 / 22%) 0%, transparent 100%),
-    radial-gradient(ellipse 60% 45% at 90% -5%,  rgb(234 163 58 / 10%) 0%, transparent 100%),
+    radial-gradient(ellipse 80% 55% at 15% 110%, rgb(255 199 44 / 22%) 0%, transparent 100%),
+    radial-gradient(ellipse 60% 45% at 90% -5%,  rgb(255 199 44 / 10%) 0%, transparent 100%),
     url('/icons/frescopa-beans.svg');
   background-repeat: no-repeat, no-repeat, no-repeat;
   background-size: cover, cover, 42%;
@@ -249,14 +249,14 @@ body:has(.section.welcome) > main::before {
 
 /* Tagline + brand label stacked at the bottom of the brand panel */
 body:has(.section.welcome) > main::after {
-  content: '"The world\'s finest coffee,\Aat your fingertips."';
+  content: '"Where the magic of Disney\Ais always at your fingertips."';
   white-space: pre;
-  font-family: baskerville, serif;
+  font-family: var(--heading-font-family);
   font-size: 1rem;
   font-style: italic;
   line-height: 1.6;
   letter-spacing: 0.01em;
-  color: rgb(244 233 220 / 55%);
+  color: rgb(255 255 255 / 55%);
   position: absolute;
   bottom: 48px;
   left: 0;
@@ -741,8 +741,8 @@ button.button:disabled:hover {
 a.button.secondary,
 button.button.secondary,
 button.secondary {
-  background-color: #95351D;
-  border-color: #95351D;
+  background-color: var(--color-dark-red);
+  border-color: var(--color-dark-red);
   color: #fff;
 }
 
