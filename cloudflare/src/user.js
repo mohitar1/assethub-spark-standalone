@@ -1,5 +1,5 @@
 import { json } from 'itty-router';
-import config from './config.js';
+import config, { companyBasePath } from './config.js';
 import { hasPermission, PERMISSIONS } from '../../scripts/auth/permissions.js';
 import { fetchHelixSheet } from './util/helixutil.js';
 
@@ -21,7 +21,7 @@ export const USER_TYPE = {
 /**
  * Adobe employee domains that are treated as internal users.
  * Contractors and vendors on non-Adobe domains can be promoted to internal
- * via the /config/access/users override sheet.
+ * via the <company>/config/access/users override sheet.
  */
 const INTERNAL_DOMAINS = new Set(['adobe.com']);
 
@@ -36,14 +36,14 @@ function pushUnique(array, items) {
 
 /**
  * Resolve user type (internal vs external) from domain, with per-email/domain
- * override support via the /config/access/users sheet.
+ * override support via the <company>/config/access/users sheet.
  *
  * Internal: Adobe employees (adobe.com domain), or any email/domain explicitly
  * marked as 'internal' in the users sheet.
  * External: everyone else (agency partners, distributors, vendors, etc.).
  *
  * @param {string} domain - User's email domain (lowercase)
- * @param {Object|undefined} userOverride - Row from /config/access/users for this email/domain
+ * @param {Object|undefined} userOverride - Row from <company>/config/access/users for this email/domain
  * @returns {string} USER_TYPE.INTERNAL or USER_TYPE.EXTERNAL
  */
 function resolveUserType(domain, userOverride) {
@@ -65,7 +65,7 @@ async function getUserAttributes(request, env, user) {
   };
 
   const userArrays = ['roles', 'countries'];
-  const users = await fetchHelixSheet(request, env, '/config/access/users', {
+  const users = await fetchHelixSheet(request, env, `${companyBasePath()}/config/access/users`, {
     params: {
       limit: 50000,
     },
@@ -96,13 +96,13 @@ async function getUserAttributes(request, env, user) {
 }
 
 /**
- * Resolve the permission list for an email from the /config/access/application
+ * Resolve the permission list for an email from the <company>/config/access/application
  * sheet, merging the wildcard (`*`), the email domain, and the exact-email rows.
  * Shared by login (createSession) and impersonation (handleSudo).
  */
 async function resolvePermissions(request, env, email) {
   const domain = getEmailDomain(email);
-  const access = await fetchHelixSheet(request, env, '/config/access/application', {
+  const access = await fetchHelixSheet(request, env, `${companyBasePath()}/config/access/application`, {
     sheet: { key: 'email', arrays: ['permissions'] },
   });
   return [

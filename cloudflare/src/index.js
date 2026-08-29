@@ -110,8 +110,13 @@ router
   // from here on authentication required (middleware)
   .all('*', withAuthentication)
 
-  // restrict config/access paths to users with 'admin' permission
+  // restrict config/access paths (company-scoped and root) to users with 'admin' permission
   .all('/config/access/*', (request) => {
+    if (!request.user?.roles?.includes('admin')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  })
+  .all(`${BASE}/config/access/*`, (request) => {
     if (!request.user?.roles?.includes('admin')) {
       return new Response('Forbidden', { status: 403 });
     }

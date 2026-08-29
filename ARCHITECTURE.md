@@ -375,7 +375,7 @@ Authorization is **layered and config-driven** — permissions come from EDS spr
 
 ### Layer 1: Application Access (Permissions)
 
-**Source:** `/config/access/application` spreadsheet (EDS JSON)
+**Source:** `<company-base-path>/config/access/application` spreadsheet (EDS JSON) — company-scoped (e.g. `/urbn/config/access/application`), empty base path at the production root
 
 Permissions are matched by:
 1. `*` (wildcard — all users)
@@ -393,7 +393,7 @@ Permissions are matched by:
 
 ### Layer 2: Roles and Entitlements
 
-**Source:** `/config/access/companies` + `/config/access/users` spreadsheets
+**Source:** `<company-base-path>/config/access/companies` + `<company-base-path>/config/access/users` spreadsheets
 
 | Role | Source | Capabilities |
 |------|--------|-------------|
@@ -678,9 +678,9 @@ Browser (EDS scripts decorate blocks)
 | `configs` | General app configuration |
 | `mime-types` | File type mappings |
 | `restricted-brands` | Brand access control |
-| `/config/access/application` | Permission grants |
-| `/config/access/companies` | Domain → role/country mapping |
-| `/config/access/users` | Per-user overrides |
+| `<company-base-path>/config/access/application` | Permission grants |
+| `<company-base-path>/config/access/companies` | Domain → role/country mapping |
+| `<company-base-path>/config/access/users` | Per-user overrides |
 
 ### i18n / Localization
 
