@@ -25,7 +25,7 @@
   --red-200: rgb(163 53 50 / 25%);
   --red-300: var(--color-red);
   --red-400: var(--color-red);
-  --red-500: #95351D;
+  --red-500: #B3141C;
   --red-600: #7a2b17;
   --highlight-hover: rgb(0 0 0 / 7%);
   --highlight-pressed: rgb(0 0 0 / 15%);
@@ -54,7 +54,7 @@
   --highlight-foreground-pressed: var(--light-color);
   --highlight-overlay: rgb(0 100 125 / 15%);
   --invalid-color: var(--color-red);
-  --invalid-color-pressed: #95351D;
+  --invalid-color-pressed: #B3141C;
 }
 
 /* Dark mode */
@@ -70,16 +70,16 @@
     --gray-600: #cfcfcf;
     --purple-100: #003d4d;
     --purple-200: #004d61;
-    --purple-300: #00647D;
+    --purple-300: #1B2E82;
     --purple-400: #3d8fa3;
     --purple-500: #6ab4c4;
     --purple-600: #a8d4de;
     --red-100: #5c1f1e;
     --red-200: #7a2b17;
-    --red-300: #A33532;
+    --red-300: #EE1C25;
     --red-400: #c44a47;
-    --red-500: #dc6e52;
-    --red-600: #eba439;
+    --red-500: #EE1C25;
+    --red-600: #FFC72C;
     --highlight-hover: rgb(255 255 255 / 10%);
     --highlight-pressed: rgb(255 255 255 / 20%);
   }
