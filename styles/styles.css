@@ -11,20 +11,20 @@
  */
 
 :root {
-  /* Brand palette (semantic tokens — single source of truth) */
-  --light-color: #F4E9DC;
-  --dark-color: #2C2C2C;
-  --text-color: #58181D;
-  --text-primary: #58181D;
-  --link-color: #58181D;
-  --link-hover-color: #00647D;
-  --primary-color: #00647D;
-  --primary-color-hover: #004d61;
-  --color-red: #A33532;
-  --color-dark-red: #95351D;
-  --accent-secondary: #DC6E52;
-  --accent-tertiary: #EBA439;
-  --secondary-color: #95351D;
+  /* Brand palette (semantic tokens — single source of truth) — Disney */
+  --light-color: #F2F4F8;
+  --dark-color: #0C1445;
+  --text-color: #0C1445;
+  --text-primary: #0C1445;
+  --link-color: #0C1445;
+  --link-hover-color: #1B2E82;
+  --primary-color: #1B2E82;
+  --primary-color-hover: #0C1445;
+  --color-red: #EE1C25;
+  --color-dark-red: #B3141C;
+  --accent-secondary: #EE1C25;
+  --accent-tertiary: #FFC72C;
+  --secondary-color: #FFC72C;
 
   /* Neutral & shape tokens */
   --color-neutral-50: #fff;
@@ -65,9 +65,9 @@
   --color-medium-grey: var(--color-neutral-400);
   --color-dark-blue: var(--primary-color);
 
-  /* fonts */
+  /* fonts — Disney uses a clean sans-serif family site-wide */
   --body-font-family: var(--type-base-font-family);
-  --heading-font-family: baskerville, serif;
+  --heading-font-family: var(--type-base-font-family);
 
   /* font sizes */
   --body-font-size-m: 18px;
@@ -120,7 +120,7 @@
 
   /* action button colors */
   --button-primary: var(--primary-color);
-  --button-primary-hover: #004d61;
+  --button-primary-hover: #0C1445;
 
   /* label colors */
   --label-color: var(--text-color);
@@ -741,17 +741,17 @@ button.button:disabled:hover {
 a.button.secondary,
 button.button.secondary,
 button.secondary {
-  background-color: #95351D;
-  border-color: #95351D;
-  color: #fff;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: var(--text-color);
 }
 
 a.button.secondary:hover,
 button.button.secondary:hover,
 button.secondary:hover {
-  background-color: #7a2b17;
-  border-color: #7a2b17;
-  color: #fff;
+  background-color: #E0AC1E;
+  border-color: #E0AC1E;
+  color: var(--text-color);
 }
 
 main img {
