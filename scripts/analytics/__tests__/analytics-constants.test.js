@@ -225,9 +225,9 @@ describe('analytics-constants', () => {
 
   describe('ROLE_COLORS', () => {
     it('has colors for all known roles and Other', () => {
-      expect(ROLE_COLORS.Associate).toBe('#00647D');
-      expect(ROLE_COLORS.Agency).toBe('#EBA439');
-      expect(ROLE_COLORS.Partner).toBe('#58181D');
+      expect(ROLE_COLORS.Associate).toBe('#087FC8');
+      expect(ROLE_COLORS.Agency).toBe('#F5A623');
+      expect(ROLE_COLORS.Partner).toBe('#000000');
       expect(ROLE_COLORS.Other).toBe('#b8b8b8');
     });
   });
@@ -382,9 +382,9 @@ describe('analytics-constants', () => {
 
   describe('getRoleColor', () => {
     it('returns correct colors for known roles', () => {
-      expect(getRoleColor('Associate')).toBe('#00647D');
-      expect(getRoleColor('Agency')).toBe('#EBA439');
-      expect(getRoleColor('Partner')).toBe('#58181D');
+      expect(getRoleColor('Associate')).toBe('#087FC8');
+      expect(getRoleColor('Agency')).toBe('#F5A623');
+      expect(getRoleColor('Partner')).toBe('#000000');
       expect(getRoleColor('Other')).toBe('#b8b8b8');
     });
 

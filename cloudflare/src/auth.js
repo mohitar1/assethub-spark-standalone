@@ -1,14 +1,16 @@
 import { Router } from 'itty-router';
 import { createRemoteJWKSet, jwtVerify, SignJWT } from 'jose';
-import config from './config.js';
+import config, { companyBasePath } from './config.js';
 import { createSession, getUser } from './user.js';
 import { createSignedCookie, deleteCookie, isValidUrl, setCookie, validateSignedCookie } from './util/http.js';
 import { maskEmail } from './util/log-utils.js';
 
 /* Configure the path of a custom login/welcome page here.
    If not set (= undefined), unauthenticated users will always be redirected directly to the IDP login page.
-   This page must be rendered by Helix or other origin without authentication (not done here). */
-export const LOGIN_PAGE = '/public/welcome';
+   This page must be rendered by Helix or other origin without authentication (not done here).
+   Foldered demos serve the welcome page under /<companyKey>/public/welcome, so the base
+   path (config.DEMO_BASE_PATH, '' at the repo root) is prepended. */
+export const LOGIN_PAGE = `${companyBasePath()}/public/welcome`;
 
 /* Configure the URL path prefix for auth flows here */
 const AUTH_PREFIX = '/auth';

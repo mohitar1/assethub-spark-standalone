@@ -792,6 +792,15 @@ describe('dm.js - ContentAI Authorization', () => {
   });
 
   describe('buildAssetAuthClauses', () => {
+    let savedDemoCompany;
+    beforeEach(() => {
+      savedDemoCompany = config.DEMO_COMPANY;
+      config.DEMO_COMPANY = null;
+    });
+    afterEach(() => {
+      config.DEMO_COMPANY = savedDemoCompany;
+    });
+
     it('should return no constraints for admin users', async () => {
       const request = { user: { email: 'admin@adobe.com', roles: ['admin'], userType: 'internal' } };
       const clauses = await buildAssetAuthClauses(request, {});

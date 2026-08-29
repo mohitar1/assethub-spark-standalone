@@ -194,8 +194,11 @@ export async function enrichAssets({
 }
 
 /**
- * Rewrites `DEMO_COMPANY` in cloudflare/src/config.js to `customerKey`.
- * No-ops on dry runs or when the file cannot be found.
+ * Rewrites the demo scope keys in cloudflare/src/config.js to `customerKey`:
+ *   - `DEMO_COMPANY`   → asset-search scope (assetMetadata.company === customerKey)
+ *   - `DEMO_BASE_PATH` → portal routing/login base ('/<customerKey>')
+ * Both are the SAME key: the content lives under the /<customerKey> DA folder and
+ * the assets are tagged with the same company. No-ops on dry runs / missing file.
  * @param {string} customerKey
  * @param {{ dryRun?: boolean }} options
  */
@@ -204,22 +207,26 @@ function patchDemoCompany(customerKey, { dryRun = false } = {}) {
   const scriptDir = dirname(fileURLToPath(import.meta.url));
   const configPath = resolve(scriptDir, '../../cloudflare/src/config.js');
   if (!existsSync(configPath)) {
-    console.warn('[agent] config.js not found — skipping DEMO_COMPANY patch');
+    console.warn('[agent] config.js not found — skipping demo scope patch');
     return;
   }
   const original = readFileSync(configPath, 'utf8');
-  const patched = original.replace(
+  let patched = original.replace(
     /DEMO_COMPANY:\s*(?:null|'[^']*'|"[^"]*")/,
     `DEMO_COMPANY: '${customerKey}'`,
   );
+  patched = patched.replace(
+    /DEMO_BASE_PATH:\s*(?:null|'[^']*'|"[^"]*")/,
+    `DEMO_BASE_PATH: '/${customerKey}'`,
+  );
   if (patched === original) {
-    console.warn('[agent] DEMO_COMPANY already set correctly — no patch needed');
+    console.warn('[agent] DEMO_COMPANY + DEMO_BASE_PATH already set correctly — no patch needed');
     return;
   }
   writeFileSync(configPath, patched, 'utf8');
-  console.warn(`[agent] patched cloudflare/src/config.js → DEMO_COMPANY: '${customerKey}'`);
+  console.warn(`[agent] patched cloudflare/src/config.js → DEMO_COMPANY: '${customerKey}', DEMO_BASE_PATH: '/${customerKey}'`);
   console.warn('[agent] local dev server will pick this up automatically on next request');
-  console.warn('[agent] to push to production: npm run deploy');
+  console.warn('[agent] the per-PR worker deploy applies it to the preview URL');
 }
 
 /** CLI bootstrap. */
