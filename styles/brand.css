@@ -1,0 +1,18 @@
+/* Volkswagen India-inspired design tokens extracted for the demo rebrand. */
+:root {
+  --brand-panel: #05080F;
+  --brand-panel-soft: #0E1422;
+  --brand-primary: #001E50;
+  --brand-primary-hover: #163A70;
+  --brand-primary-active: #0A1739;
+  --brand-text: #1B2236;
+  --brand-text-soft: #5B6B86;
+  --brand-surface: #F6F5F0;
+  --brand-surface-alt: #FFF;
+  --brand-surface-muted: #E7EAF0;
+  --brand-surface-strong: #D8DCE4;
+  --brand-accent-soft: #7F8CA5;
+  --brand-divider: #CFD6E0;
+  --brand-heading-font: "Arial Narrow", "Helvetica Neue", arial, sans-serif;
+  --brand-body-font: "Helvetica Neue", arial, sans-serif;
+}
