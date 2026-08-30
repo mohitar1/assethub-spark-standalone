@@ -484,7 +484,7 @@ async function createNavBar(t) {
 
       // Add click handler for reports icon
       reportsIcon.addEventListener('click', () => {
-        window.location.href = '/en/reports/report-hub';
+        window.location.href = localizePath('/reports/report-hub');
       });
 
       iconsWrapper.appendChild(reportsIcon);
