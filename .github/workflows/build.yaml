@@ -70,7 +70,7 @@ jobs:
         command: >-
           deploy --env branch
           --name "spark-eds-pr-${{ github.event.pull_request.number }}"
-          --var "HELIX_ORIGIN:https://${{ steps.setup.outputs.ref }}--assethub-spark--aem-showcase.aem.page"
+          --var "HELIX_ORIGIN:https://${{ steps.setup.outputs.ref }}--${{ github.event.repository.name }}--${{ github.repository_owner }}.aem.page"
           --route "${{ steps.setup.outputs.ref }}.dev.frescopamedia.com/*"
           --tag "${{ steps.setup.outputs.tag }}"
           --message "${{ steps.setup.outputs.message }}"
