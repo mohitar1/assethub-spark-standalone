@@ -22,6 +22,7 @@ import { isUserExcluded, parsePageExclusions } from './origin/page-access';
 import { handleScheduledTokenRefresh } from './scheduled/token-refresh';
 import { apiUser } from './user';
 import { cors } from './util/itty';
+import { companyBasePath } from './config';
 
 // Shared CORS origins
 const allowedOrigins = [
@@ -70,6 +71,11 @@ const router = Router({
   },
 });
 
+// Content base path for this deploy: '' at the repo root (production), or '/<companyKey>'
+// for a foldered company demo. Drives the root redirect, the unauthenticated login/public
+// route, and (via auth.js) LOGIN_PAGE — all from the single config.DEMO_BASE_PATH value.
+const BASE = companyBasePath();
+
 router
   // parse cookies (middleware)
   .all('*', (request) => {
@@ -83,10 +89,15 @@ router
   .all('*', authRouter.fetch)
 
   // redirect bare root to the default locale home (search-first portal)
-  .get('/', (request) => Response.redirect(`${new URL(request.url).origin}/en/`, 302))
+  .get('/', (request) => Response.redirect(`${new URL(request.url).origin}${BASE}/en/`, 302))
+
+  // foldered demo: bare company root (/<company> and /<company>/) -> its locale home.
+  // Inert when BASE='' (repo root): the sentinel paths never match a real request.
+  .get(BASE || '/__no_company_base__', (request) => Response.redirect(`${new URL(request.url).origin}${BASE}/en/`, 302))
+  .get(BASE ? `${BASE}/` : '/__no_company_base_slash__', (request) => Response.redirect(`${new URL(request.url).origin}${BASE}/en/`, 302))
 
   // public static assets
-  .get('/public/*', originHelix)
+  .get(`${BASE}/public/*`, originHelix)
   .get('/tools/*', originHelix)
   .get('/scripts/*', originHelix)
   .get('/styles/*', originHelix)
@@ -99,8 +110,13 @@ router
   // from here on authentication required (middleware)
   .all('*', withAuthentication)
 
-  // restrict config/access paths to users with 'admin' permission
+  // restrict config/access paths (company-scoped and root) to users with 'admin' permission
   .all('/config/access/*', (request) => {
+    if (!request.user?.roles?.includes('admin')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  })
+  .all(`${BASE}/config/access/*`, (request) => {
     if (!request.user?.roles?.includes('admin')) {
       return new Response('Forbidden', { status: 403 });
     }
