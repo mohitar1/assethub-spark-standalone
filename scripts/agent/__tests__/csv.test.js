@@ -47,6 +47,16 @@ describe('csv', () => {
       expect(lines[1]).toContain('"[""k1"",""k2""]"');
     });
 
+    it('emits the allowedCountries column when a row carries it', () => {
+      const { csv, columns } = buildMetadataCsv([
+        {
+          assetPath: '/content/dam/x/a.jpg', title: 'A', company: 'x', status: 'approved', allowedCountries: 'global',
+        },
+      ]);
+      expect(columns).toContain('allowedCountries[string]');
+      expect(csv.split('\r\n')[1]).toContain('global');
+    });
+
     it('returns empty for no rows', () => {
       expect(buildMetadataCsv([]).csv).toBe('');
     });

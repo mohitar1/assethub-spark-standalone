@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 140" role="img" aria-label="Volkswagen demo wordmark placeholder">
+  <rect width="480" height="140" fill="none"/>
+  <g transform="translate(12 14)">
+    <circle cx="56" cy="56" r="48" fill="#F6F5F0" stroke="#001E50" stroke-width="8"/>
+    <path d="M30 34 46 74 56 52 66 74 82 34" fill="none" stroke="#001E50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M30 82 44 48 56 76 68 48 82 82" fill="none" stroke="#001E50" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="132" y="64" font-family="Helvetica Neue, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="6" fill="#001E50">VOLKSWAGEN</text>
+  <text x="134" y="94" font-family="Helvetica Neue, Arial, sans-serif" font-size="15" font-weight="500" letter-spacing="3.5" fill="#5B6B86">DEMO BRAND MARK · PLACEHOLDER</text>
+</svg>

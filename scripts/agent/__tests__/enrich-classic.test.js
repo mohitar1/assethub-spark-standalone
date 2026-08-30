@@ -80,7 +80,7 @@ describe('fieldsToProperties', () => {
       {
         title: 'T', description: 'D', keywords: ['a'], productCategory: 'cards',
       },
-      { company: 'acme', status: 'approved' },
+      { company: 'acme', status: 'approved', allowedCountries: 'global' },
     );
     expect(props['dc:title']).toBe('T');
     expect(props['dc:subject']).toEqual(['a']);
@@ -88,6 +88,7 @@ describe('fieldsToProperties', () => {
     expect(props.company).toBe('acme');
     expect(props['dam:status']).toBe('approved');
     expect(props.campaign).toBeNull();
+    expect(props.allowedCountries).toBe('global');
   });
 });
 

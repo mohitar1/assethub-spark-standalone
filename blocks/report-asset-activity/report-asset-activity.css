@@ -1,7 +1,7 @@
 @import url('../../scripts/analytics/report-styles.css');
 
 .report-asset-activity {
-  /* Map this block's local tokens onto the global Fréscopa theme so it stays
+  /* Map this block's local tokens onto the global site-wide Volkswagen demo theme so it stays
      on-brand. These were previously undefined and fell back to a hardcoded red. */
   --color-brand: var(--primary-color);
   --color-brand-hover: var(--primary-color-hover);

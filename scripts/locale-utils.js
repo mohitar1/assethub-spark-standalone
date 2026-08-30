@@ -57,10 +57,30 @@ export function getSavedLocalePreference() {
  * Checks if the current URL path has an explicit locale prefix.
  * @returns {boolean} True if the path starts with a supported locale
  */
+export function getBasePrefix() {
+  const segments = window.location.pathname.split('/');
+  const seg1 = segments[1];
+  const seg2 = segments[2];
+  // A foldered company demo puts the locale one level deeper: /<company>/<locale>/...
+  // Detect it when segment 1 is NOT a locale but segment 2 IS.
+  if (seg1 && !SUPPORTED_LOCALES.includes(seg1) && seg2 && SUPPORTED_LOCALES.includes(seg2)) {
+    return `/${seg1}`;
+  }
+  return '';
+}
+
+/**
+ * Checks if the current URL path has an explicit locale prefix. Handles both the
+ * root site (/<locale>/...) and a foldered company demo (/<company>/<locale>/...).
+ * @returns {boolean} True if a supported locale is present in the path
+ */
 export function hasLocalePrefix() {
-  const { pathname } = window.location;
-  const firstSegment = pathname.split('/')[1];
-  return firstSegment && SUPPORTED_LOCALES.includes(firstSegment);
+  const segments = window.location.pathname.split('/');
+  const seg1 = segments[1];
+  const seg2 = segments[2];
+  if (seg1 && SUPPORTED_LOCALES.includes(seg1)) return true;
+  if (getBasePrefix() && seg2 && SUPPORTED_LOCALES.includes(seg2)) return true;
+  return false;
 }
 
 /**
@@ -99,11 +119,20 @@ export function getLocaleRedirectUrl() {
  * @returns {string} The locale prefix (e.g., '/en' or '/ja') or empty string if none
  */
 export function getExplicitLocalePrefix() {
-  const { pathname } = window.location;
-  const firstSegment = pathname.split('/')[1];
+  const segments = window.location.pathname.split('/');
+  const seg1 = segments[1];
+  const seg2 = segments[2];
 
-  if (firstSegment && SUPPORTED_LOCALES.includes(firstSegment)) {
-    return `/${firstSegment}`;
+  // Root site: /<locale>/...
+  if (seg1 && SUPPORTED_LOCALES.includes(seg1)) {
+    return `/${seg1}`;
+  }
+
+  // Foldered company demo: /<company>/<locale>/... -> keep the company base in the prefix
+  // so every localized link/fetch stays inside the company folder.
+  const base = getBasePrefix();
+  if (base && seg2 && SUPPORTED_LOCALES.includes(seg2)) {
+    return `${base}/${seg2}`;
   }
 
   return '';
@@ -124,7 +153,8 @@ export function getLocalePrefixFromPath() {
  */
 export function getCurrentLocale() {
   const prefix = getLocalePrefixFromPath();
-  return prefix ? prefix.substring(1) : DEFAULT_LOCALE;
+  // prefix may be '/en' (root) or '/<company>/en' (demo); the locale is the last segment.
+  return prefix ? prefix.split('/').pop() : DEFAULT_LOCALE;
 }
 
 /**

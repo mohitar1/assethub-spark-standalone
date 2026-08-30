@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" role="img" aria-label="Volkswagen demo placeholder emblem">
+  <defs>
+    <linearGradient id="vwRing" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#001E50"/>
+      <stop offset="100%" stop-color="#385A92"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="360" rx="32" fill="none"/>
+  <circle cx="180" cy="180" r="126" fill="none" stroke="url(#vwRing)" stroke-width="18"/>
+  <circle cx="180" cy="180" r="92" fill="#05080F" opacity="0.92"/>
+  <path d="M108 108 150 205 180 145 210 205 252 108" fill="none" stroke="#F6F5F0" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M108 252 148 152 180 226 212 152 252 252" fill="none" stroke="#F6F5F0" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M282 78c18 18 30 43 34 69" fill="none" stroke="#D8DCE4" stroke-width="8" stroke-linecap="round" opacity="0.95"/>
+  <path d="M292 116c10 13 17 29 20 45" fill="none" stroke="#D8DCE4" stroke-width="6" stroke-linecap="round" opacity="0.75"/>
+</svg>

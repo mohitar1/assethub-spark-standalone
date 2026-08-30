@@ -11,28 +11,27 @@ import { buildAssetDetailsUrl } from '../../scripts/asset-id-utils.js';
 import showToast from '../../scripts/toast/toast.js';
 import { hasPermission, PERMISSIONS } from '../../scripts/auth/permissions.js';
 
-// Brand-derived chart palette — built around the Fréscopa theme (teal --primary-color
-// #00647D, maroon --text-color #58181D) plus harmonious supporting tones, so charts
-// match the rest of the app instead of using a generic/Google default palette.
-// Primary teal is reserved for `download` (the dominant action in this report).
+// Brand-derived chart palette aligned to the Volkswagen demo theme.
+// Deep navy is reserved for downloads, with steel-blue and neutral support colors
+// so charts stay consistent with the rest of the interface.
 const BRAND_SEQUENCE = [
-  '#00647D', // brand teal (primary)
-  '#A35E4B', // terracotta
-  '#C99A3F', // warm gold
-  '#58181D', // brand maroon (text-color)
-  '#3D8FA3', // light teal
-  '#6E7E5B', // sage
-  '#8A6D3B', // bronze
-  '#4F6472', // slate
+  '#001E50', // brand navy
+  '#385A92', // accent blue
+  '#7F8CA5', // steel blue
+  '#1B2236', // deep text color
+  '#AAB5C7', // light blue-gray
+  '#5B6B86', // slate
+  '#D8DCE4', // soft divider
+  '#7A859A',
 ];
 const PALETTE = {
-  download: '#00647D', // primary teal — dominant action
-  view: '#3D8FA3', // light teal
-  'share-link-copy': '#C99A3F', // warm gold
-  'dm-url-copy': '#A35E4B', // terracotta
-  'collection-add': '#58181D', // brand maroon
-  internal: '#00647D',
-  external: '#3D8FA3',
+  download: '#001E50', // brand navy
+  view: '#385A92', // accent blue
+  'share-link-copy': '#7F8CA5', // steel blue
+  'dm-url-copy': '#5B6B86', // slate
+  'collection-add': '#1B2236', // deep text
+  internal: '#001E50',
+  external: '#AAB5C7',
   unknown: '#8F8F8F', // neutral grey (matches --color-neutral-600)
 };
 const FALLBACK_COLORS = BRAND_SEQUENCE;

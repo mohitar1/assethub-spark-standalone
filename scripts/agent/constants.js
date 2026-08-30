@@ -95,6 +95,10 @@ export const FIELD = {
   BRAND: 'brand',
   COMPANY: 'company',
   STATUS: 'dam:status',
+  // Country-visibility gate. The worker (cloudflare/src/origin/dm.js) filters search by
+  // assetMetadata.allowedCountries against the viewer's country plus the 'global' sentinel;
+  // enriched demo assets are stamped 'global' so they are visible regardless of country.
+  ALLOWED_COUNTRIES: 'allowedCountries',
 };
 
 export const STATUS_APPROVED = 'approved';

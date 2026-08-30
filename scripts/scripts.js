@@ -14,7 +14,7 @@ import {
   waitForFirstImage,
 } from './aem.js';
 
-import { localizePath, getLocaleRedirectUrl } from './locale-utils.js';
+import { localizePath, getLocaleRedirectUrl, getLocalePrefixFromPath } from './locale-utils.js';
 
 // Re-export shared constants for use in blocks
 export { SEARCH_URL_PARAMS, getAllSearchParamKeys } from './constants/search-url-params.js';
@@ -209,12 +209,12 @@ function buildAutoBlocks(main) {
  * @param {Element} main The main element
  */
 function loadErrorPage(main) {
-  // Extract locale from URL path (e.g., /ja/some-path or /en/some-path)
-  const pathSegments = window.location.pathname.split('/').filter((s) => s);
-  const locale = pathSegments.length > 0 && pathSegments[0].length === 2 ? pathSegments[0] : 'en';
+  // Base-aware locale prefix (handles /<locale>/... and /<company>/<locale>/...) so
+  // error fragments stay inside the company folder on a foldered demo.
+  const localePrefix = getLocalePrefixFromPath();
 
   if (window.errorCode === '404') {
-    const fragmentPath = `/${locale}/error-pages/404`;
+    const fragmentPath = `${localePrefix}/error-pages/404`;
     const fragmentLink = document.createElement('a');
     fragmentLink.href = fragmentPath;
     fragmentLink.textContent = fragmentPath;
@@ -224,7 +224,7 @@ function loadErrorPage(main) {
       section.replaceChildren(fragment);
     }
   } else if (window.errorCode === '500') {
-    const fragmentPath = `/${locale}/error-pages/500`;
+    const fragmentPath = `${localePrefix}/error-pages/500`;
     const fragmentLink = document.createElement('a');
     fragmentLink.href = fragmentPath;
     fragmentLink.textContent = fragmentPath;

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" role="img" aria-label="Volkswagen demo brand mark">
+  <rect width="320" height="96" fill="none"/>
+  <g transform="translate(8 8)">
+    <circle cx="40" cy="40" r="35" fill="#F6F5F0" stroke="#001E50" stroke-width="6"/>
+    <path d="M21 24 33.5 52 40 38 46.5 52 59 24" fill="none" stroke="#001E50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M21 58 32 33 40 52 48 33 59 58" fill="none" stroke="#001E50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g fill="#001E50">
+    <text x="96" y="41" font-family="Helvetica Neue, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="4">VOLKSWAGEN</text>
+    <text x="96" y="65" font-family="Helvetica Neue, Arial, sans-serif" font-size="12" font-weight="500" letter-spacing="2.5" fill="#5B6B86">MEDIA LIBRARY</text>
+  </g>
+</svg>

@@ -42,6 +42,7 @@ export function buildMetadataPatch(fields = {}, scope = {}) {
   // Scope + approval are always stamped by the controller.
   if (scope.company) ops.push(addOp(FIELD.COMPANY, scope.company));
   ops.push(addOp(FIELD.STATUS, scope.status || STATUS_APPROVED));
+  if (scope.allowedCountries) ops.push(addOp(FIELD.ALLOWED_COUNTRIES, scope.allowedCountries));
 
   return ops;
 }

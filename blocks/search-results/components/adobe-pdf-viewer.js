@@ -10,11 +10,11 @@ let adobeDCViewInstance = null;
 
 // Adobe PDF Embed API – one client ID per allowed domain.
 // NOTE: Adobe PDF Embed client IDs are domain-locked. Register a client ID for the
-// Spark production host at https://developer.adobe.com/document-services/apis/pdf-embed/
+// production host at https://developer.adobe.com/document-services/apis/pdf-embed/
 // and replace the placeholder below before PDF preview works on production.
 const CLIENT_IDS = {
   localhost: '5b30e43dabf0482480341b9395596694',
-  'frescopamedia.com': 'REPLACE_WITH_FRESCOPA_PDF_EMBED_CLIENT_ID',
+  production: 'REPLACE_WITH_PRODUCTION_PDF_EMBED_CLIENT_ID',
 };
 
 /**
@@ -24,10 +24,7 @@ const CLIENT_IDS = {
 function getAdobeClientId() {
   const { hostname } = window.location;
   if (hostname === 'localhost') return CLIENT_IDS.localhost;
-  const domain = Object.keys(CLIENT_IDS).find(
-    (d) => d !== 'localhost' && (hostname === d || hostname.endsWith(`.${d}`)),
-  );
-  return domain ? CLIENT_IDS[domain] : CLIENT_IDS.localhost;
+  return hostname === 'localhost' ? CLIENT_IDS.localhost : CLIENT_IDS.production;
 }
 
 // Cached promise so concurrent callers share the same Adobe SDK load cycle.
