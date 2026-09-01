@@ -67,7 +67,7 @@
 
   /* fonts */
   --body-font-family: var(--type-base-font-family);
-  --heading-font-family: "Helvetica Neue", Arial, var(--type-base-font-family);
+  --heading-font-family: "Helvetica Neue", arial, var(--type-base-font-family);
 
   /* font sizes */
   --body-font-size-m: 18px;
