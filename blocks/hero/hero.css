@@ -186,14 +186,14 @@ main > .section.hero-container {
 
 .hero .button-container .button.secondary:any-link {
   background-color: transparent;
-  border-color: rgb(244 233 220 / 70%);
+  border-color: rgb(245 246 248 / 70%);
   color: var(--light-color);
 }
 
 .hero .button-container .button.secondary:any-link:hover,
 .hero .button-container .button.secondary:any-link:focus-visible {
-  background-color: rgb(244 233 220 / 10%);
-  border-color: rgb(244 233 220 / 90%);
+  background-color: rgb(245 246 248 / 10%);
+  border-color: rgb(245 246 248 / 90%);
 }
 
 @media (width >= 900px) {
