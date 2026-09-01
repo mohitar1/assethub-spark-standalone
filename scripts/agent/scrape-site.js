@@ -210,7 +210,18 @@ export function extractImageUrls(html, baseUrl) {
     parseSrcsetBest(getAttr(tag, 'srcset')).forEach((u) => addTo(sourceUrls, u));
   }
 
-  return [...metaUrls, ...srcUrls, ...srcsetUrls, ...sourceUrls];
+  // [4] <a href> pointing directly at an image — EDS raw/pre-decoration markup (and some
+  // link-wrapped hero banners) reference images this way instead of <img src>.
+  const anchorUrls = [];
+  for (const tag of html.match(A_TAG_RE) || []) {
+    const href = getAttr(tag, 'href');
+    const abs = href ? resolveUrl(href, baseUrl) : null;
+    if (abs && BRING_IN_IMAGE_EXTENSIONS.includes(urlExtension(abs))) {
+      addTo(anchorUrls, href);
+    }
+  }
+
+  return [...metaUrls, ...srcUrls, ...srcsetUrls, ...sourceUrls, ...anchorUrls];
 }
 
 export function extractDocumentUrls(html, baseUrl) {

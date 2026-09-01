@@ -7,6 +7,7 @@ import {
   collectionsSearchContentAIAuthorization,
   forceContentAISearchFilter,
   searchContentAIAuthorization,
+  stampCollectionCompany,
 } from '../dm.js';
 import config from '../../config.js';
 
@@ -1234,6 +1235,110 @@ describe('dm.js - ContentAI Authorization', () => {
           ],
         },
       });
+    });
+
+    describe('demo customer scope (DEMO_COMPANY)', () => {
+      const companyClause = {
+        term: { 'collectionMetadata.custom:metadata.company': ['maruti-suzuki'] },
+      };
+
+      afterEach(() => {
+        config.DEMO_COMPANY = null;
+      });
+
+      it('adds the company clause in the no-email branch', () => {
+        config.DEMO_COMPANY = 'maruti-suzuki';
+        const request = { user: { email: null } };
+        const search = { query: [{ and: [] }] };
+
+        collectionsSearchContentAIAuthorization(request, search);
+
+        expect(getNestedAuthClauses(search)).toContainEqual(companyClause);
+      });
+
+      it('adds the company clause alongside the legacy ACL filter', () => {
+        config.DEMO_COMPANY = 'maruti-suzuki';
+        const request = { user: { email: 'user@example.com' } };
+        const search = { query: [{ and: [] }] };
+
+        collectionsSearchContentAIAuthorization(request, search);
+
+        expect(getNestedAuthClauses(search)).toContainEqual(companyClause);
+      });
+
+      it('adds the company clause alongside relationship-based ContentAI filters', () => {
+        config.DEMO_COMPANY = 'maruti-suzuki';
+        const request = { user: { email: 'user@example.com' } };
+        const search = { query: [{ and: [] }] };
+
+        collectionsSearchContentAIAuthorization(request, search, { relationship: 'public' });
+
+        expect(getNestedAuthClauses(search)).toContainEqual(companyClause);
+        expect(getNestedAuthClauses(search)).toContainEqual({
+          term: { 'collectionMetadata.accessLevel': ['public'] },
+        });
+      });
+
+      it('adds no company clause when DEMO_COMPANY is null', () => {
+        config.DEMO_COMPANY = null;
+        const request = { user: { email: 'user@example.com' } };
+        const search = { query: [{ and: [] }] };
+
+        collectionsSearchContentAIAuthorization(request, search);
+
+        expect(
+          getNestedAuthClauses(search).some(
+            (c) => c.term?.['collectionMetadata.custom:metadata.company'],
+          ),
+        ).toBe(false);
+      });
+    });
+  });
+
+  describe('stampCollectionCompany', () => {
+    afterEach(() => {
+      config.DEMO_COMPANY = null;
+    });
+
+    it('stamps custom:metadata.company onto a collection body', () => {
+      config.DEMO_COMPANY = 'maruti-suzuki';
+      const body = JSON.stringify({ title: 'My Collection', accessLevel: 'public' });
+
+      const out = JSON.parse(stampCollectionCompany(body));
+
+      expect(out['custom:metadata']).toEqual({ company: 'maruti-suzuki' });
+      expect(out.title).toBe('My Collection');
+    });
+
+    it('overwrites an existing company tag rather than preserving a stale one', () => {
+      config.DEMO_COMPANY = 'maruti-suzuki';
+      const body = JSON.stringify({
+        title: 'My Collection',
+        'custom:metadata': { company: 'some-other-company', extra: 'kept' },
+      });
+
+      const out = JSON.parse(stampCollectionCompany(body));
+
+      expect(out['custom:metadata']).toEqual({ company: 'maruti-suzuki', extra: 'kept' });
+    });
+
+    it('is a no-op when DEMO_COMPANY is null', () => {
+      config.DEMO_COMPANY = null;
+      const body = JSON.stringify({ title: 'My Collection' });
+
+      expect(stampCollectionCompany(body)).toBe(body);
+    });
+
+    it('is a no-op for a non-string body', () => {
+      config.DEMO_COMPANY = 'maruti-suzuki';
+      expect(stampCollectionCompany(null)).toBeNull();
+      expect(stampCollectionCompany(undefined)).toBeUndefined();
+    });
+
+    it('returns the original body unchanged when it is not valid JSON', () => {
+      config.DEMO_COMPANY = 'maruti-suzuki';
+      const body = 'not json';
+      expect(stampCollectionCompany(body)).toBe(body);
     });
   });
 });

@@ -26,6 +26,9 @@ export const IMS_TOKEN_EXPIRY_BUFFER_SECONDS = 5 * 60;
 // --- Per-request headers ---
 export const HEADER_AUTHORIZATION = 'Authorization';
 export const HEADER_API_KEY = 'x-api-key';
+// Fixed api-key the delivery/Content Hub tier expects for collections endpoints — mirrors
+// cloudflare/src/origin/dm.js's own ADOBE_API_KEY_COLLECTIONS constant verbatim.
+export const ADOBE_API_KEY_COLLECTIONS = 'aem-assets-content-hub-1';
 export const HEADER_EXPERIMENTAL = 'x-adobe-accept-experimental';
 export const HEADER_IF_MATCH = 'If-Match';
 export const HEADER_IF_NONE_MATCH = 'If-None-Match';
@@ -43,6 +46,18 @@ export function buildAuthorHost(aemEnvId) {
     throw new Error(`buildAuthorHost: invalid aemEnvId "${aemEnvId}" (expected pNNN-eNNN)`);
   }
   return `https://author-${aemEnvId}.adobeaemcloud.com`;
+}
+
+/**
+ * The delivery/Content Hub tier host (mirrors cloudflare/src/origin/dm.js's own outgoing
+ * host pattern) — NOT the author tier. Used by the collections step (Step 6), which reads
+ * and writes collections on this tier, unlike enrichment which writes author metadata.
+ */
+export function buildDeliveryHost(aemEnvId) {
+  if (!aemEnvId || !/^p\d+-e\d+$/.test(aemEnvId)) {
+    throw new Error(`buildDeliveryHost: invalid aemEnvId "${aemEnvId}" (expected pNNN-eNNN)`);
+  }
+  return `https://delivery-${aemEnvId}.adobeaemcloud.com`;
 }
 
 export function buildHosts(aemEnvId) {

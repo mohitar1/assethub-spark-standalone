@@ -1,0 +1,7 @@
+.base-panel-overlay .base-panel .base-panel-tab.critical {
+  background-color: #95351D;
+}
+
+.cart-panel .cart-panel-action-btn.danger:hover {
+  background-color: #7a2b17;
+}

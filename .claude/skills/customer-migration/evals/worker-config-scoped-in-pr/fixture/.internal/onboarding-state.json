@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "intent": "frontend-only",
   "customer": {
     "name": "Acme",
@@ -17,6 +17,7 @@
     "landed-via-pr": "pending",
     "assets-uploaded": "not-requested",
     "assets-enriched": "not-requested",
-    "search-scoped": "not-requested"
+    "search-scoped": "not-requested",
+    "collections-created": "not-requested"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "intent": "assets-only",
   "customer": {
     "name": "Disney",
@@ -17,6 +17,7 @@
     "landed-via-pr": "done",
     "assets-uploaded": "pending",
     "assets-enriched": "pending",
-    "search-scoped": "pending"
+    "search-scoped": "pending",
+    "collections-created": "pending"
   }
 }

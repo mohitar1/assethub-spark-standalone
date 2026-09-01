@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 3,
+  "intent": "full",
+  "customer": {
+    "name": "Acme",
+    "companyKey": "acme",
+    "demoBranch": "demo/acme",
+    "daFolder": "/acme"
+  },
+  "steps": {
+    "demo-confirmed": "done",
+    "branch-resolved": "done",
+    "da-content-copied": "done",
+    "rebranded": "done",
+    "demo-company-set": "done",
+    "published": "done",
+    "landed-via-pr": "done",
+    "assets-uploaded": "done",
+    "assets-enriched": "done",
+    "search-scoped": "done",
+    "collections-created": "pending"
+  }
+}
