@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="329" height="230" viewBox="0 0 329 230" role="img" aria-label="Maruti Suzuki">
+  <g transform="translate(14 15)">
+    <circle cx="150" cy="100" r="95" fill="none" stroke="#D61F26" stroke-width="10"/>
+    <text x="150" y="95" font-family="Roboto, Arial, sans-serif" font-size="34" font-weight="700" fill="#D61F26" text-anchor="middle">MARUTI</text>
+    <text x="150" y="130" font-family="Roboto, Arial, sans-serif" font-size="20" font-weight="500" fill="#D61F26" text-anchor="middle">SUZUKI</text>
+  </g>
+</svg>
