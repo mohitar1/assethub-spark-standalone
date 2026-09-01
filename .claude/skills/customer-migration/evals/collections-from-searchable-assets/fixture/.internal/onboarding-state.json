@@ -1,11 +1,11 @@
 {
   "schemaVersion": 3,
-  "intent": "assets-only",
+  "intent": "full",
   "customer": {
-    "name": "Disney",
-    "companyKey": "disney",
-    "demoBranch": "demo/disney",
-    "daFolder": "/disney"
+    "name": "Acme",
+    "companyKey": "acme",
+    "demoBranch": "demo/acme",
+    "daFolder": "/acme"
   },
   "steps": {
     "demo-confirmed": "done",
@@ -15,9 +15,9 @@
     "demo-company-set": "done",
     "published": "done",
     "landed-via-pr": "done",
-    "assets-uploaded": "pending",
-    "assets-enriched": "pending",
-    "search-scoped": "pending",
+    "assets-uploaded": "done",
+    "assets-enriched": "done",
+    "search-scoped": "done",
     "collections-created": "pending"
   }
 }

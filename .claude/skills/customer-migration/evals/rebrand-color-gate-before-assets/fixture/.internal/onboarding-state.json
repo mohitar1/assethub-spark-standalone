@@ -2,15 +2,15 @@
   "schemaVersion": 3,
   "intent": "full",
   "customer": {
-    "name": "Aperture",
-    "companyKey": "aperture",
-    "demoBranch": null,
-    "daFolder": null
+    "name": "Disney",
+    "companyKey": "disney",
+    "demoBranch": "demo/disney",
+    "daFolder": "/disney"
   },
   "steps": {
-    "demo-confirmed": "pending",
-    "branch-resolved": "pending",
-    "da-content-copied": "pending",
+    "demo-confirmed": "done",
+    "branch-resolved": "done",
+    "da-content-copied": "done",
     "rebranded": "done",
     "demo-company-set": "done",
     "published": "done",

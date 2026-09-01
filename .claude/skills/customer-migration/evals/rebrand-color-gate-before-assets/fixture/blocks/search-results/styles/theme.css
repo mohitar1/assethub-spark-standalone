@@ -1,0 +1,8 @@
+:root {
+  --red-300: var(--color-red);
+  --red-400: var(--color-red);
+  --red-500: #95351D;
+  --red-600: #7a2b17;
+  --invalid-color: var(--color-red);
+  --invalid-color-pressed: #95351D;
+}
