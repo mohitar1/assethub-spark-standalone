@@ -15,6 +15,22 @@ const FLAG_WITH_VALUE = new Set([
 
 const BOOLEAN_FLAGS = new Set(['dry-run', 'force', 'no-publish', 'bring-in']);
 
+export const RESERVED_CUSTOMER_KEYS = new Set([
+  'api',
+  'auth',
+  'blocks',
+  'config',
+  'en',
+  'fonts',
+  'icons',
+  'ja',
+  'media',
+  'public',
+  'scripts',
+  'styles',
+  'tools',
+]);
+
 /** Slugify a customer/brand name into a folder-safe key (e.g. "Santander AG" -> santander-ag). */
 export function slugify(name) {
   return String(name || '')
@@ -218,6 +234,15 @@ export function parseArgs(argv) {
 export function validateOptions(opts) {
   const errors = [];
   if (!opts.customerKey) errors.push('--customer-key is required');
+  if (opts.customerKey && RESERVED_CUSTOMER_KEYS.has(opts.customerKey)) {
+    errors.push(`--customer-key "${opts.customerKey}" is reserved; use a real company key`);
+  }
+  if (opts.damPath && opts.customerKey) {
+    const expected = `/content/dam/${opts.customerKey}`;
+    if (opts.damPath !== expected && !opts.damPath.startsWith(`${expected}/`)) {
+      errors.push(`--dam-path must stay under ${expected} (got ${opts.damPath})`);
+    }
+  }
   if (opts.writeMode && !['bulk', 'patch'].includes(opts.writeMode)) {
     errors.push(`--write-mode must be bulk|patch (got ${opts.writeMode})`);
   }

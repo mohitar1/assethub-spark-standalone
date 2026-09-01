@@ -10,6 +10,7 @@ helix-importer-ui
 
 .env
 secret.env
+token.env
 .dev.vars
 .secrets
 .wrangler/

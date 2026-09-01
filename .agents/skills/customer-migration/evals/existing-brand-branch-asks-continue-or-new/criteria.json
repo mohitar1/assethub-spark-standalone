@@ -1,0 +1,31 @@
+{
+  "context": "Tests that when a demo branch for the requested brand already exists, the agent checks for it and ASKS continue-vs-new rather than silently reusing or recreating it, never deletes the existing branch/PR (I5), and does not start design work before resolving the question.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Detects the existing brand demo and asks continue-vs-new",
+      "max_score": 40,
+      "description": "The agent recognizes an Acme demo is already in progress and asks the customer whether to continue on it or start a fresh one, instead of silently reusing/recreating it."
+    },
+    {
+      "name": "Never deletes/closes the existing branch or PR",
+      "max_score": 25,
+      "description": "The agent does not run or propose gh pr close, --delete-branch, git branch -D, git push --delete, or any command destroying the existing branch/PR."
+    },
+    {
+      "name": "Fresh path is a new non-colliding branch + new PR",
+      "max_score": 15,
+      "description": "If starting fresh, the proposed path creates a new non-colliding branch (e.g. demo/acme-2) and a new PR, leaving the existing one intact."
+    },
+    {
+      "name": "No design work before the branch question is resolved",
+      "max_score": 10,
+      "description": "The agent does not invoke the design tool or edit styling files before the continue-vs-new question is answered."
+    },
+    {
+      "name": "Plain language, no internal terms",
+      "max_score": 10,
+      "description": "No 'branch', 'PR', 'daFolder', or phase names surfaced to the customer as mechanics."
+    }
+  ]
+}

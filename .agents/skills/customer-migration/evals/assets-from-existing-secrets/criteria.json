@@ -1,0 +1,35 @@
+{
+  "context": "Tests that Step 5 (load/enrich assets) reuses the existing environment: creds come from cloudflare/.secrets and the env id from repo config, so the agent never collects credentials, picks a run tier, boots a backend, or deploys. Guards against dragging the demo into the disabled dedicated/backend path.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Runs enrich-assets.js against existing secrets",
+      "max_score": 35,
+      "description": "The agent invokes scripts/agent/enrich-assets.js (dry-run then live) with the company key, relying on cloudflare/.secrets for creds and repo config for the env id; it does not hand-roll author API calls.",
+      "check": {
+        "type": "transcriptContains",
+        "value": "scripts/agent/enrich-assets.js"
+      }
+    },
+    {
+      "name": "Never collects credentials or asks for a secret/settings screen",
+      "max_score": 25,
+      "description": "The agent does not ask the customer for Content Hub/DM credentials, an AEM env id, or any pasted secret (I2), and does not ask them to open a Settings/permissions screen."
+    },
+    {
+      "name": "No backend onboarding / boot / deploy",
+      "max_score": 25,
+      "description": "The agent does not run a local-run tier choice, does not gate enrichment on booting a backend, and does not deploy/merge to make assets searchable."
+    },
+    {
+      "name": "Scopes to the company and verifies the visible outcome",
+      "max_score": 10,
+      "description": "The agent sets DEMO_COMPANY to the company key as a local edit and verifies search returns assets with non-zero facet buckets."
+    },
+    {
+      "name": "Plain language, no internal terms",
+      "max_score": 5,
+      "description": "No internal terms (tier, deploy, scope, phase names) surfaced to the customer."
+    }
+  ]
+}

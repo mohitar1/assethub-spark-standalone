@@ -22,6 +22,7 @@ import { isUserExcluded, parsePageExclusions } from './origin/page-access';
 import { handleScheduledTokenRefresh } from './scheduled/token-refresh';
 import { apiUser } from './user';
 import { cors } from './util/itty';
+import { companyBasePath } from './config';
 
 // Shared CORS origins
 const allowedOrigins = [
@@ -61,6 +62,17 @@ const { preflight, corsify } = cors({
   maxAge: 600,
 });
 
+// Content base path for this deploy: '' at the repo root (production), or '/<companyKey>'
+// for a foldered company demo. Drives the root redirect, the unauthenticated login/public
+// route, and (via auth.js) LOGIN_PAGE — all from the single config.DEMO_BASE_PATH value.
+const BASE = companyBasePath();
+
+function redirectToBasePath(request, path) {
+  const url = new URL(request.url);
+  const suffix = path.startsWith('/') ? path : `/${path}`;
+  return Response.redirect(`${url.origin}${BASE}${suffix}`, 302);
+}
+
 const router = Router({
   before: [withTlsCheck, preflight, withPreviewOrigin],
   finally: [corsify],
@@ -83,10 +95,29 @@ router
   .all('*', authRouter.fetch)
 
   // redirect bare root to the default locale home (search-first portal)
-  .get('/', (request) => Response.redirect(`${new URL(request.url).origin}/en/`, 302))
+  .get('/', (request) => Response.redirect(`${new URL(request.url).origin}${BASE}/en/`, 302))
+
+  // foldered demo: bare company root (/<company> and /<company>/) -> its locale home.
+  // Inert when BASE='' (repo root): the sentinel paths never match a real request.
+  .get(BASE || '/__no_company_base__', (request) => Response.redirect(`${new URL(request.url).origin}${BASE}/en/`, 302))
+  .get(BASE ? `${BASE}/` : '/__no_company_base_slash__', (request) => Response.redirect(`${new URL(request.url).origin}${BASE}/en/`, 302))
+
+  // Foldered demo: root-locale paths (/en/*, /ja/*) belong inside the company folder.
+  // Any stray link that dropped the /<company> prefix — a 404 "go home", a bare /en/ card
+  // link, a cart "go to homepage", the MS logout redirect — lands here and is bounced back
+  // in-folder so navigation never falls out of /<company>. Inert when BASE='' (repo root):
+  // the sentinel paths never match a real request.
+  .get(BASE ? '/en/*' : '/__no_root_en_redirect__', (request) => {
+    const url = new URL(request.url);
+    return Response.redirect(`${url.origin}${BASE}${url.pathname}${url.search}`, 302);
+  })
+  .get(BASE ? '/ja/*' : '/__no_root_ja_redirect__', (request) => {
+    const url = new URL(request.url);
+    return Response.redirect(`${url.origin}${BASE}${url.pathname}${url.search}`, 302);
+  })
 
   // public static assets
-  .get('/public/*', originHelix)
+  .get(`${BASE}/public/*`, originHelix)
   .get('/tools/*', originHelix)
   .get('/scripts/*', originHelix)
   .get('/styles/*', originHelix)
@@ -100,7 +131,7 @@ router
   .all('*', withAuthentication)
 
   // restrict config/access paths to users with 'admin' permission
-  .all('/config/access/*', (request) => {
+  .all(`${BASE}/config/access/*`, (request) => {
     if (!request.user?.roles?.includes('admin')) {
       return new Response('Forbidden', { status: 403 });
     }
@@ -137,7 +168,7 @@ router
     const response = await originHelix(request, env);
 
     if (response.status === 404) {
-      return Response.redirect(`${new URL(request.url).origin}/404.html`, 302);
+      return redirectToBasePath(request, '/404.html');
     }
 
     const contentType = response.headers.get('content-type') || '';
@@ -155,7 +186,7 @@ router
       console.warn(
         `[PageAccess] Denied ${request.user.email} from ${new URL(request.url).pathname} (user roles: ${request.user.roles}, excluded: ${JSON.stringify(exclusions)})`,
       );
-      return Response.redirect(`${new URL(request.url).origin}/404.html`, 302);
+      return redirectToBasePath(request, '/404.html');
     }
 
     return response;

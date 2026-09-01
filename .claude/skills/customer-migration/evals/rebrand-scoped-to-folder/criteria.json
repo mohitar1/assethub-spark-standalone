@@ -1,0 +1,36 @@
+{
+  "context": "Tests that the content rewrite and publish are scoped to the company folder /acme only, never the shared root. The excat content flow generates document paths from source URLs with no company prefix, so the agent must supply company-prefixed /acme/... paths and must never publish a root path.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Content rewrite scoped to /acme",
+      "max_score": 25,
+      "description": "The content-register rewrite targets pages under /acme/... only; the agent does not rewrite the original shared root content."
+    },
+    {
+      "name": "Publishes only /acme paths",
+      "max_score": 30,
+      "description": "The agent publishes only /acme/... document paths, passing an explicit company-prefixed path list to the publish step, never the whole site or any root path.",
+      "check": {
+        "type": "transcriptNotMatches",
+        "value": "admin\\.hlx\\.page/(?:preview|live|publish)/[^\\s\"']+/[^\\s\"']+/[^\\s\"']+/(?:en|config|public)(?:/|\\b)|destination[\"']?\\s*[:=]\\s*[\"']?/(?:en|config|public)(?:/|\\b)",
+        "flags": "i"
+      }
+    },
+    {
+      "name": "Computes company-prefixed document paths",
+      "max_score": 20,
+      "description": "The agent prefixes generated document paths with the company folder (/acme + generated path), rather than using un-prefixed source-URL-derived root paths."
+    },
+    {
+      "name": "Verifies scope and shared root untouched",
+      "max_score": 15,
+      "description": "The agent shows a before/after diff for /acme pages and confirms only /acme paths were published and the shared root content is unchanged."
+    },
+    {
+      "name": "Plain language, no internal terms",
+      "max_score": 10,
+      "description": "No internal terms shown to the customer."
+    }
+  ]
+}

@@ -2,7 +2,14 @@
  * Per-asset metadata read + idempotency test (plan §2.5).
  */
 
-import { FIELD } from './constants.js';
+import { FIELD, STATUS_APPROVED } from './constants.js';
+
+function includesGlobal(value) {
+  if (Array.isArray(value)) {
+    return value.some((v) => String(v).toLowerCase() === 'global');
+  }
+  return String(value || '').toLowerCase() === 'global';
+}
 
 /**
  * GET /assets/{id}/metadata, returning the parsed body plus the ETag needed for the
@@ -37,5 +44,11 @@ export function isAlreadyEnriched(assetMetadata, customerKey) {
   if (!assetMetadata) return false;
   const company = assetMetadata[FIELD.COMPANY];
   const title = assetMetadata[FIELD.TITLE];
-  return company === customerKey && typeof title === 'string' && title.trim().length > 0;
+  const status = assetMetadata[FIELD.STATUS];
+  const allowedCountries = assetMetadata[FIELD.ALLOWED_COUNTRIES];
+  return company === customerKey
+    && typeof title === 'string'
+    && title.trim().length > 0
+    && status === STATUS_APPROVED
+    && includesGlobal(allowedCountries);
 }

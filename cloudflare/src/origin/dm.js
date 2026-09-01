@@ -258,7 +258,6 @@ async function getIMSToken(request, env) {
 
     // get cached token
     const { value: token, metadata } = await env.AUTH_TOKENS.getWithMetadata(cachedTokenName);
-    console.warn(`Generated new IMS token for token=${token}`);
     // use token until 5 minutes before expiry
     if (token && metadata?.expiration > Math.floor(Date.now() / 1000) + IMS_TOKEN_EXPIRY_BUFFER) {
       return token;
@@ -266,7 +265,7 @@ async function getIMSToken(request, env) {
       const clientSecret = await env.DM_CLIENT_SECRET.get();
 
       const tokenData = await createIMSToken(request, clientId, clientSecret, IMS_SCOPE);
-      console.warn(`Generated new IMS token for clientId=${clientId}, tokenData=${tokenData.access_token}`);
+      console.warn(`Generated new IMS token for clientId=${clientId}`);
       // seconds since epoch
       const expiration = Math.floor(Date.now() / 1000) + tokenData.expires_in;
 

@@ -208,7 +208,9 @@ body.appear {
 
 /* Prevent flash: match the dark left panel colour from first paint */
 body:has(.section.welcome) {
-  background-color: #2f2318;
+  /* Welcome/login split-screen brand panel is themeable via these tokens (frescopa defaults);
+     a company demo overrides --welcome-panel-* + --welcome-tagline to rebrand the login. */
+  background-color: var(--welcome-panel-bg, #2f2318);
   overflow: hidden;
 }
 
@@ -237,11 +239,11 @@ body:has(.section.welcome) > main {
 /* Dark coffee background with the gold beans icon as a large decorative mark */
 body:has(.section.welcome) > main::before {
   content: '';
-  background-color: #2f2318;
+  background-color: var(--welcome-panel-bg, #2f2318);
   background-image:
-    radial-gradient(ellipse 80% 55% at 15% 110%, rgb(234 163 58 / 22%) 0%, transparent 100%),
-    radial-gradient(ellipse 60% 45% at 90% -5%,  rgb(234 163 58 / 10%) 0%, transparent 100%),
-    url('/icons/frescopa-beans.svg');
+    radial-gradient(ellipse 80% 55% at 15% 110%, rgb(var(--welcome-panel-accent-rgb, 234 163 58) / 22%) 0%, transparent 100%),
+    radial-gradient(ellipse 60% 45% at 90% -5%,  rgb(var(--welcome-panel-accent-rgb, 234 163 58) / 10%) 0%, transparent 100%),
+    var(--welcome-panel-mark-image, url('/icons/frescopa-beans.svg'));
   background-repeat: no-repeat, no-repeat, no-repeat;
   background-size: cover, cover, 42%;
   background-position: bottom left, top right, center 40%;
@@ -249,7 +251,7 @@ body:has(.section.welcome) > main::before {
 
 /* Tagline + brand label stacked at the bottom of the brand panel */
 body:has(.section.welcome) > main::after {
-  content: '"The world\'s finest coffee,\Aat your fingertips."';
+  content: var(--welcome-tagline, '"The world\'s finest coffee,\Aat your fingertips."');
   white-space: pre;
   font-family: baskerville, serif;
   font-size: 1rem;
@@ -292,20 +294,21 @@ body:has(.section.welcome) > main::after {
   margin: 0;
 }
 
-/* Coffee-bean brand mark — larger on the auth panel */
-.section.welcome p:has(.icon-frescopa-beans) {
+/* Brand mark — larger on the auth panel. Brand-agnostic: targets any icon shortcode the
+   welcome doc carries (e.g. :frescopa-beans:, :<company>-beans:) so a rebrand needs no CSS edit. */
+.section.welcome p:has(.icon) {
   margin: 0 0 var(--spacing-medium);
   max-width: none;
 }
 
-.section.welcome .icon-frescopa-beans {
+.section.welcome p .icon {
   display: inline-flex;
   width: 96px;
   height: 96px;
 }
 
-.section.welcome .icon-frescopa-beans img,
-.section.welcome .icon-frescopa-beans svg {
+.section.welcome p .icon img,
+.section.welcome p .icon svg {
   width: 96px;
   height: 96px;
 }

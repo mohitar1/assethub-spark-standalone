@@ -4,6 +4,7 @@
  */
 
 import { fetchHelixSheet } from './helixutil.js';
+import { companyBasePath } from '../config.js';
 
 const PERMISSIONS = { ADMIN_SYSTEM: 'admin-system' };
 
@@ -30,7 +31,7 @@ function generateMessageId() {
  */
 export async function getSystemAdminEmails(env) {
   try {
-    const permissions = await fetchHelixSheet(null, env, '/config/access/application', {
+    const permissions = await fetchHelixSheet(null, env, `${companyBasePath()}/config/access/application`, {
       sheet: { key: 'email', arrays: ['permissions'] },
     });
 

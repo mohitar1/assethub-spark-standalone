@@ -1,7 +1,8 @@
 import { json } from 'itty-router';
-import config from './config.js';
+import config, { companyBasePath } from './config.js';
 import { hasPermission, PERMISSIONS } from '../../scripts/auth/permissions.js';
 import { fetchHelixSheet } from './util/helixutil.js';
+import { maskEmail } from './util/log-utils.js';
 
 export const ROLE = {
   ADMIN: 'admin',
@@ -65,7 +66,7 @@ async function getUserAttributes(request, env, user) {
   };
 
   const userArrays = ['roles', 'countries'];
-  const users = await fetchHelixSheet(request, env, '/config/access/users', {
+  const users = await fetchHelixSheet(request, env, `${companyBasePath()}/config/access/users`, {
     params: {
       limit: 50000,
     },
@@ -102,7 +103,7 @@ async function getUserAttributes(request, env, user) {
  */
 async function resolvePermissions(request, env, email) {
   const domain = getEmailDomain(email);
-  const access = await fetchHelixSheet(request, env, '/config/access/application', {
+  const access = await fetchHelixSheet(request, env, `${companyBasePath()}/config/access/application`, {
     sheet: { key: 'email', arrays: ['permissions'] },
   });
   return [
@@ -170,7 +171,7 @@ async function handleSudo(request, env, user) {
  */
 export async function createSession(request, env) {
   const idToken = request.idToken;
-  if (!idToken && !idToken.email) {
+  if (!idToken || !idToken.email) {
     return null;
   }
 
@@ -210,7 +211,13 @@ export async function createSession(request, env) {
     ...attributes,
   };
 
-  console.warn('New Session cookie:', session);
+  console.warn('New session:', {
+    email: maskEmail(session.email),
+    userType: session.userType,
+    roles: session.roles || [],
+    permissions: session.permissions || [],
+    countries: session.countries || [],
+  });
 
   return session;
 }

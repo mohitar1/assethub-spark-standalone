@@ -1,5 +1,5 @@
 {
-  "context": "Tests the Phase A availability gate for the excat design skill in the 'installed but not enabled for this project' state. The agent must detect that state, stop, guide the operator to ENABLE the already-installed plugin (not install/reinstall it), refuse to hand-roll a manual styles.css rebrand, and leave the rebrand phase blocked. Guards a real regression where the agent hand-edited styles.css when the design skill wasn't invokable. Judged partly on objective end-state (no rebrand files written; state status).",
+  "context": "Tests the design-tool availability gate (operator setup) for the excat design skill in the 'installed but not enabled for this project' state. The agent must detect that state, stop, guide the operator to ENABLE the already-installed plugin (not install/reinstall it), refuse to hand-roll a manual styles.css rebrand, and leave the rebrand phase blocked. Guards a real regression where the agent hand-edited styles.css when the design skill wasn't invokable. Judged partly on objective end-state (no rebrand files written; state status).",
   "type": "weighted_checklist",
   "checklist": [
     {
@@ -20,7 +20,7 @@
     {
       "name": "Leaves rebrand phase blocked",
       "max_score": 20,
-      "description": "The agent pauses Phase A and treats the rebrand as blocked pending the plugin loading — e.g. sets phases.rebrand.status to 'blocked' in the state file, or clearly states it is blocking/stopping until the plugin is enabled. It does not mark rebrand steps done."
+      "description": "The agent pauses the rebrand and treats the rebrand as blocked pending the plugin loading — e.g. sets steps.rebranded to 'blocked' in the state file, or clearly states it is blocking/stopping until the plugin is enabled. It does not mark rebrand steps done."
     },
     {
       "name": "States the one fix action",

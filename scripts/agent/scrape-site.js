@@ -1,10 +1,9 @@
 /**
- * Site image scraper for the bring-in lane (E3: "give it a site, pull sample assets").
+ * Site asset scraper for the bring-in lane (E3: "give it a site, pull sample assets").
  *
  * Pure-ish and dependency-injected (`fetchFn`) so URL extraction and the download loop are
  * unit-testable without real network. Two stages:
- *   1. extractImageUrls(html, baseUrl): parse og:image/twitter:image meta (highest priority),
- *      then <img src/data-src>, then srcset (largest width first), then <source srcset> into a
+ *   1. extractAssetUrls(html, baseUrl): parse image sources and linked documents into a
  *      deduped, prioritised, absolute-URL list — thumbnail/rendition URLs are filtered out.
  *   2. scrapeSiteImages({ pageUrl, ... }): fetch the page, extract, then for each candidate
  *      resolve the original asset URL (strips AEM .transform/ and CDN resize params), download
@@ -14,12 +13,14 @@
  */
 
 import {
-  BRING_IN_MAX_IMAGES, BRING_IN_MAX_BYTES, BRING_IN_MIN_BYTES, BRING_IN_IMAGE_EXTENSIONS,
+  BRING_IN_MAX_IMAGES, BRING_IN_MAX_BYTES, BRING_IN_MIN_BYTES,
+  BRING_IN_IMAGE_EXTENSIONS, BRING_IN_DOCUMENT_EXTENSIONS,
 } from './constants.js';
 
 const IMG_TAG_RE = /<img\b[^>]*>/gi;
 const SOURCE_TAG_RE = /<source\b[^>]*>/gi;
 const META_TAG_RE = /<meta\b[^>]*>/gi;
+const A_TAG_RE = /<a\b[^>]*>/gi;
 const ATTR_RE = (name) => new RegExp(`${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s">]+))`, 'i');
 
 // URL patterns that reliably indicate thumbnails, icons, or small renditions to skip.
@@ -101,6 +102,25 @@ function looksLikeImageUrl(url) {
   // Accept known image extensions; also accept extension-less URLs (CDN/dynamic images),
   // which the download step re-validates via Content-Type.
   return ext === '' || BRING_IN_IMAGE_EXTENSIONS.includes(ext);
+}
+
+function looksLikeDocumentUrl(url) {
+  return BRING_IN_DOCUMENT_EXTENSIONS.includes(urlExtension(url));
+}
+
+function looksLikeAssetContentType(contentType) {
+  if (!contentType) return true;
+  const type = contentType.split(';')[0].trim().toLowerCase();
+  if (type.startsWith('image/')) return true;
+  return [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ].includes(type);
 }
 
 /**
@@ -193,6 +213,34 @@ export function extractImageUrls(html, baseUrl) {
   return [...metaUrls, ...srcUrls, ...srcsetUrls, ...sourceUrls];
 }
 
+export function extractDocumentUrls(html, baseUrl) {
+  const seen = new Set();
+  const urls = [];
+  const add = (raw) => {
+    const abs = resolveUrl(raw, baseUrl);
+    if (!abs || seen.has(abs) || !looksLikeDocumentUrl(abs)) return;
+    seen.add(abs);
+    urls.push(abs);
+  };
+
+  for (const tag of html.match(A_TAG_RE) || []) {
+    add(getAttr(tag, 'href'));
+  }
+
+  return urls;
+}
+
+export function extractAssetUrls(html, baseUrl) {
+  const seen = new Set();
+  const urls = [];
+  for (const url of [...extractImageUrls(html, baseUrl), ...extractDocumentUrls(html, baseUrl)]) {
+    if (seen.has(url)) continue;
+    seen.add(url);
+    urls.push(url);
+  }
+  return urls;
+}
+
 /** Map a Content-Type to a file extension (best-effort). */
 export function extFromContentType(contentType) {
   if (!contentType) return '';
@@ -205,6 +253,13 @@ export function extFromContentType(contentType) {
     'image/webp': 'webp',
     'image/svg+xml': 'svg',
     'image/avif': 'avif',
+    'application/pdf': 'pdf',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.ms-powerpoint': 'ppt',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+    'application/vnd.ms-excel': 'xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
   };
   return map[type] || '';
 }
@@ -246,15 +301,15 @@ export function fileNameFromUrl(url, usedNames, contentType) {
 }
 
 /**
- * Scrape a page for images and download their bytes.
+ * Scrape a page for usable customer assets and download their bytes.
  *
  * For each candidate URL, `resolveOriginalUrl` is applied first so AEM transform URLs and
  * CDN-resized URLs are replaced with their full-resolution originals before download.
  *
  * @param {Object} params
  * @param {string} params.pageUrl               the site/page to scrape
- * @param {number} [params.maxImages]           cap on how many images to bring in
- * @param {number} [params.maxBytes]            per-file byte cap (skips larger images)
+ * @param {number} [params.maxImages]           cap on how many assets to bring in
+ * @param {number} [params.maxBytes]            per-file byte cap (skips larger assets)
  * @param {number} [params.minBytes]            minimum file size; skips icons/tiny renditions
  * @param {Function} [params.fetchFn]           injectable fetch
  * @param {Object} [params.log]                 console-like logger
@@ -273,8 +328,8 @@ export async function scrapeSiteImages({
     throw new Error(`scrape ${pageUrl} -> ${pageRes.status}`);
   }
   const html = await pageRes.text();
-  const candidateUrls = extractImageUrls(html, pageUrl);
-  log.info?.(`[agent] scraped ${candidateUrls.length} candidate image URL(s) from ${pageUrl}`);
+  const candidateUrls = extractAssetUrls(html, pageUrl);
+  log.info?.(`[agent] scraped ${candidateUrls.length} candidate asset URL(s) from ${pageUrl}`);
 
   const images = [];
   const usedNames = new Set();
@@ -287,14 +342,14 @@ export async function scrapeSiteImages({
       log.info?.(`[agent] resolved original: ${candidateUrl} -> ${url}`);
     }
     try {
-      const res = await fetchFn(url, { headers: { Accept: 'image/*' } });
+      const res = await fetchFn(url, { headers: { Accept: '*/*' } });
       if (!res.ok) {
         log.warn?.(`[agent] skip ${url} -> ${res.status}`);
         continue;
       }
       const contentType = res.headers?.get?.('content-type') || '';
-      if (contentType && !contentType.toLowerCase().startsWith('image/')) {
-        log.warn?.(`[agent] skip ${url} -> not an image (${contentType})`);
+      if (!looksLikeAssetContentType(contentType)) {
+        log.warn?.(`[agent] skip ${url} -> unsupported asset type (${contentType})`);
         continue;
       }
       const buf = new Uint8Array(await res.arrayBuffer());
@@ -320,6 +375,6 @@ export async function scrapeSiteImages({
     }
   }
 
-  log.info?.(`[agent] downloaded ${images.length} image(s) from ${pageUrl}`);
+  log.info?.(`[agent] downloaded ${images.length} asset(s) from ${pageUrl}`);
   return { images, candidates: candidateUrls.length };
 }

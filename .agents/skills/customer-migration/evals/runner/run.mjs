@@ -317,7 +317,9 @@ function jsonPathLookup(obj, path) {
   return path.split(".").reduce((o, k) => (o == null ? undefined : o[k]), obj);
 }
 
-function runDeterministicCheck(check, { workspaceMap, transcript, scenario }) {
+function runDeterministicCheck(check, {
+  workspaceMap, workspaceSnapshot = "", transcript, scenario,
+}) {
   switch (check.type) {
     case "jsonPath": {
       const raw = workspaceMap.get(check.file);
@@ -381,6 +383,29 @@ function runDeterministicCheck(check, { workspaceMap, transcript, scenario }) {
       return {
         pass: found === wantContains,
         evidence: `transcript ${found ? "contains" : "does not contain"} the checked value`,
+      };
+    }
+    case "transcriptMatches":
+    case "transcriptNotMatches": {
+      const pattern = resolveCheckValue(check, scenario);
+      const wantMatches = check.type === "transcriptMatches";
+      const flags = check.flags || "";
+      const found = new RegExp(pattern, flags).test(transcript);
+      return {
+        pass: found === wantMatches,
+        evidence: `transcript ${found ? "matches" : "does not match"} /${pattern}/${flags}`,
+      };
+    }
+    case "fileMatches":
+    case "fileNotMatches": {
+      const pattern = resolveCheckValue(check, scenario);
+      const wantMatches = check.type === "fileMatches";
+      const flags = check.flags || "";
+      const raw = check.file ? (workspaceMap.get(check.file) ?? "") : workspaceSnapshot;
+      const found = new RegExp(pattern, flags).test(raw);
+      return {
+        pass: found === wantMatches,
+        evidence: `${check.file || "workspace"} ${found ? "matches" : "does not match"} /${pattern}/${flags}`,
       };
     }
     default:
@@ -572,6 +597,7 @@ async function runOnce(evalObj, i) {
 
   const { verdicts: deterministicVerdicts, remaining } = runDeterministicChecks(evalObj, {
     workspaceMap,
+    workspaceSnapshot,
     transcript,
     scenario: evalObj.scenario,
   });

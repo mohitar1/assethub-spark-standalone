@@ -7,10 +7,10 @@ AI-generated metadata (title, description, keywords, and — where inferable
 per-customer scope value plus `dam:status=approved`, and publishes them so
 the portal's existing search + facets light up.
 
-It is invoked by **Phase C** of the `customer-migration` skill
+It is invoked by **Step 5** of the `customer-migration` skill
 (`.claude/skills/customer-migration/SKILL.md`), but can also be run
 directly. It introduces **no new secret** — it reuses the Content Hub
-technical-account credentials collected during migration Phase B.7.
+technical-account credentials already present in `cloudflare/.secrets`.
 
 ## What it does (controller flow)
 
@@ -29,8 +29,8 @@ Both share the same shape:
 ```
 load config (customerKey -> /content/dam/<customerKey>, company scope)
   -> acquire author token (pre-issued bearer, or DM client_credentials)
-  -> [bring-in, optional] with --source-url: scrape the site for images,
-       ensure the customer folder exists, upload the images (classic only)
+  -> [bring-in, optional] with --source-url: scrape the site for images/docs,
+       ensure the customer folder exists, upload the files (classic only)
   -> enumerate the folder
        classic:   GET /api/assets/<folder>.json (HAL, recurses sub-folders)
        converged: match-all search + client-side repo:path prefix filter
@@ -100,7 +100,7 @@ writing or publishing anything.
 ## Bring-in from a site (`--source-url`, classic path)
 
 Passing `--source-url <url>` turns on the **bring-in** lane (E3): the agent
-pulls the customer's own images off their website and lands them in the
+pulls the customer's own images and linked documents off their website and lands them in the
 customer folder, then the normal enrich → publish flow runs over them.
 
 For a credible demo, target **at least 20 downloaded images**
@@ -125,9 +125,10 @@ node scripts/agent/enrich-assets.js --customer-key acme \
 
 What happens on a live run:
 
-1. **Scrape** (`scrape-site.js`) — fetch the page and extract image URLs from
-   `<img src|data-src|srcset>`, `<source srcset>`, and `og:image`/`twitter:image`
-   meta tags; resolve relative URLs; drop `data:`/empty.
+1. **Scrape** (`scrape-site.js`) — fetch the page and extract asset URLs from
+   `<img src|data-src|srcset>`, `<source srcset>`, `og:image`/`twitter:image`
+   meta tags, and document links (`pdf`, Office docs); resolve relative URLs;
+   drop `data:`/empty.
 2. **Download** — bounded by `--limit` (else `BRING_IN_MAX_IMAGES`) and a per-file
    byte cap (`BRING_IN_MAX_BYTES`); non-image and empty responses are skipped, and
    file names are sanitised/deduped with the extension taken from the `Content-Type`.
@@ -301,16 +302,18 @@ are skipped unless `--force` is passed, so re-runs are safe.
 npx vitest run --project unit-tests scripts/agent
 ```
 
-## Worker scope companion (Phase C)
+## Worker scope companion (Step 5)
 
-Making the portal show **only** this customer's assets is a one-line local
-config edit, applied by the worker at runtime:
+Making the portal show **only** this customer's assets and content is a
+two-key config edit, applied by the worker at runtime and committed to the PR:
 
 ```js
 // cloudflare/src/config.js
-DEMO_COMPANY: '<customerKey>', // null = unchanged upstream behaviour
+DEMO_COMPANY: '<customerKey>',
+DEMO_BASE_PATH: '/<customerKey>',
 ```
 
 `dm.js` injects `term: { 'assetMetadata.company': [DEMO_COMPANY] }` into
-search authorization when set. It takes effect on the next `npm run dev`
-restart — **no deployment required** for the local demo.
+search authorization when set. `DEMO_BASE_PATH` keeps routing, login, and
+access-sheet reads under the company folder. The PR worker applies both keys
+when the PR deploys.

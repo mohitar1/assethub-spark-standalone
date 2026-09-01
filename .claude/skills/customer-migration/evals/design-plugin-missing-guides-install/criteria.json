@@ -1,5 +1,5 @@
 {
-  "context": "Tests the third state of the Phase A design-plugin gate: not installed at all (vs. installed-but-not-enabled, covered by a sibling eval). The agent must distinguish 'never installed' from 'installed but disabled' and guide add-marketplace + install, not just enable. It must stop and never hand-roll the rebrand as a substitute.",
+  "context": "Tests the third state of the operator-setup design-tool gate: not installed at all (vs. installed-but-not-enabled, covered by a sibling eval). The agent must distinguish 'never installed' from 'installed but disabled' and guide add-marketplace + install, not just enable. It must stop and never hand-roll the rebrand as a substitute.",
   "type": "weighted_checklist",
   "checklist": [
     {
@@ -10,12 +10,12 @@
     {
       "name": "Correctly identifies not-installed (not just disabled)",
       "max_score": 20,
-      "description": "The agent's explanation reflects that the plugin was never installed — it does not say the plugin is 'already installed, just enable it' or otherwise imply install-then-enable is unnecessary."
+      "description": "The agent's explanation reflects that the plugin was never installed \u2014 it does not say the plugin is 'already installed, just enable it' or otherwise imply install-then-enable is unnecessary."
     },
     {
       "name": "Guides marketplace-add + install, not just enable",
       "max_score": 25,
-      "description": "The agent tells the operator to add the marketplace (e.g. '/plugin marketplace add') and install the plugin (e.g. '/plugin install excat@excat-marketplace') — a two-step install flow — rather than only telling them to 'enable' it as if already installed."
+      "description": "The agent tells the operator to add the marketplace with the CLI command and install the plugin (e.g. 'claude plugin marketplace add ./resources/plugins/aem-excat-plugin/excat-marketplace' and 'claude plugin install excat@excat-marketplace') \u2014 a two-step install flow \u2014 rather than only telling them to 'enable' it as if already installed."
     },
     {
       "name": "No hand-rolled rebrand",
@@ -29,7 +29,7 @@
       "check": {
         "type": "jsonPath",
         "file": ".internal/onboarding-state.json",
-        "path": "phases.rebrand.status",
+        "path": "steps.rebranded",
         "notEquals": "done"
       }
     }
