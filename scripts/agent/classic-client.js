@@ -5,16 +5,14 @@
  * The "converged" Assets API facade (author-<env>.adobeaemcloud.com/adobe/assets/...) is
  * gated by an `x-api-key` the demo's Content-Hub-issued token does not carry — every
  * /adobe/assets/{id}/metadata call returns 403003 "Api Key is invalid" (search happens to
- * ignore the key, but metadata reads and all writes do not), and /adobe/assets/publish and
- * /adobe/assets/metadata/import are not even routed on that host (404). The DM
- * technical-account token is separately walled off ("IMS Client ID not allowlisted").
+ * ignore the key, but metadata reads and writes do not). The DM technical-account token is
+ * separately walled off ("IMS Client ID not allowlisted").
  *
  * The CLASSIC author API, by contrast, authenticates the same bearer token with NO
- * x-api-key and supports the full lifecycle we need:
+ * x-api-key and supports the metadata lifecycle we still need:
  *   - enumerate: GET /api/assets/<relpath>.json?offset&limit   (HAL, 200)
  *   - read:      GET /content/dam/<path>/jcr:content/metadata.json   (200)
  *   - write:     POST /content/dam/<path>/jcr:content/metadata  (Sling POST servlet, 200)
- *   - publish:   POST /bin/replicate.json  cmd=Activate         (200)
  *
  * This client therefore targets the author host ROOT (no /adobe prefix) and sends only
  * Authorization. It keeps the same cross-cutting behavior as AuthorClient: 401 -> refresh
@@ -132,33 +130,6 @@ export class ClassicAuthorClient {
     const res = await this.request('POST', path, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: search.toString(),
-    });
-    if (!res.ok) throw await richError(`POST ${path}`, res);
-    return res;
-  }
-
-  /**
-   * POST a raw binary body (e.g. an image) with an explicit Content-Type. Used by the
-   * classic Assets HTTP API create-asset call. Returns the raw Response; throws a rich
-   * error on non-2xx.
-   */
-  async postBinary(path, bytes, contentType) {
-    const res = await this.request('POST', path, {
-      headers: { 'Content-Type': contentType || 'application/octet-stream' },
-      body: bytes,
-    });
-    if (!res.ok) throw await richError(`POST ${path}`, res);
-    return res;
-  }
-
-  /**
-   * POST a JSON body (e.g. the Assets HTTP API folder-create call). Returns the raw
-   * Response; throws a rich error on non-2xx.
-   */
-  async postJson(path, obj) {
-    const res = await this.request('POST', path, {
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(obj),
     });
     if (!res.ok) throw await richError(`POST ${path}`, res);
     return res;

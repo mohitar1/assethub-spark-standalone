@@ -1,0 +1,29 @@
+:root {
+  --light-color: #F4E9DC;
+  --primary-color: #DA251C;
+  --primary-color-hover: #b51217;
+  --color-red: #DA251C;
+  --color-dark-red: #95351D;
+  --secondary-color: #95351D;
+  --text-color: #1f1f1f;
+}
+
+main .section.search-hero {
+  background: var(--light-color) url('backgrounds/big.svg') no-repeat center top / cover;
+}
+
+a.button.secondary,
+button.button.secondary,
+button.secondary {
+  background-color: #95351D;
+  border-color: #95351D;
+  color: #fff;
+}
+
+a.button.secondary:hover,
+button.button.secondary:hover,
+button.secondary:hover {
+  background-color: #7a2b17;
+  border-color: #7a2b17;
+  color: #fff;
+}

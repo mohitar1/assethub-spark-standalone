@@ -24,6 +24,11 @@ describe('normalize', () => {
     it('maps case-insensitively to the canonical entry', () => {
       expect(mapToVocabulary('CARDS', DEFAULT_PRODUCT_CATEGORY_VOCAB)).toBe('cards');
     });
+    it('maps simple plural display labels to canonical slugs', () => {
+      expect(mapToVocabulary('SUVs', ['suv', 'sedan'])).toBe('suv');
+      expect(mapToVocabulary('Hatchbacks', ['hatchback', 'sedan'])).toBe('hatchback');
+      expect(mapToVocabulary('Accessory', ['accessories', 'suv'])).toBe('accessories');
+    });
     it('returns null when there is no confident match', () => {
       expect(mapToVocabulary('spaceships', DEFAULT_PRODUCT_CATEGORY_VOCAB)).toBeNull();
       expect(mapToVocabulary('', DEFAULT_CHANNEL_VOCAB)).toBeNull();
@@ -62,14 +67,21 @@ describe('normalize', () => {
       expect(out.campaign).toBe('Spring Sale');
     });
     it('keeps productCategory/channel as free text when no vocab is given', () => {
-      const out = normalizeGenerated({ title: 'T', productCategory: 'anything-goes', channel: 'anything-goes' });
+      const out = normalizeGenerated({
+        title: 'T',
+        productCategory: 'anything-goes',
+        channel: 'anything-goes',
+      });
       expect(out.productCategory).toBe('anything-goes');
       expect(out.channel).toBe('anything-goes');
     });
     it('never invents a one-off bucket when a strict vocab is opted into', () => {
       const out = normalizeGenerated(
         { title: 'T', productCategory: 'nonsense', channel: 'nonsense' },
-        { productCategoryVocab: DEFAULT_PRODUCT_CATEGORY_VOCAB, channelVocab: DEFAULT_CHANNEL_VOCAB },
+        {
+          productCategoryVocab: DEFAULT_PRODUCT_CATEGORY_VOCAB,
+          channelVocab: DEFAULT_CHANNEL_VOCAB,
+        },
       );
       expect(out.productCategory).toBeUndefined();
       expect(out.channel).toBeUndefined();
@@ -77,7 +89,10 @@ describe('normalize', () => {
     it('maps to the canonical vocab entry when a strict vocab is opted into', () => {
       const out = normalizeGenerated(
         { title: 'T', productCategory: 'Loans', channel: 'unknown-channel' },
-        { productCategoryVocab: DEFAULT_PRODUCT_CATEGORY_VOCAB, channelVocab: DEFAULT_CHANNEL_VOCAB },
+        {
+          productCategoryVocab: DEFAULT_PRODUCT_CATEGORY_VOCAB,
+          channelVocab: DEFAULT_CHANNEL_VOCAB,
+        },
       );
       expect(out.productCategory).toBe('loans');
       expect(out.channel).toBeUndefined();

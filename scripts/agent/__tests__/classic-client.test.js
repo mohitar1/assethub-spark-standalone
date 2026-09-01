@@ -89,37 +89,6 @@ describe('classic-client', () => {
     await expect(client.postForm('/x', [['a', 'b']])).rejects.toMatchObject({ status: 500 });
   });
 
-  it('postBinary POSTs raw bytes with the given Content-Type', async () => {
-    const fetchFn = vi.fn(async () => makeRes({ status: 201 }));
-    const client = mkClient(fetchFn);
-    const bytes = new Uint8Array([1, 2, 3]);
-    const res = await client.postBinary('/api/assets/acme/x.png', bytes, 'image/png');
-    expect(res.status).toBe(201);
-    const [url, init] = fetchFn.mock.calls[0];
-    expect(url).toBe(`${HOST}/api/assets/acme/x.png`);
-    expect(init.method).toBe('POST');
-    expect(init.headers['Content-Type']).toBe('image/png');
-    expect(init.body).toBe(bytes);
-  });
-
-  it('postBinary throws a rich error on non-2xx', async () => {
-    const fetchFn = vi.fn(async () => makeRes({ status: 500, body: 'boom' }));
-    const client = mkClient(fetchFn, { sleepFn: async () => {}, maxRetries: 0 });
-    await expect(client.postBinary('/x', new Uint8Array([0]), 'image/png'))
-      .rejects.toMatchObject({ status: 500 });
-  });
-
-  it('postJson POSTs a JSON body with application/json', async () => {
-    const fetchFn = vi.fn(async () => makeRes({ status: 201 }));
-    const client = mkClient(fetchFn);
-    await client.postJson('/api/assets/newco', { class: 'assets/folder' });
-    const [url, init] = fetchFn.mock.calls[0];
-    expect(url).toBe(`${HOST}/api/assets/newco`);
-    expect(init.method).toBe('POST');
-    expect(init.headers['Content-Type']).toBe('application/json');
-    expect(JSON.parse(init.body)).toEqual({ class: 'assets/folder' });
-  });
-
   it('throws when constructed without an authorHost', () => {
     expect(() => new ClassicAuthorClient({ tokenProvider: stubTokenProvider() }))
       .toThrow(/authorHost is required/);

@@ -12,19 +12,19 @@
 
 :root {
   /* Brand palette (semantic tokens — single source of truth) */
-  --light-color: #F4E9DC;
-  --dark-color: #2C2C2C;
-  --text-color: #58181D;
-  --text-primary: #58181D;
-  --link-color: #58181D;
-  --link-hover-color: #00647D;
-  --primary-color: #00647D;
-  --primary-color-hover: #004d61;
-  --color-red: #A33532;
-  --color-dark-red: #95351D;
-  --accent-secondary: #DC6E52;
-  --accent-tertiary: #EBA439;
-  --secondary-color: #95351D;
+  --light-color: #F5F6F8;
+  --dark-color: #101319;
+  --text-color: #101319;
+  --text-primary: #101319;
+  --link-color: #101319;
+  --link-hover-color: #3B3F45;
+  --primary-color: #101319;
+  --primary-color-hover: #3B3F45;
+  --color-red: #6E7178;
+  --color-dark-red: #4B4E54;
+  --accent-secondary: #9AA3B1;
+  --accent-tertiary: #C6CBD3;
+  --secondary-color: #4B4E54;
 
   /* Neutral & shape tokens */
   --color-neutral-50: #fff;
@@ -60,14 +60,14 @@
 
   /* Semantic aliases */
   --background-color: var(--color-neutral-50);
-  --color-secondary-light-sky-blue: rgb(0 100 125 / 12%);
+  --color-secondary-light-sky-blue: rgb(16 19 25 / 12%);
   --color-secondary: var(--text-color);
   --color-medium-grey: var(--color-neutral-400);
   --color-dark-blue: var(--primary-color);
 
   /* fonts */
   --body-font-family: var(--type-base-font-family);
-  --heading-font-family: baskerville, serif;
+  --heading-font-family: "Helvetica Neue", arial, var(--type-base-font-family);
 
   /* font sizes */
   --body-font-size-m: 18px;
@@ -93,13 +93,13 @@
 
   /* status badge colors */
   --status-not-started: var(--primary-color);
-  --status-not-started-bg: rgb(0 100 125 / 12%);
+  --status-not-started-bg: rgb(16 19 25 / 12%);
   --status-in-progress: var(--accent-tertiary);
-  --status-in-progress-bg: rgb(235 164 57 / 12%);
+  --status-in-progress-bg: rgb(198 203 211 / 12%);
   --status-completed: #7fb078;
   --status-completed-bg: rgb(127 176 120 / 12%);
   --status-cancelled: var(--color-red);
-  --status-cancelled-bg: rgb(163 53 50 / 12%);
+  --status-cancelled-bg: rgb(75 78 84 / 12%);
 
   /* focus ring */
   --focus-ring-color: var(--primary-color);
@@ -120,7 +120,13 @@
 
   /* action button colors */
   --button-primary: var(--primary-color);
-  --button-primary-hover: #004d61;
+  --button-primary-hover: var(--primary-color-hover);
+
+  /* Audi demo — welcome/login split-screen brand panel override */
+  --welcome-panel-bg: #101319;
+  --welcome-panel-accent-rgb: 252 252 253;
+  --welcome-panel-mark-image: url('/icons/audi-beans.svg');
+  --welcome-tagline: 'Vorsprung durch Technik.';
 
   /* label colors */
   --label-color: var(--text-color);
@@ -253,12 +259,12 @@ body:has(.section.welcome) > main::before {
 body:has(.section.welcome) > main::after {
   content: var(--welcome-tagline, '"The world\'s finest coffee,\Aat your fingertips."');
   white-space: pre;
-  font-family: baskerville, serif;
+  font-family: var(--heading-font-family);
   font-size: 1rem;
   font-style: italic;
   line-height: 1.6;
   letter-spacing: 0.01em;
-  color: rgb(244 233 220 / 55%);
+  color: rgb(var(--welcome-panel-accent-rgb, 244 233 220) / 55%);
   position: absolute;
   bottom: 48px;
   left: 0;
@@ -744,16 +750,16 @@ button.button:disabled:hover {
 a.button.secondary,
 button.button.secondary,
 button.secondary {
-  background-color: #95351D;
-  border-color: #95351D;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
   color: #fff;
 }
 
 a.button.secondary:hover,
 button.button.secondary:hover,
 button.secondary:hover {
-  background-color: #7a2b17;
-  border-color: #7a2b17;
+  background-color: var(--color-dark-red);
+  border-color: var(--color-dark-red);
   color: #fff;
 }
 
@@ -1005,13 +1011,13 @@ main .section.search-hero .query-input-container {
 
 main .section.search-hero .query-input-bar {
   background: #fff;
-  box-shadow: 0 12px 30px rgb(88 24 29 / 14%);
+  box-shadow: 0 12px 30px rgb(16 19 25 / 14%);
 }
 
 /* Landing: Browse-by-category tiles */
 main .section.category-tiles {
   padding: 56px 72px 40px;
-  background: rgb(235 164 57 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
+  background: rgb(198 203 211 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
   text-align: center;
 }
 
@@ -1047,15 +1053,15 @@ main .section.category-tiles .cards > ul > li {
   flex-direction: column;
   text-align: left;
   background: var(--color-neutral-50);
-  border: 1px solid rgb(88 24 29 / 8%);
+  border: 1px solid rgb(16 19 25 / 8%);
   border-radius: 12px;
-  box-shadow: 0 8px 22px rgb(88 24 29 / 8%);
+  box-shadow: 0 8px 22px rgb(16 19 25 / 8%);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 main .section.category-tiles .cards > ul > li:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 26px rgb(88 24 29 / 12%);
+  box-shadow: 0 12px 26px rgb(16 19 25 / 12%);
 }
 
 /* Icon/logo art (e.g. "Top Brands") only — real photo tiles like
@@ -1665,4 +1671,3 @@ main > .section + .background {
     margin-top: -20px;
   }
 }
-

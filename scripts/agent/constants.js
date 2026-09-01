@@ -32,6 +32,13 @@ export const HEADER_IF_NONE_MATCH = 'If-None-Match';
 export const HEADER_PREFER = 'Prefer';
 export const EXPERIMENTAL_VALUE = '1';
 
+export {
+  DM_COLLECTIONS_PATH_PREFIX,
+  DM_CONTENT_HUB_COLLECTIONS_API_KEY as ADOBE_API_KEY_COLLECTIONS,
+  getDynamicMediaApiKeyForPath,
+  isDynamicMediaCollectionsPath,
+} from '../dm-api-contract.js';
+
 // --- Author API host map, keyed by logical operation (plan §2.3) ---
 //
 // The customer's assets live in AEM Author (author-<aemEnvId>.adobeaemcloud.com), NOT the
@@ -51,12 +58,24 @@ export function buildHosts(aemEnvId) {
     search: base,
     metadata: base,
     metadataImport: base,
-    publish: base,
     jobs: base,
     upload: base,
     rendition: base,
     importFromUrl: base,
   };
+}
+
+// --- Delivery / Content Hub host (collections live here, NOT on author) ---
+//
+// Collections are a Content Hub concept served from the delivery tier
+// (delivery-<aemEnvId>.adobeaemcloud.com), the same tier cloudflare/src/origin/dm.js
+// proxies to. The asset ContentAI search and the collections CRUD/search endpoints all
+// live under this host. Mirrors ADOBE_DELIVERY_HOST_PREFIX/SUFFIX in the worker.
+export function buildDeliveryHost(aemEnvId) {
+  if (!aemEnvId || !/^p\d+-e\d+$/.test(aemEnvId)) {
+    throw new Error(`buildDeliveryHost: invalid aemEnvId "${aemEnvId}" (expected pNNN-eNNN)`);
+  }
+  return `https://delivery-${aemEnvId}.adobeaemcloud.com`;
 }
 
 // --- Limits (grounded in schema) ---
@@ -67,16 +86,7 @@ export const SEARCH_TOTALCOUNT_CAP = 10000;
 // repo:path (verified live: it only returns the exact full path, and match-alls on
 // repo:ancestors). This caps how many assets we page through before giving up.
 export const SEARCH_SCAN_CAP = 20000;
-export const PUBLISH_BATCH_MAX = 10;
 export const CSV_MAX_BYTES = 10 * 1024 * 1024;
-export const UPLOAD_ASSETS_MAX = 1000;
-export const IMPORT_FILES_MAX = 300;
-
-// --- Publish targets (schema PublishTarget enum) ---
-export const PUBLISH_TARGET = {
-  AEM_PUBLISH: 'AEM_PUBLISH',
-  DYNAMIC_MEDIA: 'DYNAMIC_MEDIA',
-};
 
 // --- Generated-metadata field limits (plan §2.7) ---
 export const TITLE_MAX = 80;

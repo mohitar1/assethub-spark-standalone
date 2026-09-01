@@ -3,7 +3,8 @@
 Three parts: **(1) Use case / Outcome / Flow → (2) Design → (3) Implementation**.
 Every endpoint, header, status code, error path, limit, and edge case below is
 grounded in the real repo (`assethub-spark`) and the AEM Assets Author API schema
-(`master_quickstart/assets-api-schema/author`). No code written yet.
+(`master_quickstart/assets-api-schema/author`). The implemented controller lives
+under `scripts/agent/`; this document captures the contract it must keep.
 
 Legend: **[V#]** = must-verify-before-relying; **[EDGE]** = edge case with defined
 handling; **[GROUNDED]** = confirmed in code/schema.
@@ -28,7 +29,7 @@ Transcript anchors:
 
 ## 1.2 Outcome (success criteria, testable)
 For a fork keyed to `customerKey` (e.g. `santander`):
-1. Every asset in `/content/dam/<customerKey>` carries AI-generated per-asset
+1. Every asset in `/content/dam/<customerKey>` carries generated per-asset
    `dc:title`, `dc:description`, `dc:subject`, and (where inferable) `productCategory`,
    `campaign`, `channel`, plus `company = customerKey` (scope) and `dam:status = approved`.
 2. Portal search box returns those assets when queried by words in their generated
@@ -36,7 +37,11 @@ For a fork keyed to `customerKey` (e.g. `santander`):
 3. Portal facets (Campaign, Category, Channel, Keywords; Brand if inferable) show
    buckets and filter correctly by the generated values.
 4. With the worker scope set, the portal shows **only** `company = customerKey` assets.
-5. Re-running the agent changes nothing for already-enriched assets (idempotent).
+5. Re-running the agent changes nothing for already-enriched assets (idempotent),
+   unless the current category-card vocabulary no longer matches the stored
+   `productCategory`.
+6. The run report contains one representative asset per `productCategory`, so Step 5
+   can replace copied card/top-model placeholder imagery with real customer assets.
 
 ## 1.3 Two experiments (separate)
 - **E2 (PRIMARY)** — Enrich existing assets + scoped search. Updates metadata of
@@ -47,7 +52,7 @@ For a fork keyed to `customerKey` (e.g. `santander`):
 ## 1.4 End-to-end flow (the controller)
 ```
 [1] load config: customerKey -> damFolderPath=/content/dam/<customerKey>, company=customerKey (scope)
-[2] acquire author token (reuse DM client_credentials)                     [Design 2.2]
+[2] acquire author token (pre-issued bearer, or DM client_credentials fallback)
 [3] enumerate folder via searchAssets(startsWith repo:path)                [Design 2.4]
         |
         +-- hits > 0 ?
@@ -59,14 +64,16 @@ For a fork keyed to `customerKey` (e.g. `santander`):
         v
 [4] for each asset in assetSet (bounded concurrency):
         [4a] GET metadata (+ETag)                                          [Design 2.5]
-        [4b] already-enriched? (company==customerKey AND dc:title present)
+        [4b] already-enriched? (company==customerKey AND dc:title present
+             AND dam:status=approved AND allowedCountries includes global
+             AND productCategory matches current vocab when one is supplied)
                  yes & !--force -> SKIP (report skipped)                   [EDGE-IDEMP]
         [4c] fetch small rendition (fallback to original)                  [Design 2.6]
-        [4d] GENERATE metadata via vision/LLM -> normalize to facet vocab  [Design 2.7]
+        [4d] GENERATE metadata (filename default; vision only when wired)
+             -> normalize to facet vocab                                   [Design 2.7]
         [4e] stage row (bulk) OR PATCH now (per-asset)                     [Impl E2.3]
 [5] WRITE: bulk metadata/import (preferred) OR per-asset PATCH             [Impl E2.3]
-[6] PUBLISH in batches of <=10 -> poll jobs                                [Impl E2.3]
-[7] REPORT: enriched / skipped / failed (per-asset), exit code            [Impl 3.6]
+[6] REPORT: enriched / skipped / failed plus category representatives      [Impl 3.6]
 ```
 - **Why step 3 (enumerate) exists:** it's Lane A's *discovery* — the only way to learn
   which pre-placed assets to enrich (need each `assetId` for rendition + PATCH +
@@ -255,9 +262,12 @@ parent). Crucially, **you don't need one**, and the "empty vs missing" ambiguity
 - `GET /assets/{id}/metadata` → `{ assetId, repositoryMetadata, assetMetadata }` +
   **`ETag`** header. Supports `If-None-Match` (304).
 - **already-enriched test [EDGE-IDEMP]:** treat asset as enriched iff
-  `assetMetadata.company === customerKey` AND `assetMetadata.dc:title` is non-empty.
-  Skip unless `--force`. (Optionally also stamp a private marker like
-  `assetMetadata.autotag:agentVersion` to make re-tag decisions version-aware; only
+  `assetMetadata.company === customerKey`, `assetMetadata.dc:title` is non-empty,
+  `assetMetadata.dam:status === approved`, `allowedCountries` includes `global`,
+  and, when a `--product-category-vocab` is supplied, the stored
+  `productCategory` is in that current vocab. Skip unless `--force`. (Optionally
+  also stamp a private marker like `assetMetadata.autotag:agentVersion` to make
+  re-tag decisions version-aware; only
   if that key is writable/allowed — else rely on company+title.)
 - Capture the returned `ETag` per asset for the per-asset PATCH path (2.9).
 
@@ -268,19 +278,27 @@ parent). Crucially, **you don't need one**, and the "empty vs missing" ambiguity
   original is huge, downscale client-side before sending to the model. Skip
   non-image mime types (from `repositoryMetadata.dc:format`) or handle per type.
 
-## 2.7 Generation contract (the AI value-add)
-- **Input:** the small rendition bytes + a few grounding hints (`repo:name`,
-  existing `xcm:machineKeywords` if present, `dc:format`).
-- **Output (strict JSON schema the script validates):**
+## 2.7 Generation contract (metadata mode)
+- **Input:** asset id/name + a few grounding hints (`repo:name`, existing
+  `xcm:machineKeywords` if present, `dc:format`); rendition bytes are available for a
+  future vision generator.
+- **Default generator:** `--metadata-mode filename` is deterministic filename/hint-derived
+  metadata. It is useful for demos and offline tests, but must not be described as
+  AI/vision output.
+- **Reserved generator:** `--metadata-mode vision` is the future real model lane. Until an
+  invokeModel/vision integration is wired, the CLI fails fast if this is selected.
+- **Output shape:**
   `{ title:string(<=80), description:string(<=200),
-     keywords:string[](3..12), productCategory:enum|null,
-     campaign:string|null, channel:enum|null }`.
-- **Normalization:** map `productCategory`/`channel` to the existing facet vocabulary
-  (from the live excFacets buckets, 2.8) via a controlled list; if no confident
-  match → leave null (do NOT invent 1-off buckets). Keywords lowercased, de-duped.
-- **Guardrails:** reject/repair outputs that aren't valid JSON or exceed lengths;
-  never write empty strings (omit the field instead). `company` and `dam:status` are
-  set by the script, NOT the model.
+     keywords:string[](1..12), productCategory:string|null,
+     campaign:string|null, channel:string|null, brand:string|null }`.
+- **Normalization:** `productCategory`/`channel` are free text by default because the
+  portal facets are string buckets. Only when a customer/card workflow supplies
+  `--product-category-vocab` or `--channel-vocab` do we map to that controlled list and
+  drop non-matches. The mapper handles simple display-label/plural variants (`SUVs` →
+  `suv`) but never invents a bucket.
+- **Guardrails:** repair outputs that exceed lengths; never write empty strings (omit the
+  field instead). `company`, `dam:status`, and `allowedCountries` are set by the script,
+  not the generator.
 
 ## 2.8 Searchability & filterability contract [GROUNDED: dynamicmedia-client.js + LIVE excFacets]
 - **Free-text search hits EXACTLY 4 fields** (`buildMatchQuery`):
@@ -304,8 +322,8 @@ parent). Crucially, **you don't need one**, and the "empty vs missing" ambiguity
   the worker injects (2.12), which is exactly Alex's "hard-code customer=X in the
   query." The user-facing searchable/filterable fields are the excFacet rows above.
 - A selected facet → `term:{ '<path>':[values] }`. Because these are already excFacets
-  rows and facetable-indexed, values become filters the moment they're written +
-  published — **no facet registration**. **[V2]** sanity-check buckets return.
+  rows and facetable-indexed, values become filters once metadata is written, approved,
+  and indexed — **no facet registration**. **[V2]** sanity-check buckets return.
 
 ## 2.9 Write mechanics [GROUNDED]
 **Bulk (preferred): `POST /assets/metadata/import`** — `multipart/form-data`, part
@@ -330,18 +348,13 @@ name **`file`**, UTF-8 CSV (RFC-4180):
   (asset changed) → re-`GET` metadata, re-apply patch on fresh ETag, retry (bounded);
   **409** = conflict → same recovery.
 
-## 2.10 Approval + publish [GROUNDED]
+## 2.10 Approval [GROUNDED]
 - **Approval:** stamp `assetMetadata.dam:status = "approved"` in the same write.
   **[V7-note]** exact key/casing per env: schema also models `dam:assetStatus`
   ({approved,rejected}); we standardize on **`dam:status=approved`** per decision, and
   the startup probe (2.11) confirms it's accepted (400/422 would flag a wrong key).
-- **Publish:** `POST /assets/publish` body
-  `{ assets:[urn…(≤10)], target:"AEM_PUBLISH"|"DYNAMIC_MEDIA" }` [GROUNDED enum].
-  **Max 10/request** (>10 → 400). **200** = done sync; **202** → `Location` → poll
-  `GET /assets/jobs/{jobId}/status` (`state: PROCESSING|…`) until terminal, then read
-  per-asset success/failure. **[V1]** which target the portal's ContentAI/Content Hub
-  index actually reads (`AEM_PUBLISH` vs `DYNAMIC_MEDIA`) — decides `target` and even
-  whether publish is required at all.
+- **Delivery visibility:** no explicit asset publish call. Delivery visibility is driven
+  by `dam:status=approved`; verification is search/facet visibility after indexing.
 
 ## 2.11 Cross-cutting: auth/retry/limits/observability
 - **401** on any author call → refresh IMS token once, retry.
@@ -353,7 +366,7 @@ name **`file`**, UTF-8 CSV (RFC-4180):
   hit to confirm host+headers (**V3**); (c) a no-op/echo to confirm `dam:status` key
   acceptance; (d) `searchAssets` startsWith returns ≥0 without 400 (**V-D1**).
 - **Dry-run mode:** run steps 3–4 (enumerate, read, generate, normalize) and emit the
-  intended CSV/patches WITHOUT writing/publishing — for review before the live run.
+  intended CSV/patches WITHOUT writing — for review before the live run.
 - **Reporting:** per-asset outcome table (enriched|skipped|failed + reason); non-zero
   exit if any hard failures; machine-readable JSON summary artifact.
 
@@ -385,9 +398,10 @@ name **`file`**, UTF-8 CSV (RFC-4180):
 ## 2.14 Does this require deployment? — NO (for the local demo) [GROUNDED]
 The demo runs **locally** (Phase B tiers are all local-run; the Cloudflare deploy stage
 is explicitly opt-in, I4). Nothing here needs a Cloudflare deployment:
-- **Asset metadata writes + publish** call **AEM author/delivery APIs directly** — wholly
-  independent of Cloudflare. Assets become searchable in the portal's DM/ContentAI index
-  no matter where the portal front end runs. (This is the entire E2 outcome.)
+- **Asset metadata writes** call **AEM author APIs directly** — wholly independent of
+  Cloudflare. Assets become searchable in the portal's DM/ContentAI index after approval
+  and indexing, no matter where the portal front end runs. (This is the entire E2
+  outcome.)
 - **The E2.4 scope change** edits `cloudflare/src/config.js` (`DEMO_COMPANY`), imported by
   `dm.js` at runtime. Phase B runs the worker via `wrangler dev`/miniflare (`npm run dev`),
   which simulates bindings — so the change is live on **local restart**. No merge, no CI,
@@ -404,10 +418,11 @@ is explicitly opt-in, I4). Nothing here needs a Cloudflare deployment:
 ===============================================================================
 
 ## 3.0 Deliverables
-- `scripts/agent/enrich-assets.mjs` (or similar) — the controller + all lanes.
-- Small modules: `ims-auth`, `author-client` (host map + retry), `enumerate`,
-  `metadata-read`, `generate` (model), `normalize`, `write-bulk`, `write-patch`,
-  `publish`, `report`.
+- `scripts/agent/enrich-assets.js` — CLI/controller dispatching to the converged or
+  pre-issued-token runner.
+- Small modules: `ims-auth`, `author-client`/`classic-client`, `enumerate`,
+  `classic-metadata`, `metadata`, `generate`, `normalize`, `write-bulk`,
+  `write-patch`, `upload-strategy`, `scrape-site`, `representatives`, `report`.
 - Worker change: E2.4 scope clause + unit tests.
 - No new secrets; reads existing `SPARK_DM_CLIENT_ID`/`SPARK_DM_CLIENT_SECRET` from
   `cloudflare/.secrets` (binding `DM_CLIENT_ID`/`DM_CLIENT_SECRET`) at call time.
@@ -421,18 +436,18 @@ is explicitly opt-in, I4). Nothing here needs a Cloudflare deployment:
 - Handle [EDGE-PAGES], [EDGE-FOLDER], [V-D1] as specified.
 
 ### E2.2 Generate (model)
-- Fetch small rendition (2.6, [EDGE-RENDITION]); call vision model; validate + repair
-  to the strict JSON schema; normalize to facet vocabulary (2.7); drop empty fields.
+- Fetch small rendition when useful (2.6, [EDGE-RENDITION]); generate metadata with the
+  selected metadata mode; validate + repair to the strict JSON schema; normalize to
+  free-text facets or the supplied vocab (2.7); drop empty fields.
 
-### E2.3 Write + publish
+### E2.3 Write + approve
 - Default **bulk**: build one CSV (2.9) with columns
-  `assetPath,dc:title[string],dc:description[string],dc:subject[string[]],productCategory[string],campaign[string],channel[string],company[string],dam:status[string]`
-  (optional extra `brand[string]` column when brand is inferable);
+  `assetPath,dc:title[string],dc:description[string],dc:subject[string[]],productCategory[string],campaign[string],channel[string],brand[string],company[string],dam:status[string],allowedCountries[string]`;
   POST multipart `file`; `Prefer: respond-async`; poll job; read successes/errors.
   Split on 10 MB / large sets [EDGE-IMPORT-SPLIT].
 - **Per-asset fallback**: `PATCH` with `If-Match` (2.9), ETag-retry [EDGE-ETAG].
-- **Publish** ≤10/batch (2.10); poll jobs; record per-asset publish results. Target
-  per **[V1]**.
+- **Approve** via `dam:status=approved`; verify the assets become visible through the
+  portal search/facets after indexing.
 
 ### E2.4 Worker scope (ONLY worker change) [GROUNDED code targets]
 - **File:** `cloudflare/src/origin/dm.js`, function `buildAssetAuthClauses(request, env)`
@@ -466,24 +481,28 @@ is explicitly opt-in, I4). Nothing here needs a Cloudflare deployment:
 **E2 done when** the 5 outcome criteria (1.2) hold on a real folder.
 
 ## E3 — Ingest from customer website (CHERRY, Lane B2)
-1. `scrape-webpage` skill on the prospect URL → local images + source URLs + metadata.
-2. Target `/content/dam/<customerKey>` — need NOT pre-exist; upload auto-creates it, and
-   `importFromUrl.folder` accepts an ID or path [GROUNDED]. ([EDGE-FOLDER], [V6].)
-3. `POST /assets/import/fromUrl` (optionally `assetMetadata.company=<customerKey>` at
-   import); poll status; `getImportJobResult` → `{assetId,status}` per item.
-   Prod host: `zy5vuvqzn1.execute-api.us-east-1.amazonaws.com/aem-assets/import-service-api/v1`.
-   [EDGE-HOTLINK] if a source URL is protected → stage on a public URL (Cloudflare R2)
-   and import that, or use Lane B1 upload with the scraped bytes.
-4. Feed returned `assetId`s into E2.1(read)→E2.2→E2.3.
+1. `scrape-site.js` on the prospect URL → extract images from `og:image`/`twitter:image`,
+   `<img src|data-src|srcset>`, `<source srcset>`, and direct
+   `<a href="*.jpg|*.png|*.webp|...">` links (EDS raw/pre-decoration markup), then
+   download bounded candidate binaries.
+2. Target `/content/dam/<customerKey>`; the repository upload strategy explicitly creates
+   the folder first with `/adobe/repository/content/dam;api=create;path=<customerKey>`.
+3. Upload each binary through the AEM UI repository block-upload flow:
+   create asset → negotiate `block_upload` → PUT presigned blob URL →
+   `block_upload_finalize`.
+4. Enumerate the folder, then feed the uploaded assets into E2.1(read)→E2.2→E2.3.
+5. If zero or too few assets are downloaded, report candidate/download counts and the
+   reason before asking for another source URL. Do not stop at "try more URLs" when the
+   current page exposes direct image asset links.
 
 ## 3.5 Sequencing (de-risk first)
-1. **Startup probes / spikes (V3, V-D1, V1, dam:status key):** token grant; one
+1. **Startup probes / spikes (V3, V-D1, dam:status key):** token grant; one
    `GET metadata`; `searchAssets` startsWith on a real folder (pagination); a single
-   `PATCH dc:title+company+dam:status` on ONE asset; `publish` it; confirm it appears
-   in the portal search and filters by Category/Keywords. This one spike closes V1, V2,
-   V3, V-D1, and the dam:status key at once.
+   `PATCH dc:title+company+dam:status` on ONE asset; confirm it appears in the portal
+   search and filters by Category/Keywords. This one spike closes V2, V3, V-D1, and the
+   dam:status key at once.
 2. **E2.4** worker scope + tests (independent, cheap).
-3. **E2 full script** (enumerate→read→generate→bulk write→publish→report) with
+3. **E2 full script** (enumerate→read→generate→bulk write→representative report) with
    **dry-run** first, then live on the folder.
 4. **E3 cherry** after V4/V5/V6.
 5. **Ship as Phase C** of `customer-migration` — full mechanics in **§3.9** (extend the
@@ -492,14 +511,14 @@ is explicitly opt-in, I4). Nothing here needs a Cloudflare deployment:
 
 ## 3.6 Reporting & safety
 - Dry-run mode (2.11) mandatory before first live run per customer.
-- Per-asset JSON report + human summary; non-zero exit on hard failures.
+- Per-asset JSON report + human summary + `representatives.productCategory` map; non-zero
+  exit on hard failures.
 - Idempotent re-run safe (2.5). `--force` to re-generate.
 
 ## 3.7 Verify matrix (blocking vs non-blocking)
 | id | question | how to verify | blocks |
 |---|---|---|---|
 | V-D1 | is `startsWith` on `repo:path` index-backed? | run enumerate; watch for 400 unindexed; try `allowUnindexedSearch=true` | E2.1 |
-| V1 | which publish target does the portal index read? | publish one asset to AEM_PUBLISH; if not visible, try DYNAMIC_MEDIA | E2.3 |
 | V2 | do the facets return buckets once populated? | enrich one asset; check Category/Keywords facets in portal | E2 done |
 | V3 | author host + headers (x-gw-ims-org-id?) | probe `GET metadata` with worker header set | all writes |
 | dam:status | is `dam:status=approved` the accepted key? | PATCH it on one asset; 400/422 flags wrong key | E2.3 |
@@ -521,94 +540,59 @@ is explicitly opt-in, I4). Nothing here needs a Cloudflare deployment:
 - Model output invalid/oversized/hallucinated bucket → repair/normalize/drop field;
   company & dam:status never model-controlled.
 - repositoryMetadata in PATCH → 400 (never include).
-- publish >10 → 400 (always batch ≤10).
 
-## 3.9 Stitching into `customer-migration` as Phase C (concrete)
-The asset work is **not a standalone skill** — it becomes **Phase C** inside the existing
-`.claude/skills/customer-migration/SKILL.md`, reusing its entry flow, state file, and
-invariants. Six concrete edits:
+## 3.9 Stitching into `customer-migration` as Step 5/Step 6 (as-built)
+The asset work is **not a standalone skill**. It is Step 5 inside
+`.claude/skills/customer-migration/SKILL.md`, followed by Step 6 collections.
 
-**(1) Make it invocable — extend the skill `description` frontmatter** (the ONE field
-that governs auto-selection). Add asset-outcome triggers so utterances like "populate/
-bring in the customer's assets," "make the assets searchable," "fill the portal with
-their content" route here — alongside the existing rebrand/backend/onboarding triggers.
-Because it's the same skill file, `./.agents/discover-skills` and the session skill list
-pick it up with no new registration.
+**State shape.** The current state file is flat, not phase-nested:
+`assets-uploaded`, `assets-enriched`, `search-scoped`, and `collections-created`
+mirror the Step 5/6 workflow. `frontend-only` marks these `not-requested`; `full`
+and `assets-only` run them after Step 4g has passed.
 
-**(2) Entry flow — add Phase C to routing + the entry question.** In the entry flow
-(SKILL.md "Entry flow — run first"):
-- `intent` gains coverage for assets. Simplest: keep the 3 existing values and treat
-  Phase C as part of `full` (A→B→C); add a standalone route when the operator asks only
-  for assets (analogous to `backend-only`). Map: "make my assets searchable / fill the
-  portal" → run Phase C only; "onboard <customer>" → A→B→C.
-- Extend the plain-language entry question with an assets outcome, e.g. add
-  *"…and fill it with your own assets so they're searchable"* — still I1 (no "enrich/
-  metadata/scope").
-- Route to the first pending phase; entering Phase C directly is safe because C.1–C.2
-  re-derive customerKey + creds from the repo/state at run time (same pattern as B.1–B.4).
+**Step 5 gate.** Do not run `enrich-assets.js` until the deployed PR worker has passed
+Step 4g in the current session: scoped `config.js`, rebranded backgrounds/facets,
+valid copied access sheets, scoped links, and category-card slugs known.
 
-**(3) State schema — add an `asset-population` phase block** to
-`.internal/onboarding-state.json` (mirrors the existing phase shape):
-```json
-"asset-population": {
-  "status": "in_progress",           // in_progress | done | not-requested (I4)
-  "lastUpdated": null,
-  "lane": null,                       // "enrich-existing" | "bring-in"
-  "customerKey": null,                // slug of customer.name
-  "assetSourceUrl": null,             // E3 cherry only
-  "steps": {
-    "customer-key-resolved": "pending",
-    "author-access-verified": "pending",   // token+host probe (V3, dam:status, V-D1)
-    "assets-resolved": "pending",           // enumerate (Lane A) OR bring-in (Lane B)
-    "metadata-generated": "pending",        // AI generate + normalize
-    "metadata-written": "pending",          // bulk import / PATCH
-    "assets-published": "pending",          // publish + poll
-    "scope-config-written": "pending",      // DEMO_COMPANY in config.js (local edit)
-    "scope-applied-locally": "pending",     // restart npm run dev; miniflare picks it up (NO deploy)
-    "search-scope-verified": "pending",     // portal shows only customer assets, facets light up
-    "scope-deployed": "not-requested"       // OPT-IN only: hosted deploy via Phase B deploy stage (I4)
-  }
-}
+**Step 5 script contract.**
+```bash
+node scripts/agent/enrich-assets.js \
+  --customer-key <companyKey> \
+  [--bring-in --source-url <url>] \
+  [--metadata-mode filename|vision] \
+  [--product-category-vocab "slug-a,slug-b"] \
+  [--channel-vocab "channel-a,channel-b"] \
+  [--dry-run] [--force] \
+  [--report-file .internal/<companyKey>-assets-report.json]
 ```
-Step values `pending|done|blocked`, `lastUpdated` per step — same convention as A/B.
+- `companyKey` is the single value for `/content/dam/<companyKey>`,
+  `assetMetadata.company`, `DEMO_COMPANY`, `DEMO_BASE_PATH`, card facet slugs, and
+  collection scoping.
+- Dry-run is mandatory first. Review metadata fields and
+  `representatives.productCategory` coverage before live writes.
+- Default `metadataMode=filename` is deterministic filename/hint-derived output. Do not
+  call it AI/vision. `metadataMode=vision` fails until a real model integration is wired.
+- If Step 4 created curated home category-card slugs, pass that exact list as
+  `--product-category-vocab` so card links and asset metadata agree.
 
-**(4) Ordering & preconditions — Phase C runs after B.7.** It needs a working backend
-context, so it's offered after the run-tier steps, and it hard-requires **B.7**
-(Content Hub creds + `aemEnvId`). If a Phase-C-only invocation finds no
-`cloudflare/.secrets` DM creds or no `customer.aemEnvId`, it drops into B.7 to collect
-them first (don't re-implement collection). Everything else is reused (table below).
+**Step 5 DA-content obligation.** This is not Step 5.5. After the report exists, Step 5
+must use `representatives.items` to replace copied home/category/top-model placeholder
+imagery with real customer assets, republish those company-scoped DA docs, and verify
+the cards click through to non-zero buckets. If `representatives.missing` is non-empty,
+bring/upload more assets or remove/rename the card; never keep base placeholder media.
 
-**(5) Reuse map — what Phase C takes vs newly needs:**
-| Phase C needs | Source | New ask? |
-|---|---|---|
-| `customerKey` (folder + scope value) | `customer.name` (A.1.c), slugified | No |
-| author token creds | `SPARK_DM_CLIENT_ID/SECRET` in `cloudflare/.secrets` (B.7) → binding `DM_CLIENT_ID/SECRET` (D-B) | No |
-| `aemEnvId` | `customer.aemEnvId` (B.7) | No |
-| DAM folder `/content/dam/<customerKey>` | convention (D-A); bring-in auto-creates | No |
-| source website URL | operator, only for E3 cherry | Only for cherry |
-| `DEMO_COMPANY` scope value | = `customerKey` (this phase writes it) | No |
+**Step 6.** Once Step 5 search and card verification pass, run
+`scripts/agent/create-collections.js` to create one company-scoped collection per
+`productCategory` (or other selected grouping). Collections use the delivery/Content Hub
+tier and the same deterministic request contract as the worker: asset search uses the
+DM client id as `x-api-key`, collection CRUD uses the Content Hub collections key, and
+the bearer token comes from the existing DM credentials. Collections are stamped
+`custom:metadata.company = <companyKey>`.
 
-**(6) Delegation — skill orchestrates, script executes.** The Phase C SKILL steps are
-thin: resolve customerKey, ensure creds, then **invoke the enrich controller**
-(`scripts/agent/enrich-assets.mjs`, §1.4/§3.0) passing `--customer-key`, the folder, and
-the creds-file path; the script does all author API calls (enumerate→generate→write→
-publish) and returns the per-asset report the step records.
-- **Deployment is NOT required for the demo (see §2.14).** The metadata writes + publish
-  hit AEM APIs directly (nothing to do with Cloudflare). The **E2.4 scope change** is a
-  local edit to `config.js` (`DEMO_COMPANY`) that `dm.js` imports at runtime; it takes
-  effect on the next `npm run dev` restart (miniflare simulates bindings — same basis on
-  which Phase B says "placeholder resource ids in `wrangler.toml` are fine for local
-  dev"). No merge, no CI, no `wrangler deploy`.
-- **Only if** the customer later wants the scoped demo on a **hosted** `.aem.live` URL do
-  the code changes follow Phase B's **opt-in deploy stage** (`deploy.md`) — merge + remote
-  deploy — at which point I3 (code live only on merge) applies. Until then `scope-deployed`
-  stays `not-requested` (I4). Phase C never surfaces internal terms (I1) or secrets (I2).
-
-**Phase C completion report (outcomes-only):** which assets are now in the portal and
-searchable; that filtering by image content works; that the (local) demo shows only this
-customer's assets; any per-asset failures. Deployment is not part of this — the demo runs
-locally; mention a hosted deploy only if the customer explicitly asked for one (then it's
-the opt-in Phase B deploy stage, live on merge).
+**Completion report (outcomes-only):** assets are now in the portal and searchable;
+the visible cards use real customer imagery; filters have non-zero buckets; the preview
+shows only this customer's assets and collections. The open PR preview is the deliverable;
+merge is not required.
 
 ===============================================================================
 # PART 4 — IMPLEMENTATION STATUS & WORKAROUNDS (as-built)
@@ -626,17 +610,19 @@ folder `/content/dam/acme`.
 
 - **E2 — Enrich existing assets (PRIMARY): WORKING.**
   - Enumerate the customer folder, read per-asset metadata, idempotency-skip,
-    generate metadata, normalize to the facet vocabulary, write, publish.
-  - Live-verified: enrich + publish of the real `acme` asset; re-run is
+    generate metadata, normalize to the facet vocabulary, write approved metadata.
+  - Live-verified: enrich + approve of the real `acme` asset; re-run is
     idempotent (already-enriched assets are skipped).
 - **E3 — Bring-in from customer website (CHERRY): WORKING.**
   - `--source-url <url>` → scrape page for image URLs → bounded download →
-    ensure folder exists → upload bytes → enumerate → enrich → publish.
+    create folder through `/adobe/repository` → block upload bytes → enumerate →
+    enrich.
   - Live-verified two ways: into the existing `acme` folder, and into a
     brand-new folder (auto-created). Probe assets/folders cleaned up after.
 - **Worker search scoping (E2.4): WORKING** via `DEMO_COMPANY` in
   `cloudflare/src/config.js` (local-only, no deploy).
-- **Tests + lint:** 165 agent unit tests pass; `eslint scripts/agent/` clean.
+- **Tests + lint:** unit-test project passes; touched enrichment/scraper/report files
+  pass ESLint, and full repo lint exits with existing warnings only.
   All offline (injected `fetchFn` / fake clients), no creds or network needed.
 
 ## 4.2 Workarounds taken (and WHY) — the important part
@@ -654,63 +640,64 @@ folder `/content/dam/acme`.
   and skips the IMS grant. The DM `client_credentials` path remains as a fallback
   for when a properly allowlisted client is available.
 
-### W2 — Classic Sling / Assets HTTP API instead of the converged OpenAPI (`/adobe/assets`)
+### W2 — Path-based metadata, repository API upload
 - **Plan assumed** (§2.3): use the modern converged Assets API facade
-  (`/adobe/assets/{id}/metadata`, `/adobe/assets/publish`,
-  `/adobe/assets/metadata/import`) per the OpenAPI schema.
+  (`/adobe/assets/{id}/metadata`, `/adobe/assets/metadata/import`) per the
+  OpenAPI schema.
 - **Reality with the demo token:** the converged facade is gated by an
   `x-api-key` the Content-Hub token does not carry:
   - `GET/PATCH /adobe/assets/{id}/metadata` → `403003 "Api Key is invalid"`.
-  - `/adobe/assets/publish` and `/adobe/assets/metadata/import` → **not routed**
-    on this host (`404`).
-  - (Search happens to ignore the key, but reads/writes/publish do not.)
-- **Workaround:** talk to the **classic AEM Author API** at the host root, which
-  authenticates the **same bearer token with NO `x-api-key`** and supports the
-  full lifecycle we need:
+  - `/adobe/assets/metadata/import` → **not routed** on this host (`404`).
+  - Search happens to ignore the key, but metadata reads/writes do not.
+- **Workaround:** use path-based AEM Author metadata endpoints at the host root,
+  which authenticate the **same bearer token with NO `x-api-key`**:
   - enumerate: `GET /api/assets/<relpath>.json?offset&limit` (HAL) → 200
   - read:      `GET /content/dam/<path>/jcr:content/metadata.json` → 200
   - write:     `POST /content/dam/<path>/jcr:content/metadata` (Sling POST) → 200
-  - publish:   `POST /bin/replicate.json` cmd=Activate → 200
-  - upload:    `POST /api/assets/<folder>/<file>` (raw bytes) → 201
-  - folder:    `POST /api/assets/<folder>` (JSON descriptor) → 201
-  - delete:    `DELETE /api/assets/<path>` → 200
-  This is implemented as a **parallel runner** (`classic-client.js`,
-  `classic-assets.js`, `enrich-classic.js`), selected automatically when the
-  pre-issued token is present. The converged runner (`author-client.js`,
-  `write-bulk.js`, `write-patch.js`, `publish.js`, `bring-in.js`) is kept intact
-  for when a proper allowlisted client credential is provided.
+  Folder creation and upload are **not** on `/api/assets`; they use the AEM UI's
+  `/adobe/repository/...` create → block_upload → presigned-blob PUT →
+  block_upload_finalize flow. Asset Delivery visibility is driven by writing
+  `dam:status=approved`; the old replication path is gone.
+  This is implemented in `upload-strategy.js`, selected automatically for the
+  pre-issued-token runner. The converged metadata runner remains for when a proper
+  allowlisted client credential is provided.
 
-### W3 — Explicit folder-create before upload (no auto-create on the classic path)
+### W3 — Explicit repository folder-create before upload
 - **Plan/assumption:** the converged `initiateUpload` auto-creates missing parent
   folders, so bring-in need not create the customer folder.
-- **Reality:** the **classic** create-asset call (`POST /api/assets/<folder>/<file>`)
-  returns **500** if the parent folder does not exist.
-- **Workaround:** `ensureFolderClassic` probes the folder listing and, if absent,
-  creates it via `POST /api/assets/<folder>` with a JSON folder descriptor
-  (verified 201) **before** uploading. This makes bring-in work for a genuinely
-  new customer whose DAM folder does not yet exist.
+- **Reality:** the AEM UI creates the customer folder explicitly before the file
+  upload sequence.
+- **Workaround:** `RepositoryUploadStrategy.ensureFolder` calls
+  `POST /adobe/repository/content/dam;api=create;path=<folder>;intermediates=true`
+  with `Content-Type: application/vnd.adobecloud.directory+json` before uploading.
+  This makes bring-in work for a genuinely new customer whose DAM folder does not
+  yet exist.
 
 ### W4 — Deterministic (filename-based) metadata generator, not a vision model
 - **Plan** (§2.7): pluggable generator; production should use a vision/LLM model.
 - **Reality/scope:** no vision model is wired in this environment.
 - **Workaround:** the default generator derives valid, plausible metadata from
   the filename so the pipeline is fully exercisable offline and the facets light
-  up. `generate.js` is the single injection point to swap in a real model later.
+  up. `--metadata-mode filename` names that honestly; `--metadata-mode vision`
+  fails fast until a real model is wired. `generate.js` is the single injection
+  point to swap in a real model later.
   (Consequence: enrichment on freshly-uploaded bring-in assets is filename-quality
   until a vision generator is attached.)
 
 ### W5 — Regex-based scraper (no DOM parser dependency)
 - **Reality/scope:** avoid adding a heavyweight HTML/DOM dependency to the repo.
 - **Workaround:** `scrape-site.js` extracts image URLs with targeted regexes over
-  `<img src|data-src|srcset>`, `<source srcset>`, and `og:image`/`twitter:image`
-  meta tags; resolves relative URLs; validates by `Content-Type` at download.
-  Download is bounded by `BRING_IN_MAX_IMAGES` / `--limit` and per-file
-  `BRING_IN_MAX_BYTES`.
+  `<img src|data-src|srcset>`, `<source srcset>`, `og:image`/`twitter:image`
+  meta tags, and direct `<a href="*.jpg|*.png|*.webp|...">` image links used by
+  EDS raw/pre-decoration markup; resolves relative URLs; validates by
+  `Content-Type` at download. Download is bounded by `BRING_IN_MAX_IMAGES` /
+  `--limit` and per-file `BRING_IN_MAX_BYTES`.
 
-### W6 — Bring-in is classic-path only
-- Bring-in (E3) is wired **only** into the classic controller (the working token
-  path). It is not implemented on the converged runner. `--bring-in` without
-  `--source-url` warns and no-ops.
+### W6 — Bring-in is pre-issued-token only
+- Bring-in (E3) is wired **only** into the pre-issued-token controller (the
+  working token path) and always uses repository block upload. It is not
+  implemented on the converged runner. `--bring-in` without `--source-url` warns
+  and no-ops.
 
 ## 4.3 Environment assumptions baked in (revisit if the token/env changes)
 - The working token is a **Content-Hub session token** placed manually in
@@ -720,8 +707,9 @@ folder `/content/dam/acme`.
 - Customer assets live in **AEM Author**, not the delivery/Content-Hub tier the
   worker proxies.
 - If/when a **properly allowlisted** technical-account client ID becomes
-  available, the converged runner (and §2.2/§2.3 as originally designed) can be
-  used instead, and W1/W2/W3 fall away.
+  available, the converged metadata runner (and §2.2/§2.3 as originally designed)
+  can be used instead. Repository create/upload remains the bring-in path unless
+  a newer UI-equivalent API is proven.
 
 ## 4.4 Status: still uncommitted
 All of `scripts/agent/` is on branch `agentic-asset-enrichment`, **untracked /
@@ -732,8 +720,8 @@ Tracked in SQL `todos` (decisions locked; controller, D1 spike, E2.1–E2.4, B1 
 E3, phase-c-skill).
 
 Blocked todos are the original **converged-API spikes** superseded by the
-classic-path workaround (W2):
+path-based metadata plus repository-upload workaround (W2):
 - `d1-discovery-spike` — converged `searchAssets startsWith repo:path` discovery
   (replaced by classic `GET /api/assets/<folder>.json`).
-- `e2-spike` — converged enrich-one-asset spike (replaced by the classic runner,
-  which is live-verified end-to-end).
+- `e2-spike` — converged enrich-one-asset spike (replaced by the pre-issued-token
+  runner, which is live-verified end-to-end).

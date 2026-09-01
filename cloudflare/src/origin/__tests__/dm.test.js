@@ -7,6 +7,7 @@ import {
   collectionsSearchContentAIAuthorization,
   forceContentAISearchFilter,
   searchContentAIAuthorization,
+  stampCollectionCompany,
 } from '../dm.js';
 import config from '../../config.js';
 
@@ -1134,10 +1135,24 @@ describe('dm.js - ContentAI Authorization', () => {
   });
 
   describe('collectionsSearchContentAIAuthorization', () => {
+    let savedDemoCompany;
+    beforeEach(() => {
+      savedDemoCompany = config.DEMO_COMPANY;
+      config.DEMO_COMPANY = null;
+    });
+    afterEach(() => {
+      config.DEMO_COMPANY = savedDemoCompany;
+    });
+
     /** Auth clauses are nested via chunkIntoAnd inside query[0].and */
     function getNestedAuthClauses(search) {
       const authBlock = search.query[0].and.find((c) => c.and);
       return authBlock?.and || [];
+    }
+
+    /** All nested auth blocks (each a { and: [...] }) pushed into query[0].and */
+    function getAllNestedAuthBlocks(search) {
+      return search.query[0].and.filter((c) => c.and);
     }
 
     it('should block search when user has no email', () => {
@@ -1235,6 +1250,132 @@ describe('dm.js - ContentAI Authorization', () => {
         },
       });
     });
+
+    describe('demo customer scope (DEMO_COMPANY)', () => {
+      const companyClause = {
+        term: { 'collectionMetadata.custom:metadata.company': ['santander'] },
+      };
+      /** Flatten every clause across all nested auth blocks. */
+      function getAllClauses(search) {
+        return getAllNestedAuthBlocks(search).flatMap((b) => b.and);
+      }
+
+      it('adds the company scope term on every collections search when DEMO_COMPANY is set', () => {
+        config.DEMO_COMPANY = 'santander';
+        const request = { user: { email: 'user@example.com' } };
+        const search = { query: [{ and: [] }] };
+
+        collectionsSearchContentAIAuthorization(request, search, { relationship: 'public' });
+
+        expect(getAllClauses(search)).toContainEqual(companyClause);
+      });
+
+      it('applies the company scope even for the no-user block path', () => {
+        config.DEMO_COMPANY = 'santander';
+        const request = { user: { email: null } };
+        const search = { query: [{ and: [] }] };
+
+        collectionsSearchContentAIAuthorization(request, search);
+
+        expect(getAllClauses(search)).toContainEqual(companyClause);
+      });
+
+      it('applies the company scope alongside the legacy ACL filter', () => {
+        config.DEMO_COMPANY = 'santander';
+        const request = { user: { email: 'user@example.com' } };
+        const search = { query: [{ and: [] }] };
+
+        collectionsSearchContentAIAuthorization(request, search);
+
+        const clauses = getAllClauses(search);
+        expect(clauses).toContainEqual(companyClause);
+        // the legacy ACL OR-filter is still present
+        expect(clauses.some((c) => c.or && c.or.length === 3)).toBe(true);
+      });
+
+      it('takes the scope value from config.DEMO_COMPANY, not any request field', () => {
+        config.DEMO_COMPANY = 'santander';
+        const request = { user: { email: 'se@adobe.com', company: 'adobe' } };
+        const search = { query: [{ and: [] }] };
+
+        collectionsSearchContentAIAuthorization(request, search, { relationship: 'public' });
+
+        const clauses = getAllClauses(search);
+        expect(clauses).toContainEqual(companyClause);
+        expect(clauses).not.toContainEqual({
+          term: { 'collectionMetadata.custom:metadata.company': ['adobe'] },
+        });
+      });
+
+      it('adds no company term when DEMO_COMPANY is null', () => {
+        config.DEMO_COMPANY = null;
+        const request = { user: { email: 'user@example.com' } };
+        const search = { query: [{ and: [] }] };
+
+        collectionsSearchContentAIAuthorization(request, search, { relationship: 'public' });
+
+        const clauses = getAllNestedAuthBlocks(search).flatMap((b) => b.and);
+        expect(clauses.some(
+          (c) => c.term?.['collectionMetadata.custom:metadata.company'],
+        )).toBe(false);
+      });
+    });
+  });
+});
+
+describe('stampCollectionCompany', () => {
+  let savedDemoCompany;
+
+  beforeEach(() => {
+    savedDemoCompany = config.DEMO_COMPANY;
+    config.DEMO_COMPANY = 'frescopa';
+  });
+
+  afterEach(() => {
+    config.DEMO_COMPANY = savedDemoCompany;
+  });
+
+  it('stamps custom:metadata.company on a create body with no metadata', () => {
+    const body = { title: 'My Collection', items: [] };
+    const out = stampCollectionCompany(body);
+    expect(out['custom:metadata']).toEqual({ company: 'frescopa' });
+  });
+
+  it('preserves existing custom:metadata fields while adding company', () => {
+    const body = { title: 'X', 'custom:metadata': { note: 'keep me' } };
+    const out = stampCollectionCompany(body);
+    expect(out['custom:metadata']).toEqual({ note: 'keep me', company: 'frescopa' });
+  });
+
+  it('re-stamps company on an update body that dropped/overrode it', () => {
+    // Update bodies are a merge of existing collectionMetadata + changes; a client could
+    // overwrite custom:metadata and lose the company tag — this restores it every time.
+    const updateBody = {
+      title: 'Renamed',
+      accessLevel: 'public',
+      'custom:metadata': { company: 'someone-else' },
+    };
+    const out = stampCollectionCompany(updateBody);
+    expect(out['custom:metadata'].company).toBe('frescopa');
+  });
+
+  it('overrides a caller-supplied company with the configured scope', () => {
+    const body = { title: 'X', 'custom:metadata': { company: 'somethingelse' } };
+    const out = stampCollectionCompany(body);
+    expect(out['custom:metadata'].company).toBe('frescopa');
+  });
+
+  it('is a no-op when DEMO_COMPANY is unset', () => {
+    config.DEMO_COMPANY = null;
+    const body = { title: 'X' };
+    const out = stampCollectionCompany(body);
+    expect(out['custom:metadata']).toBeUndefined();
+  });
+
+  it('takes the value from config.DEMO_COMPANY', () => {
+    config.DEMO_COMPANY = 'santander';
+    const out = stampCollectionCompany({ title: 'X' });
+    expect(out['custom:metadata'].company).toBe('santander');
   });
 });
 

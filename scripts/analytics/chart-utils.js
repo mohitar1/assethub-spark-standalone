@@ -202,8 +202,8 @@ export function createBarChart(canvas, data, label = 'Count', options = {}) {
       datasets: [{
         label,
         data: data.map((d) => d.count || d.value),
-        backgroundColor: '#00647D',
-        borderColor: '#004d61',
+        backgroundColor: '#101319',
+        borderColor: '#3B3F45',
         borderWidth: 1,
       }],
     },
@@ -336,8 +336,8 @@ export function createHorizontalBarChart(canvas, data, label = 'Count', options 
       datasets: [{
         label,
         data: data.map((d) => d.count || d.value),
-        backgroundColor: '#EBA439',
-        borderColor: '#DC6E52',
+        backgroundColor: '#9AA3B1',
+        borderColor: '#6E7178',
         borderWidth: 1,
       }],
     },

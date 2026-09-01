@@ -1,0 +1,13 @@
+.search-results .facet-filter-panel {
+  flex: 0 0 330px;
+  min-width: 22%;
+  border-right: 1px solid #e0e0e0;
+  background: #fafbfc;
+  padding: 30px;
+  overflow-y: auto;
+  width: 330px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--nav-height, 108px));
+  background-color: #FBF1EA;
+}

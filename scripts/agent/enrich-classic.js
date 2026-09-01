@@ -1,23 +1,24 @@
 /**
- * Classic-API enrichment controller (plan §1.4), implemented on the Sling / Assets HTTP API
- * that the demo's bearer token can actually reach (see classic-client.js for the why).
+ * Classic-API metadata enrichment controller (plan §1.4), implemented on the Sling
+ * metadata APIs that the demo's bearer token can actually reach (see classic-client.js
+ * for the why).
  *
  * Flow: enumerate folder -> per asset {read metadata, idempotency skip, generate, normalize}
- * -> write via Sling POST -> publish via replication -> report. A --dry-run stops before any
- * write and prints the intended property set per asset. Dependency-injected (`client`,
- * `generator`, `log`) so it is unit-testable without live network.
+ * -> write via Sling POST with dam:status=approved -> report. A --dry-run stops before any
+ * write and prints the intended property set per asset. Binary bring-in uses the repository
+ * block-upload strategy, not `/api/assets`.
  */
 
 import {
   enumerateFolderClassic, getAssetMetadataClassic, writeAssetMetadataClassic,
-  publishAssetsClassic,
-} from './classic-assets.js';
+} from './classic-metadata.js';
 import { createUploadStrategy } from './upload-strategy.js';
 import { scrapeSiteImages } from './scrape-site.js';
-import { isAlreadyEnriched } from './metadata.js';
+import { isAlreadyEnriched, fieldsFromMetadata } from './metadata.js';
 import { normalizeGenerated } from './normalize.js';
 import { Report, OUTCOME } from './report.js';
 import { mapWithConcurrency } from './concurrency.js';
+import { buildProductCategoryRepresentatives } from './representatives.js';
 import { STATUS_APPROVED, FIELD, BRING_IN_MIN_TARGET_IMAGES } from './constants.js';
 
 /** Map normalized generated fields + fork scope onto the AEM metadata property set. */
@@ -41,8 +42,8 @@ async function planAssetClassic({
   client, asset, generator, customerKey, force, productCategoryVocab, channelVocab,
 }) {
   const props = await getAssetMetadataClassic({ client, repoPath: asset.repoPath });
-  if (!force && isAlreadyEnriched(props, customerKey)) {
-    return { asset, skip: true };
+  if (!force && isAlreadyEnriched(props, customerKey, { productCategoryVocab })) {
+    return { asset, skip: true, fields: fieldsFromMetadata(props) };
   }
   const hints = {
     machineKeywords: props['xcm:machineKeywords'] || asset.halMetadata['dc:subject'],
@@ -58,7 +59,7 @@ async function planAssetClassic({
 
 /**
  * Bring-in (E3): scrape a site for assets and upload them into the customer folder so the
- * normal discover -> enrich -> publish flow can then act on them. In --dry-run this scrapes
+ * normal discover -> enrich -> approve flow can then act on them. In --dry-run this scrapes
  * and downloads (to prove the pipeline) but does NOT upload. Returns the uploaded assets.
  */
 async function bringInFromSite({
@@ -105,7 +106,7 @@ async function bringInFromSite({
  * @param {Function} opts.generator     — metadata generator
  * @param {object}  [opts.log]          — console-like logger
  * @param {Function} [opts.fetchFn]     — injectable fetch
- * @param {string}  [opts.uploadStrategyName]  — 'repository'|'classic'|'openapi'|null (auto)
+ * @param {string}  [opts.uploadStrategyName]  — 'repository'|null (auto)
  * @param {string}  [opts.apiKey]       — x-api-key for repository strategy
  * @returns {Promise<{ report: Report, dryRun: boolean, preview?: string }>}
  */
@@ -117,8 +118,13 @@ export async function enrichAssetsClassic({
   const { customerKey } = options;
   const scope = { company: customerKey, status: STATUS_APPROVED, allowedCountries: 'global' };
   const folderPath = options.damPath || `/content/dam/${customerKey}`;
+  report.setContext({
+    customerKey,
+    damPath: folderPath,
+    metadataMode: options.metadataMode || 'filename',
+  });
 
-  // Select upload strategy: repository (preferred when apiKey present), classic (fallback).
+  // Bring-in uploads must use the repository API; no classic /api/assets fallback.
   const uploadStrategy = createUploadStrategy(uploadStrategyName, { client, apiKey, fetchFn });
   const strategyName = uploadStrategy.constructor.name;
   log.info?.(`[agent] enrich customer=${customerKey} folder=${folderPath} dryRun=${options.dryRun} uploadStrategy=${strategyName}`);
@@ -179,6 +185,9 @@ export async function enrichAssetsClassic({
   );
 
   const enrichable = planned.filter((p) => p && p.fields && !p.skip);
+  report.setRepresentatives(buildProductCategoryRepresentatives(planned, {
+    expectedCategories: options.productCategoryVocab,
+  }));
   planned.forEach((p) => {
     if (p?.skip) report.record(p.asset.assetId, OUTCOME.SKIPPED, { reason: 'already-enriched' });
   });
@@ -211,19 +220,7 @@ export async function enrichAssetsClassic({
     }
   });
 
-  // [6] Publish (replication activate) the assets that were written.
-  if (!options.noPublish) {
-    const enrichedIds = report.assets
-      .filter((a) => a.outcome === OUTCOME.ENRICHED)
-      .map((a) => a.assetId);
-    if (enrichedIds.length > 0) {
-      const { published, failures } = await publishAssetsClassic({
-        client, repoPaths: enrichedIds,
-      });
-      log.info?.(`[agent] published ${published}/${enrichedIds.length} asset(s) via replication`);
-      failures.forEach((f) => log.warn?.(`[agent] publish failed: ${f.repoPath} — ${f.error}`));
-    }
-  }
+  log.info?.('[agent] enriched assets stamped dam:status=approved for Delivery visibility');
 
   return {
     report, dryRun: false, preview, broughtIn,
