@@ -49,15 +49,25 @@ jobs:
         subject="$(git log -1 --pretty='%s' "$sha")"
         message="$(echo "${{ github.actor }}: $subject" | cut -c1-100)"
         # Derive the Helix origin from the repo being built, not the
-        # upstream template repo. Fork/standalone previews must fetch their
-        # own AEM branch content.
+        # upstream template repo. Prefer the branch origin when AEM exposes
+        # it; fall back to main for standalone sync branches whose AEM branch
+        # host has not been created, otherwise the Worker returns Cloudflare
+        # 1016 before it can serve anything.
         helix_owner="${{ github.repository_owner }}"
         helix_repo="${{ github.event.repository.name }}"
+        branch_origin="https://${ref}--${helix_repo}--${helix_owner}.aem.page"
+        main_origin="https://main--${helix_repo}--${helix_owner}.aem.page"
+        if curl -sSI --max-time 10 "$branch_origin/en/" >/dev/null; then
+          helix_origin="$branch_origin"
+        else
+          echo "::warning::AEM branch origin did not resolve: $branch_origin; using $main_origin"
+          helix_origin="$main_origin"
+        fi
         echo "ref=$ref" >> "$GITHUB_OUTPUT"
         echo "url=https://${ref}.dev.frescopamedia.com" >> "$GITHUB_OUTPUT"
         echo "tag=$tag" >> "$GITHUB_OUTPUT"
         echo "message=$message" >> "$GITHUB_OUTPUT"
-        echo "helix-origin=https://${ref}--${helix_repo}--${helix_owner}.aem.page" >> "$GITHUB_OUTPUT"
+        echo "helix-origin=$helix_origin" >> "$GITHUB_OUTPUT"
 
     - run: npm ci
 
