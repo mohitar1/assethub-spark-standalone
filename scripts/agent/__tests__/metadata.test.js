@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getAssetMetadata, isAlreadyEnriched } from '../metadata.js';
+import { getAssetMetadata, isAlreadyEnriched, fieldsFromMetadata } from '../metadata.js';
 import { makeRes, makeClient } from './helpers.js';
 
 describe('metadata', () => {
@@ -24,7 +24,12 @@ describe('metadata', () => {
 
   describe('isAlreadyEnriched', () => {
     it('is true when company matches and a title is present', () => {
-      expect(isAlreadyEnriched({ company: 'santander', 'dc:title': 'A' }, 'santander')).toBe(true);
+      expect(isAlreadyEnriched({
+        company: 'santander',
+        'dc:title': 'A',
+        'dam:status': 'approved',
+        allowedCountries: 'global',
+      }, 'santander')).toBe(true);
     });
     it('is false when company differs', () => {
       expect(isAlreadyEnriched({ company: 'acme', 'dc:title': 'A' }, 'santander')).toBe(false);
@@ -32,6 +37,43 @@ describe('metadata', () => {
     it('is false when title missing/empty', () => {
       expect(isAlreadyEnriched({ company: 'santander', 'dc:title': '' }, 'santander')).toBe(false);
       expect(isAlreadyEnriched({ company: 'santander' }, 'santander')).toBe(false);
+    });
+    it('requires the stored category to match the current vocab when one is provided', () => {
+      const metadata = {
+        company: 'santander',
+        'dc:title': 'Existing',
+        'dam:status': 'approved',
+        allowedCountries: 'global',
+        productCategory: 'coffee',
+      };
+      expect(isAlreadyEnriched(metadata, 'santander', {
+        productCategoryVocab: ['hatchback', 'sedan', 'suv'],
+      })).toBe(false);
+      expect(isAlreadyEnriched(metadata, 'santander', {
+        productCategoryVocab: ['coffee', 'machine'],
+      })).toBe(true);
+    });
+  });
+
+  describe('fieldsFromMetadata', () => {
+    it('recovers normalized report fields from existing metadata', () => {
+      expect(fieldsFromMetadata({
+        'dc:title': ' Existing ',
+        'dc:description': 'Description',
+        'dc:subject': ['swift', 'hatchback'],
+        productCategory: 'hatchback',
+        campaign: 'Launch',
+        channel: 'web',
+        brand: 'Maruti Suzuki',
+      })).toEqual({
+        title: 'Existing',
+        description: 'Description',
+        keywords: ['swift', 'hatchback'],
+        productCategory: 'hatchback',
+        campaign: 'Launch',
+        channel: 'web',
+        brand: 'Maruti Suzuki',
+      });
     });
   });
 });

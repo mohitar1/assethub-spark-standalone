@@ -1,42 +1,24 @@
 /**
- * Pluggable upload strategies for the bring-in lane (E3).
+ * Repository API upload helpers for the bring-in lane (E3).
  *
- * Interface (all strategies implement):
+ * This intentionally mirrors the AEM Assets UI protocol captured in the upload HARs.
+ * Folder creation and binary upload must not use the legacy `/api/assets/...` Sling
+ * endpoint, because that path can create a binary without triggering the asset-processing
+ * completion path used by the UI.
+ *
+ * Interface:
  *   uploadAsset({ folderPath, fileName, bytes, contentType }) → { repoPath, repoName }
  *   ensureFolder({ folderPath })                              → { created: boolean }
  *   uploadImages({ folderPath, images })                      → { uploaded, failures }
  *
- * Strategies:
- *   RepositoryUploadStrategy  — /adobe/repository/ "block upload" (AEM UI approach).
- *                               Bytes go client → Azure Blob SAS URL directly; never
- *                               through AEM's JVM. Requires x-api-key + bearer.
- *                               5-step HAR-verified flow:
- *                                 1. GET /adobe/repository?path=<folder>  → txn token (t=)
- *                                 2. POST …;api=create;t=<txn>;path=<file>  → asset-id + ETag
- *                                 3. POST …;api=block_upload  → SAS URLs + finalize URL
- *                                 4. PUT each block to Azure Blob SAS URL (no auth needed)
- *                                 5. POST <finalize-URL>  → 201
- *
- *   ClassicUploadStrategy     — Legacy Sling / Assets HTTP API.
- *                               POST raw bytes to /api/assets/<path>. Bytes route through
- *                               AEM JVM. Verified live → 201. Kept as fallback.
- *
- *   OpenApiUploadStrategy     — Future placeholder for /adobe/assets converged upload.
- *                               Currently unusable (403003 with demo token). Throws so
- *                               callers can detect and fall back.
- *
- * Factory: createUploadStrategy(name, { client, apiKey, fetchFn })
- *   name: 'repository' | 'classic' | 'openapi' | null
- *        (auto: 'repository' if apiKey is present, else 'classic')
+ * Flow:
+ *   - Folder: POST /adobe/repository/<parent>;api=create;path=<folder>;intermediates=true
+ *   - File:   POST /adobe/repository/<folder>;api=create;path=<file>;intermediates=true
+ *   - Blob:   POST /adobe/repository/<folder>;api=block_upload;path=<file>
+ *             PUT <presigned blob URL>
+ *             POST /adobe/repository/<folder>;api=block_upload_finalize;token=<token>
  */
 
-/* eslint-disable max-classes-per-file */
-
-import {
-  ensureFolderClassic,
-  uploadAssetClassic,
-  uploadImagesClassic,
-} from './classic-assets.js';
 import { DAM_ROOT } from './constants.js';
 
 // ---------------------------------------------------------------------------
@@ -50,10 +32,17 @@ function encodeSegments(path) {
     .join('/');
 }
 
-function damRelPath(p) {
-  if (p === DAM_ROOT) return '';
-  if (p.startsWith(`${DAM_ROOT}/`)) return p.slice(DAM_ROOT.length);
-  return p;
+function splitFolderCreatePath(folderPath) {
+  const clean = String(folderPath || '').replace(/\/+$/, '');
+  if (!clean.startsWith(`${DAM_ROOT}/`)) {
+    throw new Error(`repository create folder: folderPath must be under ${DAM_ROOT} (got ${folderPath})`);
+  }
+  const parts = clean.split('/').filter(Boolean);
+  if (parts.length <= 2) {
+    throw new Error(`repository create folder: refusing to create DAM root ${folderPath}`);
+  }
+  const folderName = parts.pop();
+  return { parentPath: `/${parts.join('/')}`, folderName };
 }
 
 // ---------------------------------------------------------------------------
@@ -65,6 +54,7 @@ const REPO_API_KEY = 'aem-assets-frontend-1';
 const REL_PRIMARY = 'http://ns.adobe.com/adobecloud/rel/primary';
 const REL_BLOCK_TRANSFER = 'http://ns.adobe.com/adobecloud/rel/block/transfer';
 const REL_BLOCK_FINALIZE = 'http://ns.adobe.com/adobecloud/rel/block/finalize';
+const REL_METADATA_REPOSITORY = 'http://ns.adobe.com/adobecloud/rel/metadata/repository';
 
 /* eslint-disable no-underscore-dangle */
 export class RepositoryUploadStrategy {
@@ -83,31 +73,40 @@ export class RepositoryUploadStrategy {
     return this.fetchFn(url, { method, headers: h, body });
   }
 
-  /** Step 1: GET folder to obtain the current transaction token. */
-  async getFolderTxn(folderPath) {
-    const url = `${this.client.authorHost}/adobe/repository?path=${encodeURIComponent(folderPath)}`;
-    const res = await this.repoFetch('GET', url);
+  /** Create a folder with the same /adobe/repository API the Assets UI uses. */
+  async ensureFolder({ folderPath }) {
+    const { parentPath, folderName } = splitFolderCreatePath(folderPath);
+    const respondWith = encodeURIComponent(JSON.stringify({ reltype: REL_METADATA_REPOSITORY }));
+    const url = [
+      `${this.client.authorHost}/adobe/repository`,
+      encodeSegments(parentPath),
+      `;api=create;path=${encodeURIComponent(folderName)};intermediates=true`,
+      `;respondWith=${respondWith}`,
+    ].join('');
+    const res = await this.repoFetch('POST', url, {
+      headers: { 'Content-Type': 'application/vnd.adobecloud.directory+json' },
+    });
+    if (res.status === 409 || res.status === 412) {
+      await res.text().catch(() => {});
+      return { created: false, status: res.status };
+    }
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      throw new Error(`repository GET ${folderPath} -> ${res.status} ${body}`.trim());
+      throw new Error(`repository create folder ${folderPath} -> ${res.status} ${body}`.trim());
     }
-    const location = res.headers?.get?.('location') || '';
-    const m = location.match(/;t=(\d+)/);
-    const txn = m ? m[1] : '';
-    await res.json().catch(() => {}); // drain
-    return { txn };
+    await res.text().catch(() => {});
+    return { created: true, status: res.status };
   }
 
-  /** Step 2: Create the asset placeholder (zero-byte POST with ;api=create). */
-  async createAsset(folderPath, fileName, contentType, txn) {
-    const txnPart = txn ? `;t=${txn}` : '';
+  /** Step 1: Create the asset placeholder (empty POST with ;api=create). */
+  async createAsset(folderPath, fileName, contentType) {
     const url = [
       `${this.client.authorHost}/adobe/repository`,
       encodeSegments(folderPath),
-      `;api=create${txnPart};path=${encodeURIComponent(fileName)};intermediates=true`,
+      `;api=create;path=${encodeURIComponent(fileName)};intermediates=true`,
     ].join('');
     const res = await this.repoFetch('POST', url, {
-      headers: { 'Content-Type': contentType, 'Content-Length': '0' },
+      headers: { 'Content-Type': contentType || 'application/octet-stream' },
     });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
@@ -118,18 +117,18 @@ export class RepositoryUploadStrategy {
     return { assetId, etag };
   }
 
-  /** Step 3: Initiate block upload; returns SAS URLs, finalize URL, and preferred block size. */
-  async initiateBlockUpload(folderPath, fileName, bytes, contentType, etag, txn) {
-    const txnPart = txn ? `;t=${txn}` : '';
+  /** Step 2: Initiate block upload; returns SAS URLs, finalize URL, and preferred block size. */
+  async initiateBlockUpload(folderPath, fileName, bytes, contentType, etag) {
     const url = [
       `${this.client.authorHost}/adobe/repository`,
       encodeSegments(folderPath),
-      `;api=block_upload;path=${encodeURIComponent(fileName)}${txnPart}`,
+      `;api=block_upload;path=${encodeURIComponent(fileName)}`,
     ].join('');
     const payload = {
       'repo:size': bytes.byteLength,
       'repo:blocksize': REPO_BLOCK_SIZE,
       'dc:format': contentType,
+      assetMetadata: {},
       'repo:resource': { 'repo:reltype': REL_PRIMARY },
       'repo:md5': null,
       'repo:expires': null,
@@ -163,7 +162,7 @@ export class RepositoryUploadStrategy {
     };
   }
 
-  /** Step 4: PUT each block directly to Azure Blob Storage (no auth header needed). */
+  /** Step 3: PUT each block directly to the presigned blob URL (no auth header). */
   async putBlocks(bytes, blockUrls, blockSize) {
     const totalBlocks = Math.ceil(bytes.byteLength / blockSize) || 1;
     if (blockUrls.length < totalBlocks) {
@@ -188,7 +187,7 @@ export class RepositoryUploadStrategy {
     }
   }
 
-  /** Step 5: Finalize — tell AEM all blocks are committed. Returns the DAM repo path. */
+  /** Step 4: Finalize — tell AEM all blocks are committed. Returns the DAM repo path. */
   async finalize(finalizeUrl, bodyForFinalize) {
     const res = await this.repoFetch('POST', finalizeUrl, {
       headers: { 'Content-Type': 'application/vnd.adobecloud.bulk-transfer+json' },
@@ -206,18 +205,13 @@ export class RepositoryUploadStrategy {
   async uploadAsset({
     folderPath, fileName, bytes, contentType,
   }) {
-    const { txn } = await this.getFolderTxn(folderPath);
-    const { etag } = await this.createAsset(folderPath, fileName, contentType, txn);
+    const { etag } = await this.createAsset(folderPath, fileName, contentType);
     const {
       blockUrls, finalizeUrl, preferredBlockSize, bodyForFinalize,
-    } = await this.initiateBlockUpload(folderPath, fileName, bytes, contentType, etag, txn);
+    } = await this.initiateBlockUpload(folderPath, fileName, bytes, contentType, etag);
     await this.putBlocks(bytes, blockUrls, preferredBlockSize);
     const repoPath = await this.finalize(finalizeUrl, bodyForFinalize);
     return { repoPath: repoPath || `${folderPath}/${fileName}`, repoName: fileName };
-  }
-
-  async ensureFolder({ folderPath }) {
-    return ensureFolderClassic({ client: this.client, folderPath });
   }
 
   async uploadImages({ folderPath, images }) {
@@ -242,77 +236,21 @@ export class RepositoryUploadStrategy {
 /* eslint-enable no-underscore-dangle */
 
 // ---------------------------------------------------------------------------
-// ClassicUploadStrategy
-// ---------------------------------------------------------------------------
-
-export class ClassicUploadStrategy {
-  constructor({ client }) {
-    this.client = client;
-  }
-
-  uploadAsset({
-    folderPath, fileName, bytes, contentType,
-  }) {
-    return uploadAssetClassic({
-      client: this.client, folderPath, fileName, bytes, contentType,
-    });
-  }
-
-  ensureFolder({ folderPath }) {
-    return ensureFolderClassic({ client: this.client, folderPath });
-  }
-
-  uploadImages({ folderPath, images }) {
-    return uploadImagesClassic({ client: this.client, folderPath, images });
-  }
-}
-
-// ---------------------------------------------------------------------------
-// OpenApiUploadStrategy (future placeholder)
-// ---------------------------------------------------------------------------
-
-// eslint-disable-next-line max-classes-per-file
-export class OpenApiUploadStrategy {
-  // eslint-disable-next-line class-methods-use-this
-  uploadAsset() {
-    return Promise.reject(new Error(
-      'OpenApiUploadStrategy: not yet implemented '
-      + '(converged /adobe/assets upload requires an allowlisted client ID)',
-    ));
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  ensureFolder() {
-    return Promise.reject(new Error('OpenApiUploadStrategy: not yet implemented'));
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  uploadImages() {
-    return Promise.reject(new Error('OpenApiUploadStrategy: not yet implemented'));
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Factory
 // ---------------------------------------------------------------------------
 
 /**
  * Create the appropriate upload strategy.
  *
- * @param {'repository'|'classic'|'openapi'|null} name
+ * @param {'repository'|null} name
  * @param {object} opts
  * @param {object}   opts.client        — ClassicAuthorClient instance
- * @param {string}   [opts.apiKey]      — x-api-key; required by 'repository' strategy
+ * @param {string}   [opts.apiKey]      — x-api-key; defaults to the Assets UI key
  * @param {Function} [opts.fetchFn]     — injectable fetch
- * @returns {RepositoryUploadStrategy|ClassicUploadStrategy|OpenApiUploadStrategy}
+ * @returns {RepositoryUploadStrategy}
  */
 export function createUploadStrategy(name, { client, apiKey, fetchFn }) {
-  const resolved = name || (apiKey ? 'repository' : 'classic');
+  const resolved = name || 'repository';
   if (resolved === 'repository') return new RepositoryUploadStrategy({ client, apiKey, fetchFn });
-  if (resolved === 'classic') return new ClassicUploadStrategy({ client });
-  if (resolved === 'openapi') return new OpenApiUploadStrategy();
-  throw new Error(`Unknown upload strategy "${name}". Use 'repository', 'classic', or 'openapi'.`);
+  throw new Error(`Unknown upload strategy "${name}". Only 'repository' is supported.`);
 }
-
-// Re-export helpers used by callers that previously imported from classic-assets.
-export { ensureFolderClassic, damRelPath };

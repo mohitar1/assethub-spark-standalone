@@ -10,11 +10,9 @@ function baseOptions(overrides = {}) {
     damPath: '/content/dam/santander',
     dryRun: false,
     force: false,
-    noPublish: true,
     bringIn: false,
     writeMode: 'bulk',
     concurrency: 1,
-    publishTarget: 'AEM_PUBLISH',
     limit: null,
     ...overrides,
   };
@@ -53,7 +51,13 @@ describe('enrichAssets controller', () => {
     expect(out.dryRun).toBe(true);
     expect(out.report.counts().enriched).toBe(1);
     expect(out.csvPreview).toContain('dc:title[string]');
-    // Only enumerate + read happened — no write/publish calls.
+    expect(out.report.toJSON().representatives.items.cards).toMatchObject({
+      assetId: 'a1',
+      assetPath: '/content/dam/santander/a.jpg',
+      productCategory: 'cards',
+      title: 'Doc A',
+    });
+    // Only enumerate + read happened — no write calls.
     expect(client.calls.map((c) => c.op)).toEqual(['search', 'metadata']);
   });
 
@@ -67,7 +71,15 @@ describe('enrichAssets controller', () => {
 
   it('skips assets already enriched for this customer', async () => {
     const meta = makeRes({
-      body: { assetMetadata: { company: 'santander', 'dc:title': 'Existing' }, repositoryMetadata: {} },
+      body: {
+        assetMetadata: {
+          company: 'santander',
+          'dc:title': 'Existing',
+          'dam:status': 'approved',
+          allowedCountries: 'global',
+        },
+        repositoryMetadata: {},
+      },
       headers: { ETag: '"v1"' },
     });
     const client = makeClient([searchPage(oneAsset), meta]);
@@ -76,6 +88,52 @@ describe('enrichAssets controller', () => {
     });
     expect(out.report.counts().skipped).toBe(1);
     expect(out.report.counts().enriched).toBeUndefined();
+  });
+
+  it('reports missing representatives for expected category-card slugs', async () => {
+    const meta = makeRes({
+      body: { assetMetadata: {}, repositoryMetadata: { 'dc:format': 'application/pdf' } },
+      headers: { ETag: '"v1"' },
+    });
+    const client = makeClient([searchPage(oneAsset), meta]);
+    const out = await enrichAssets({
+      options: baseOptions({ dryRun: true, productCategoryVocab: ['cards', 'loans'] }),
+      client,
+      generator,
+      log: silent,
+    });
+    expect(out.report.toJSON().representatives).toMatchObject({
+      groupBy: 'productCategory',
+      expected: ['cards', 'loans'],
+      missing: ['loans'],
+    });
+  });
+
+  it('uses already-enriched assets as representatives when their category matches the vocab', async () => {
+    const meta = makeRes({
+      body: {
+        assetMetadata: {
+          company: 'santander',
+          'dc:title': 'Existing Card',
+          'dc:description': 'Existing description',
+          'dc:subject': ['card'],
+          'dam:status': 'approved',
+          allowedCountries: 'global',
+          productCategory: 'cards',
+        },
+        repositoryMetadata: {},
+      },
+      headers: { ETag: '"v1"' },
+    });
+    const client = makeClient([searchPage(oneAsset), meta]);
+    const out = await enrichAssets({
+      options: baseOptions({ productCategoryVocab: ['cards'] }), client, generator, log: silent,
+    });
+    expect(out.report.counts().skipped).toBe(1);
+    expect(out.report.toJSON().representatives.items.cards).toMatchObject({
+      title: 'Existing Card',
+      source: 'already-enriched',
+    });
   });
 
   it('live patch mode writes each asset and reports enriched', async () => {
@@ -93,18 +151,16 @@ describe('enrichAssets controller', () => {
     expect(patchCall).toBeTruthy();
   });
 
-  it('publishes enriched assets when publishing is enabled', async () => {
+  it('does not call asset publish after writing approved metadata', async () => {
     const meta = makeRes({
       body: { assetMetadata: {}, repositoryMetadata: { 'dc:format': 'application/pdf' } },
       headers: { ETag: '"v1"' },
     });
-    const client = makeClient([
-      searchPage(oneAsset), meta, makeRes({ status: 200 }), makeRes({ status: 200 }),
-    ]);
+    const client = makeClient([searchPage(oneAsset), meta, makeRes({ status: 200 })]);
     const out = await enrichAssets({
-      options: baseOptions({ writeMode: 'patch', noPublish: false }), client, generator, log: silent,
+      options: baseOptions({ writeMode: 'patch' }), client, generator, log: silent,
     });
     expect(out.report.counts().enriched).toBe(1);
-    expect(client.calls.some((c) => c.op === 'publish')).toBe(true);
+    expect(client.calls.some((c) => c.op === 'publish')).toBe(false);
   });
 });

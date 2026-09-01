@@ -167,6 +167,7 @@ export function resolveOriginalUrl(url) {
  *   2. <img src> / <img data-src>          (direct embeds)
  *   3. <img srcset> URLs                   (largest width descriptor first)
  *   4. <source srcset> URLs                (largest width descriptor first)
+ *   5. <a href> URLs with image extensions (EDS raw/pre-decoration markup)
  *
  * Thumbnail/rendition URLs and <img> tags with explicit tiny dimensions are filtered out.
  * Duplicates are removed (first bucket wins).
@@ -178,6 +179,7 @@ export function extractImageUrls(html, baseUrl) {
   const srcUrls = [];
   const srcsetUrls = [];
   const sourceUrls = [];
+  const anchorUrls = [];
 
   const addTo = (bucket, raw) => {
     const abs = resolveUrl(raw, baseUrl);
@@ -210,7 +212,18 @@ export function extractImageUrls(html, baseUrl) {
     parseSrcsetBest(getAttr(tag, 'srcset')).forEach((u) => addTo(sourceUrls, u));
   }
 
-  return [...metaUrls, ...srcUrls, ...srcsetUrls, ...sourceUrls];
+  // [4] Direct image links. EDS raw content commonly stores authored images as
+  // anchors before block decoration turns them into pictures, so <img>-only
+  // extraction misses real customer assets.
+  for (const tag of html.match(A_TAG_RE) || []) {
+    const href = getAttr(tag, 'href');
+    const abs = resolveUrl(href, baseUrl);
+    if (abs && BRING_IN_IMAGE_EXTENSIONS.includes(urlExtension(abs))) {
+      addTo(anchorUrls, href);
+    }
+  }
+
+  return [...metaUrls, ...srcUrls, ...srcsetUrls, ...sourceUrls, ...anchorUrls];
 }
 
 export function extractDocumentUrls(html, baseUrl) {

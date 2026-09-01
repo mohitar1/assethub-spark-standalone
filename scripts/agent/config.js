@@ -9,11 +9,11 @@ import { resolve } from 'node:path';
 
 const FLAG_WITH_VALUE = new Set([
   'customer-key', 'dam-path', 'source-url', 'secrets-file', 'limit',
-  'publish-target', 'write-mode', 'concurrency', 'report-file', 'fixture',
-  'aem-env-id', 'product-category-vocab', 'channel-vocab',
+  'write-mode', 'concurrency', 'report-file', 'fixture',
+  'aem-env-id', 'product-category-vocab', 'channel-vocab', 'metadata-mode',
 ]);
 
-const BOOLEAN_FLAGS = new Set(['dry-run', 'force', 'no-publish', 'bring-in']);
+const BOOLEAN_FLAGS = new Set(['dry-run', 'force', 'bring-in']);
 
 export const RESERVED_CUSTOMER_KEYS = new Set([
   'api',
@@ -169,11 +169,9 @@ export function parseArgs(argv) {
   const opts = {
     dryRun: false,
     force: false,
-    noPublish: false,
     bringIn: false,
     writeMode: 'bulk',
     concurrency: 4,
-    publishTarget: 'AEM_PUBLISH',
     limit: null,
     sourceUrl: null,
     reportFile: null,
@@ -184,6 +182,7 @@ export function parseArgs(argv) {
     aemEnvId: null,
     productCategoryVocab: null,
     channelVocab: null,
+    metadataMode: 'filename',
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -193,7 +192,6 @@ export function parseArgs(argv) {
     if (BOOLEAN_FLAGS.has(name)) {
       if (name === 'dry-run') opts.dryRun = true;
       else if (name === 'force') opts.force = true;
-      else if (name === 'no-publish') opts.noPublish = true;
       else if (name === 'bring-in') opts.bringIn = true;
       continue;
     }
@@ -206,7 +204,6 @@ export function parseArgs(argv) {
         case 'source-url': opts.sourceUrl = value; break;
         case 'secrets-file': opts.secretsFile = value; break;
         case 'limit': opts.limit = Number(value); break;
-        case 'publish-target': opts.publishTarget = value; break;
         case 'write-mode': opts.writeMode = value; break;
         case 'concurrency': opts.concurrency = Number(value); break;
         case 'report-file': opts.reportFile = value; break;
@@ -218,6 +215,7 @@ export function parseArgs(argv) {
         case 'channel-vocab':
           opts.channelVocab = value.split(',').map((v) => v.trim()).filter(Boolean);
           break;
+        case 'metadata-mode': opts.metadataMode = value; break;
         default: break;
       }
     }
@@ -246,8 +244,8 @@ export function validateOptions(opts) {
   if (opts.writeMode && !['bulk', 'patch'].includes(opts.writeMode)) {
     errors.push(`--write-mode must be bulk|patch (got ${opts.writeMode})`);
   }
-  if (opts.publishTarget && !['AEM_PUBLISH', 'DYNAMIC_MEDIA'].includes(opts.publishTarget)) {
-    errors.push(`--publish-target must be AEM_PUBLISH|DYNAMIC_MEDIA (got ${opts.publishTarget})`);
+  if (opts.metadataMode && !['filename', 'vision'].includes(opts.metadataMode)) {
+    errors.push(`--metadata-mode must be filename|vision (got ${opts.metadataMode})`);
   }
   return errors;
 }

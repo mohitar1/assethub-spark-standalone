@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer Demo Migration</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8f5;
+      --paper: #ffffff;
+      --ink: #17211d;
+      --muted: #5b6860;
+      --line: #cbd6d0;
+      --green: #1f7458;
+      --green-soft: #e8f3ef;
+      --blue: #2f6385;
+      --blue-soft: #e9f3f9;
+      --gold: #95601f;
+      --gold-soft: #fff7e8;
+      --purple: #66528b;
+      --purple-soft: #f3eff9;
+      --shadow: 0 18px 44px rgb(23 33 29 / 8%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgb(232 243 239 / 90%), transparent 300px),
+        var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 44px 0 56px;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 760px;
+      font-size: clamp(2.35rem, 5vw, 4.8rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+      font-size: 1.32rem;
+      line-height: 1.2;
+    }
+
+    code {
+      border: 1px solid rgb(23 33 29 / 10%);
+      border-radius: 4px;
+      background: rgb(23 33 29 / 7%);
+      padding: 0.1rem 0.28rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9em;
+    }
+
+    section {
+      margin-top: 36px;
+    }
+
+    .lead {
+      max-width: 700px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 1.13rem;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgb(255 255 255 / 76%);
+      padding: 7px 12px;
+      font-size: 0.92rem;
+      white-space: nowrap;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .diagram {
+      overflow-x: auto;
+    }
+
+    .desktop-svg {
+      display: block;
+      width: 100%;
+      min-width: 1000px;
+      height: auto;
+    }
+
+    .mobile-svg {
+      display: none;
+      width: 100%;
+      min-width: 0;
+      height: auto;
+    }
+
+    .lane {
+      fill: rgb(255 255 255 / 68%);
+      stroke-width: 1.4;
+    }
+
+    .lane.content {
+      fill: var(--gold-soft);
+      stroke: #dfbd82;
+    }
+
+    .lane.assets {
+      fill: var(--purple-soft);
+      stroke: #c7b7dc;
+    }
+
+    .lane.control {
+      fill: var(--blue-soft);
+      stroke: #b8d1e0;
+    }
+
+    .lane.runtime {
+      fill: var(--green-soft);
+      stroke: #b8d8cc;
+    }
+
+    .node {
+      fill: #ffffff;
+      stroke: var(--line);
+      stroke-width: 1.3;
+    }
+
+    .node.dark {
+      fill: var(--green);
+      stroke: var(--green);
+    }
+
+    .node.blue {
+      stroke: #8db7ce;
+    }
+
+    .node.gold {
+      stroke: #d6ad69;
+    }
+
+    .node.purple {
+      stroke: #b09ccd;
+    }
+
+    .label {
+      fill: var(--ink);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .label.small {
+      fill: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .label.mini {
+      fill: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .label.inverse {
+      fill: #ffffff;
+    }
+
+    .edge {
+      fill: none;
+      stroke: var(--muted);
+      stroke-width: 1.8;
+      marker-end: url(#arrow);
+    }
+
+    .edge.soft {
+      stroke: rgb(91 104 96 / 62%);
+      stroke-dasharray: 5 5;
+    }
+
+    .guards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .guard {
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--green);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 14px;
+    }
+
+    .guard.content {
+      border-top-color: var(--gold);
+    }
+
+    .guard.assets {
+      border-top-color: var(--purple);
+    }
+
+    .guard strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .guard p {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .engineer-checks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 48px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+      padding: 22px 26px;
+    }
+
+    .engineer-checks ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .engineer-checks li + li {
+      margin-top: 15px;
+    }
+
+    @media (max-width: 760px) {
+      main {
+        width: min(100% - 28px, 1180px);
+        padding-top: 30px;
+      }
+
+      .chip {
+        white-space: normal;
+      }
+
+      .panel {
+        padding: 12px;
+      }
+
+      .diagram {
+        overflow-x: hidden;
+      }
+
+      .desktop-svg {
+        display: none;
+      }
+
+      .mobile-svg {
+        display: block;
+      }
+
+      .guards,
+      .engineer-checks {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Customer Demo Migration</h1>
+      <p class="lead">
+        Demo runs beside the existing portal. The skill copies content into
+        <code>/&lt;company&gt;</code>, imports customer assets into AEM, and serves one PR preview.
+      </p>
+      <div class="chips" aria-label="Principles">
+        <span class="chip">No root writes</span>
+        <span class="chip">Copy first</span>
+        <span class="chip">Assets in AEM</span>
+        <span class="chip">Scoped preview</span>
+      </div>
+    </header>
+
+    <section aria-labelledby="flow-title">
+      <h2 id="flow-title">Flow</h2>
+      <div class="panel diagram">
+        <svg class="desktop-svg" viewBox="0 0 1180 430" role="img" aria-labelledby="flow-title flow-desc" xmlns="http://www.w3.org/2000/svg">
+          <desc id="flow-desc">Customer demo flow from input through content, assets, and preview.</desc>
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#5b6860"></path>
+            </marker>
+          </defs>
+
+          <rect class="lane content" x="165" y="90" width="690" height="122" rx="12"></rect>
+          <rect class="lane assets" x="165" y="245" width="690" height="122" rx="12"></rect>
+          <text class="label mini" x="190" y="123">Site content</text>
+          <text class="label mini" x="190" y="278">Customer assets</text>
+
+          <rect class="node dark" x="30" y="183" width="110" height="74" rx="10"></rect>
+          <text class="label inverse" x="85" y="214" text-anchor="middle">Customer</text>
+          <text class="label small inverse" x="85" y="236" text-anchor="middle">key + source site</text>
+
+          <rect class="node gold" x="245" y="130" width="126" height="58" rx="8"></rect>
+          <text class="label" x="308" y="154" text-anchor="middle">Copy</text>
+          <text class="label small" x="308" y="173" text-anchor="middle">pages + access</text>
+
+          <rect class="node gold" x="430" y="130" width="126" height="58" rx="8"></rect>
+          <text class="label" x="493" y="154" text-anchor="middle">Rebrand</text>
+          <text class="label small" x="493" y="173" text-anchor="middle">copied pages</text>
+
+          <rect class="node gold" x="615" y="130" width="126" height="58" rx="8"></rect>
+          <text class="label" x="678" y="154" text-anchor="middle">Publish</text>
+          <text class="label small" x="678" y="173" text-anchor="middle">company paths</text>
+
+          <rect class="node purple" x="245" y="285" width="126" height="58" rx="8"></rect>
+          <text class="label" x="308" y="309" text-anchor="middle">Download</text>
+          <text class="label small" x="308" y="328" text-anchor="middle">site assets</text>
+
+          <rect class="node purple" x="430" y="285" width="126" height="58" rx="8"></rect>
+          <text class="label" x="493" y="309" text-anchor="middle">Upload</text>
+          <text class="label small" x="493" y="328" text-anchor="middle">to AEM</text>
+
+          <rect class="node purple" x="615" y="285" width="126" height="58" rx="8"></rect>
+          <text class="label" x="678" y="309" text-anchor="middle">Enrich</text>
+          <text class="label small" x="678" y="328" text-anchor="middle">metadata</text>
+
+          <rect class="node blue" x="915" y="183" width="132" height="74" rx="10"></rect>
+          <text class="label" x="981" y="214" text-anchor="middle">PR worker</text>
+          <text class="label small" x="981" y="236" text-anchor="middle">pages + search</text>
+
+          <rect class="node dark" x="1100" y="183" width="58" height="74" rx="29"></rect>
+          <text class="label inverse" x="1129" y="216" text-anchor="middle">URL</text>
+          <text class="label small inverse" x="1129" y="236" text-anchor="middle">demo</text>
+
+          <path class="edge" d="M140 209 C180 164 198 159 240 159"></path>
+          <path class="edge" d="M140 231 C180 302 198 314 240 314"></path>
+          <path class="edge" d="M371 159 H425"></path>
+          <path class="edge" d="M556 159 H610"></path>
+          <path class="edge" d="M371 314 H425"></path>
+          <path class="edge" d="M556 314 H610"></path>
+          <path class="edge" d="M741 159 C820 159 835 201 910 209"></path>
+          <path class="edge" d="M741 314 C820 314 835 242 910 231"></path>
+          <path class="edge" d="M1047 220 H1094"></path>
+
+        </svg>
+        <svg class="mobile-svg" viewBox="0 0 350 650" role="img" aria-labelledby="flow-title flow-mobile-desc" xmlns="http://www.w3.org/2000/svg">
+          <desc id="flow-mobile-desc">Customer demo flow in compact vertical layout.</desc>
+          <defs>
+            <marker id="arrow-flow-mobile" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#5b6860"></path>
+            </marker>
+          </defs>
+          <style>
+            .flow-mobile-edge { fill: none; stroke: #5b6860; stroke-width: 1.7; marker-end: url(#arrow-flow-mobile); }
+          </style>
+
+          <rect class="node dark" x="112" y="16" width="126" height="58" rx="9"></rect>
+          <text class="label inverse" x="175" y="40" text-anchor="middle">Customer</text>
+          <text class="label small inverse" x="175" y="59" text-anchor="middle">key + source site</text>
+
+          <rect class="lane content" x="18" y="106" width="314" height="174" rx="10"></rect>
+          <text class="label mini" x="38" y="136">Site content</text>
+          <rect class="node gold" x="82" y="154" width="186" height="42" rx="7"></rect>
+          <text class="label" x="175" y="180" text-anchor="middle">Copy</text>
+          <rect class="node gold" x="82" y="218" width="186" height="42" rx="7"></rect>
+          <text class="label" x="175" y="244" text-anchor="middle">Rebrand + publish</text>
+
+          <rect class="lane assets" x="18" y="318" width="314" height="212" rx="10"></rect>
+          <text class="label mini" x="38" y="348">Customer assets</text>
+          <rect class="node purple" x="82" y="366" width="186" height="42" rx="7"></rect>
+          <text class="label" x="175" y="392" text-anchor="middle">Download</text>
+          <rect class="node purple" x="82" y="430" width="186" height="42" rx="7"></rect>
+          <text class="label" x="175" y="456" text-anchor="middle">Upload to AEM</text>
+          <rect class="node purple" x="82" y="494" width="186" height="42" rx="7"></rect>
+          <text class="label" x="175" y="520" text-anchor="middle">Enrich metadata</text>
+
+          <rect class="node blue" x="45" y="584" width="140" height="50" rx="8"></rect>
+          <text class="label" x="115" y="613" text-anchor="middle">PR worker</text>
+          <rect class="node dark" x="214" y="584" width="96" height="50" rx="25"></rect>
+          <text class="label inverse" x="262" y="613" text-anchor="middle">URL</text>
+
+          <path class="flow-mobile-edge" d="M175 74 V148"></path>
+          <path class="flow-mobile-edge" d="M175 196 V212"></path>
+          <path class="flow-mobile-edge" d="M175 280 V312"></path>
+          <path class="flow-mobile-edge" d="M175 408 V424"></path>
+          <path class="flow-mobile-edge" d="M175 472 V488"></path>
+          <path class="flow-mobile-edge" d="M175 536 C175 566 145 566 128 580"></path>
+          <path class="flow-mobile-edge" d="M185 609 H208"></path>
+        </svg>
+      </div>
+    </section>
+
+    <section aria-labelledby="architecture-title">
+      <h2 id="architecture-title">Architecture</h2>
+      <div class="panel diagram">
+        <svg class="desktop-svg" viewBox="0 0 1180 520" role="img" aria-labelledby="architecture-title architecture-desc" xmlns="http://www.w3.org/2000/svg">
+          <desc id="architecture-desc">Customer migration architecture showing skill orchestration, guards, scripts, AEM assets, and PR preview runtime.</desc>
+          <defs>
+            <marker id="arrow-arch" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#5b6860"></path>
+            </marker>
+          </defs>
+          <style>
+            .arch-edge { fill: none; stroke: #5b6860; stroke-width: 1.8; marker-end: url(#arrow-arch); }
+            .arch-edge-soft { fill: none; stroke: rgb(91 104 96 / 62%); stroke-width: 1.8; stroke-dasharray: 5 5; marker-end: url(#arrow-arch); }
+          </style>
+
+          <text class="label mini" x="44" y="46">Input</text>
+          <text class="label mini" x="274" y="46">Orchestration</text>
+          <text class="label mini" x="604" y="46">Execution</text>
+          <text class="label mini" x="1010" y="46">Runtime</text>
+
+          <rect class="node dark" x="36" y="198" width="152" height="86" rx="10"></rect>
+          <text class="label inverse" x="112" y="232" text-anchor="middle">Customer input</text>
+          <text class="label small inverse" x="112" y="254" text-anchor="middle">key + source site</text>
+
+          <rect class="lane control" x="256" y="162" width="250" height="142" rx="14"></rect>
+          <text class="label" x="381" y="206" text-anchor="middle">Customer migration</text>
+          <text class="label" x="381" y="230" text-anchor="middle">skill</text>
+          <text class="label small" x="381" y="257" text-anchor="middle">runs sequence</text>
+          <text class="label small" x="381" y="276" text-anchor="middle">resumes from state</text>
+
+          <rect class="node blue" x="264" y="70" width="156" height="58" rx="8"></rect>
+          <text class="label" x="342" y="96" text-anchor="middle">State file</text>
+          <text class="label small" x="342" y="115" text-anchor="middle">step status</text>
+
+          <rect class="node blue" x="470" y="70" width="156" height="58" rx="8"></rect>
+          <text class="label" x="548" y="96" text-anchor="middle">Path guard</text>
+          <text class="label small" x="548" y="115" text-anchor="middle">blocks root publish</text>
+
+          <rect class="node gold" x="610" y="138" width="160" height="62" rx="8"></rect>
+          <text class="label" x="690" y="165" text-anchor="middle">Copy root</text>
+          <text class="label small" x="690" y="185" text-anchor="middle">root -> /&lt;company&gt;</text>
+
+          <rect class="node gold" x="610" y="230" width="160" height="62" rx="8"></rect>
+          <text class="label" x="690" y="257" text-anchor="middle">Rebrand copy</text>
+          <text class="label small" x="690" y="277" text-anchor="middle">brand the copy</text>
+
+          <rect class="node purple" x="610" y="340" width="160" height="72" rx="8"></rect>
+          <text class="label" x="690" y="366" text-anchor="middle">Import assets</text>
+          <text class="label small" x="690" y="386" text-anchor="middle">download, upload</text>
+          <text class="label small" x="690" y="404" text-anchor="middle">add metadata</text>
+
+          <rect class="node blue" x="610" y="446" width="160" height="52" rx="8"></rect>
+          <text class="label" x="690" y="469" text-anchor="middle">Worker config</text>
+          <text class="label small" x="690" y="488" text-anchor="middle">company key</text>
+
+          <rect class="lane content" x="826" y="118" width="162" height="92" rx="12"></rect>
+          <text class="label" x="907" y="155" text-anchor="middle">Company content</text>
+          <text class="label small" x="907" y="176" text-anchor="middle">/&lt;company&gt;</text>
+
+          <rect class="lane assets" x="826" y="326" width="162" height="92" rx="12"></rect>
+          <text class="label" x="907" y="362" text-anchor="middle">AEM Assets</text>
+          <text class="label small" x="907" y="383" text-anchor="middle">files + metadata</text>
+
+          <rect class="lane runtime" x="1008" y="184" width="142" height="128" rx="14"></rect>
+          <text class="label" x="1079" y="228" text-anchor="middle">PR worker</text>
+          <text class="label small" x="1079" y="250" text-anchor="middle">pages</text>
+          <text class="label small" x="1079" y="269" text-anchor="middle">login</text>
+          <text class="label small" x="1079" y="288" text-anchor="middle">search</text>
+
+          <rect class="node dark" x="1024" y="382" width="110" height="56" rx="28"></rect>
+          <text class="label inverse" x="1079" y="416" text-anchor="middle">Preview URL</text>
+
+          <path class="arch-edge" d="M188 241 H250"></path>
+          <path class="arch-edge-soft" d="M342 128 V156"></path>
+          <path class="arch-edge-soft" d="M506 205 C548 182 564 170 604 169"></path>
+          <path class="arch-edge-soft" d="M506 236 C548 248 564 259 604 261"></path>
+          <path class="arch-edge-soft" d="M506 274 C548 318 564 370 604 376"></path>
+          <path class="arch-edge-soft" d="M506 292 C556 384 572 468 604 472"></path>
+          <path class="arch-edge" d="M626 99 C646 100 660 116 670 132"></path>
+          <path class="arch-edge" d="M770 169 H820"></path>
+          <path class="arch-edge" d="M770 261 C802 250 806 207 842 190"></path>
+          <path class="arch-edge" d="M770 376 H820"></path>
+          <path class="arch-edge" d="M988 164 C1008 170 1018 185 1032 198"></path>
+          <path class="arch-edge" d="M988 372 C1016 350 1026 318 1044 306"></path>
+          <path class="arch-edge" d="M770 472 C922 472 1024 390 1053 316"></path>
+          <path class="arch-edge" d="M1079 312 V376"></path>
+        </svg>
+        <svg class="mobile-svg" viewBox="0 0 350 760" role="img" aria-labelledby="architecture-title architecture-mobile-desc" xmlns="http://www.w3.org/2000/svg">
+          <desc id="architecture-mobile-desc">Customer migration architecture in compact vertical layout.</desc>
+          <defs>
+            <marker id="arrow-arch-mobile" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#5b6860"></path>
+            </marker>
+          </defs>
+          <style>
+            .arch-mobile-edge { fill: none; stroke: #5b6860; stroke-width: 1.7; marker-end: url(#arrow-arch-mobile); }
+            .arch-mobile-edge-soft { fill: none; stroke: rgb(91 104 96 / 62%); stroke-width: 1.7; stroke-dasharray: 5 5; marker-end: url(#arrow-arch-mobile); }
+          </style>
+
+          <rect class="node dark" x="80" y="18" width="190" height="58" rx="9"></rect>
+          <text class="label inverse" x="175" y="43" text-anchor="middle">Customer input</text>
+          <text class="label small inverse" x="175" y="62" text-anchor="middle">key + source site</text>
+
+          <rect class="lane control" x="58" y="116" width="234" height="82" rx="12"></rect>
+          <text class="label" x="175" y="149" text-anchor="middle">Customer migration skill</text>
+          <text class="label small" x="175" y="171" text-anchor="middle">runs sequence from state</text>
+
+          <rect class="node blue" x="26" y="236" width="136" height="50" rx="8"></rect>
+          <text class="label" x="94" y="258" text-anchor="middle">State file</text>
+          <text class="label small" x="94" y="276" text-anchor="middle">step status</text>
+          <rect class="node blue" x="188" y="236" width="136" height="50" rx="8"></rect>
+          <text class="label" x="256" y="258" text-anchor="middle">Path guard</text>
+          <text class="label small" x="256" y="276" text-anchor="middle">no root publish</text>
+
+          <text class="label mini" x="34" y="330">Content</text>
+          <rect class="node gold" x="28" y="348" width="136" height="50" rx="8"></rect>
+          <text class="label" x="96" y="371" text-anchor="middle">Copy root</text>
+          <text class="label small" x="96" y="389" text-anchor="middle">/&lt;company&gt;</text>
+          <rect class="node gold" x="186" y="348" width="136" height="50" rx="8"></rect>
+          <text class="label" x="254" y="371" text-anchor="middle">Rebrand</text>
+          <text class="label small" x="254" y="389" text-anchor="middle">brand copy</text>
+
+          <text class="label mini" x="34" y="448">Assets</text>
+          <rect class="node purple" x="28" y="466" width="136" height="58" rx="8"></rect>
+          <text class="label" x="96" y="491" text-anchor="middle">Import assets</text>
+          <text class="label small" x="96" y="510" text-anchor="middle">upload + metadata</text>
+          <rect class="node blue" x="186" y="466" width="136" height="58" rx="8"></rect>
+          <text class="label" x="254" y="491" text-anchor="middle">Worker config</text>
+          <text class="label small" x="254" y="510" text-anchor="middle">company key</text>
+
+          <rect class="lane content" x="28" y="572" width="136" height="58" rx="9"></rect>
+          <text class="label" x="96" y="596" text-anchor="middle">Company</text>
+          <text class="label small" x="96" y="615" text-anchor="middle">content</text>
+          <rect class="lane assets" x="186" y="572" width="136" height="58" rx="9"></rect>
+          <text class="label" x="254" y="596" text-anchor="middle">AEM Assets</text>
+          <text class="label small" x="254" y="615" text-anchor="middle">metadata</text>
+
+          <rect class="lane runtime" x="74" y="666" width="202" height="56" rx="10"></rect>
+          <text class="label" x="175" y="697" text-anchor="middle">PR worker</text>
+          <rect class="node dark" x="110" y="728" width="130" height="28" rx="14"></rect>
+          <text class="label inverse" x="175" y="748" text-anchor="middle">Preview URL</text>
+
+          <path class="arch-mobile-edge" d="M175 76 V110"></path>
+          <path class="arch-mobile-edge-soft" d="M150 198 C126 210 106 218 98 230"></path>
+          <path class="arch-mobile-edge-soft" d="M200 198 C224 210 244 218 252 230"></path>
+          <path class="arch-mobile-edge" d="M140 198 C112 246 100 300 97 342"></path>
+          <path class="arch-mobile-edge" d="M210 198 C238 246 251 300 253 342"></path>
+          <path class="arch-mobile-edge" d="M96 398 V460"></path>
+          <path class="arch-mobile-edge" d="M254 398 C236 430 220 444 132 462"></path>
+          <path class="arch-mobile-edge" d="M96 524 V566"></path>
+          <path class="arch-mobile-edge" d="M254 524 V566"></path>
+          <path class="arch-mobile-edge" d="M96 630 C96 652 124 656 146 662"></path>
+          <path class="arch-mobile-edge" d="M254 630 C254 652 226 656 204 662"></path>
+          <path class="arch-mobile-edge" d="M254 524 C266 582 236 644 207 662"></path>
+          <path class="arch-mobile-edge" d="M175 722 V724"></path>
+        </svg>
+      </div>
+    </section>
+
+    <section aria-labelledby="controls-title">
+      <h2 id="controls-title">Controls</h2>
+      <div class="guards">
+        <div class="guard content">
+          <strong>Root read-only</strong>
+          <p>Copy from root; never edit or publish root.</p>
+        </div>
+        <div class="guard content">
+          <strong>Copy before design</strong>
+          <p>Brand work starts after <code>/&lt;company&gt;</code> exists.</p>
+        </div>
+        <div class="guard assets">
+          <strong>AEM assets only</strong>
+          <p>No hotlinks to the customer website.</p>
+        </div>
+        <div class="guard">
+          <strong>One company key</strong>
+          <p>Content path, worker config, and metadata match.</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="engineer-checks-title">
+      <h2 id="engineer-checks-title">Engineer Checks</h2>
+      <div class="engineer-checks">
+        <ul>
+          <li><code>DEMO_BASE_PATH</code> points to <code>/&lt;company&gt;</code>.</li>
+          <li>No write or publish targets root content.</li>
+          <li>Required asset metadata is present.</li>
+        </ul>
+        <ul>
+          <li>Copied access sheets publish under the company folder.</li>
+          <li>Customer assets exist in AEM Assets.</li>
+          <li>Preview login, navigation, and search stay in scope.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -13,7 +13,6 @@ function baseOptions(overrides = {}) {
     damPath: '/content/dam/acme',
     dryRun: false,
     force: false,
-    noPublish: true,
     concurrency: 1,
     limit: null,
     ...overrides,
@@ -22,25 +21,23 @@ function baseOptions(overrides = {}) {
 
 /**
  * Fake ClassicAuthorClient. `meta` maps repoPath -> metadata props; enumerate returns the
- * given assets. Records writes/publishes.
+ * given assets. Records metadata writes.
  */
-function fakeClient({ assets = [], meta = {}, folderExists = true } = {}) {
+function fakeClient({ assets = [], meta = {} } = {}) {
   const writes = [];
-  const publishes = [];
-  const uploads = [];
-  const foldersCreated = [];
   const live = [...assets];
   const listPrefix = '/api/assets/acme.json';
   return {
+    authorHost: 'https://author-test.adobeaemcloud.com',
     writes,
-    publishes,
-    uploads,
-    foldersCreated,
+    addUploaded(name) {
+      live.push({ name });
+    },
+    async buildHeaders(extra = {}) {
+      return { Authorization: 'Bearer tok', ...extra };
+    },
     async getJson(path) {
       if (path.startsWith(listPrefix)) {
-        // The bring-in folder-ensure probe (limit=1) returns null when the folder is
-        // absent; the enumerate listing (limit=50) always returns the current entities.
-        if (path.includes('limit=1') && !folderExists && live.length === 0) return null;
         return {
           entities: live.map((a) => ({
             class: ['assets/asset'],
@@ -53,23 +50,8 @@ function fakeClient({ assets = [], meta = {}, folderExists = true } = {}) {
       return null;
     },
     async postForm(path, params) {
-      if (path === '/bin/replicate.json') {
-        publishes.push(params.find(([k]) => k === 'path')[1]);
-      } else {
-        writes.push({ path, params });
-      }
+      writes.push({ path, params });
       return { ok: true, status: 200 };
-    },
-    async postJson(path) {
-      foldersCreated.push(path);
-      return { ok: true, status: 201 };
-    },
-    async postBinary(path, bytes, contentType) {
-      uploads.push({ path, bytes, contentType });
-      // Reflect the new asset so a subsequent enumerate discovers it.
-      const name = path.split('/').pop();
-      live.push({ name });
-      return { ok: true, status: 201 };
     },
   };
 }
@@ -114,7 +96,14 @@ describe('enrichAssetsClassic controller', () => {
   it('skips assets already enriched for this customer', async () => {
     const client = fakeClient({
       assets: [{ name: 'a.jpg' }],
-      meta: { '/content/dam/acme/a.jpg': { company: 'acme', 'dc:title': 'Existing' } },
+      meta: {
+        '/content/dam/acme/a.jpg': {
+          company: 'acme',
+          'dc:title': 'Existing',
+          'dam:status': 'approved',
+          allowedCountries: 'global',
+        },
+      },
     });
     const out = await enrichAssetsClassic({
       options: baseOptions(), client, generator, log: silent,
@@ -133,14 +122,6 @@ describe('enrichAssetsClassic controller', () => {
     expect(client.writes[0].path).toBe('/content/dam/acme/a.jpg/jcr:content/metadata');
   });
 
-  it('publishes enriched assets via replication when enabled', async () => {
-    const client = fakeClient({ assets: [{ name: 'a.jpg' }] });
-    await enrichAssetsClassic({
-      options: baseOptions({ noPublish: false }), client, generator, log: silent,
-    });
-    expect(client.publishes).toEqual(['/content/dam/acme/a.jpg']);
-  });
-
   it('records a failure when a write throws', async () => {
     const client = fakeClient({ assets: [{ name: 'a.jpg' }] });
     client.postForm = async () => { throw Object.assign(new Error('boom'), { status: 500 }); };
@@ -154,13 +135,70 @@ describe('enrichAssetsClassic controller', () => {
 
 describe('enrichAssetsClassic bring-in (E3)', () => {
   const pageHtml = '<img src="https://x.com/a.png"><img src="https://x.com/b.png">';
-  function siteFetch() {
+  function siteAndRepositoryFetch(client, calls = []) {
     return async (url) => {
       if (url === 'https://site.test/home') {
         return {
           ok: true, status: 200, headers: { get: () => 'text/html' }, text: async () => pageHtml,
         };
       }
+      if (url.includes('/adobe/repository/content/dam;api=create')) {
+        calls.push({ step: 'folder', url });
+        return {
+          ok: true, status: 200, headers: { get: () => null }, text: async () => '',
+        };
+      }
+      if (url.includes(';api=create')) {
+        calls.push({ step: 'create', url });
+        return {
+          ok: true,
+          status: 200,
+          headers: { get: (k) => (k === 'etag' ? '"0"' : null) },
+          text: async () => '',
+        };
+      }
+      if (url.includes('block_upload_finalize')) {
+        calls.push({ step: 'finalize', url });
+        const fileName = decodeURIComponent(url.match(/;path=([^;]+)/)?.[1] || 'asset.png');
+        client.addUploaded(fileName);
+        return {
+          ok: true,
+          status: 201,
+          headers: {
+            get: (k) => (k === 'location'
+              ? `https://author-test.adobeaemcloud.com/content/dam/acme/${fileName}`
+              : null),
+          },
+          text: async () => '',
+        };
+      }
+      if (url.includes(';api=block_upload')) {
+        calls.push({ step: 'block_upload', url });
+        const fileName = url.match(/;path=([^;]+)/)?.[1] || 'asset.png';
+        return {
+          ok: true,
+          status: 200,
+          headers: { get: () => null },
+          json: async () => ({
+            'repo:blocksize': 5 * 1024 * 1024,
+            _links: {
+              'http://ns.adobe.com/adobecloud/rel/block/transfer': [
+                { href: `https://blob.test/${fileName}` },
+              ],
+              'http://ns.adobe.com/adobecloud/rel/block/finalize': {
+                href: `https://author-test.adobeaemcloud.com/adobe/repository/content/dam/acme;path=${fileName};api=block_upload_finalize;token=abc`,
+              },
+            },
+          }),
+        };
+      }
+      if (url.startsWith('https://blob.test/')) {
+        calls.push({ step: 'put', url });
+        return {
+          ok: true, status: 201, headers: { get: () => null }, text: async () => '',
+        };
+      }
+      if (!url.startsWith('https://x.com/')) throw new Error(`unexpected fetch ${url}`);
       const bytes = new Uint8Array(11 * 1024).fill(1);
       return {
         ok: true,
@@ -178,51 +216,51 @@ describe('enrichAssetsClassic bring-in (E3)', () => {
       client,
       generator,
       log: silent,
-      fetchFn: siteFetch(),
-      uploadStrategyName: 'classic',
+      fetchFn: siteAndRepositoryFetch(client),
     });
     expect(out.dryRun).toBe(true);
     expect(out.broughtIn.dryRun).toBe(true);
     expect(out.broughtIn.images).toHaveLength(2);
-    expect(client.uploads).toHaveLength(0);
+    expect(client.writes).toHaveLength(0);
   });
 
-  it('live: uploads scraped images then enriches + publishes them', async () => {
+  it('live: uploads scraped images through repository block upload then enriches them', async () => {
     const client = fakeClient({ assets: [] });
+    const calls = [];
     const out = await enrichAssetsClassic({
-      options: baseOptions({
-        bringIn: true, sourceUrl: 'https://site.test/home', noPublish: false,
-      }),
+      options: baseOptions({ bringIn: true, sourceUrl: 'https://site.test/home' }),
       client,
       generator,
       log: silent,
-      fetchFn: siteFetch(),
-      uploadStrategyName: 'classic',
+      fetchFn: siteAndRepositoryFetch(client, calls),
     });
-    expect(client.uploads.map((u) => u.path)).toEqual([
-      '/api/assets/acme/a.png', '/api/assets/acme/b.png',
+    expect(calls.map((c) => c.step)).toEqual([
+      'folder',
+      'create', 'block_upload', 'put', 'finalize',
+      'create', 'block_upload', 'put', 'finalize',
     ]);
-    // Both uploaded assets are discovered, enriched, and published.
+    expect(calls.find((c) => c.step === 'folder').url)
+      .toContain('/adobe/repository/content/dam;api=create;path=acme');
+    expect(calls.find((c) => c.step === 'create').url)
+      .toContain('/adobe/repository/content/dam/acme;api=create');
+    // Both uploaded assets are discovered and enriched; dam:status=approved drives Delivery.
     expect(out.report.counts().enriched).toBe(2);
-    expect(client.publishes).toEqual([
-      '/content/dam/acme/a.png', '/content/dam/acme/b.png',
-    ]);
+    expect(client.writes).toHaveLength(2);
   });
 
-  it('creates the customer folder when it does not exist before uploading', async () => {
-    const client = fakeClient({ assets: [], folderExists: false });
+  it('creates the customer folder through the repository API before uploading', async () => {
+    const client = fakeClient({ assets: [] });
+    const calls = [];
     await enrichAssetsClassic({
-      options: baseOptions({
-        bringIn: true, sourceUrl: 'https://site.test/home', noPublish: true,
-      }),
+      options: baseOptions({ bringIn: true, sourceUrl: 'https://site.test/home' }),
       client,
       generator,
       log: silent,
-      fetchFn: siteFetch(),
-      uploadStrategyName: 'classic',
+      fetchFn: siteAndRepositoryFetch(client, calls),
     });
-    expect(client.foldersCreated).toEqual(['/api/assets/acme']);
-    expect(client.uploads.length).toBeGreaterThan(0);
+    expect(calls[0].step).toBe('folder');
+    expect(calls[0].url).toContain('/adobe/repository/content/dam;api=create;path=acme');
+    expect(calls.filter((c) => c.step === 'finalize')).toHaveLength(2);
   });
 
   it('warns and no-ops when --bring-in is set without --source-url', async () => {
@@ -232,10 +270,9 @@ describe('enrichAssetsClassic bring-in (E3)', () => {
       client,
       generator,
       log: silent,
-      fetchFn: siteFetch(),
-      uploadStrategyName: 'classic',
+      fetchFn: siteAndRepositoryFetch(client),
     });
-    expect(client.uploads).toHaveLength(0);
+    expect(client.writes).toHaveLength(0);
     expect(out.report.assets).toHaveLength(0);
   });
 });

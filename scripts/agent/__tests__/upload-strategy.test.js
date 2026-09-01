@@ -2,38 +2,18 @@ import {
   describe, it, expect, vi,
 } from 'vitest';
 import {
-  RepositoryUploadStrategy, ClassicUploadStrategy, OpenApiUploadStrategy,
-  createUploadStrategy,
+  RepositoryUploadStrategy, createUploadStrategy,
 } from '../upload-strategy.js';
 
 // ---------------------------------------------------------------------------
 // Fake client that captures calls
 // ---------------------------------------------------------------------------
 
-function fakeClient({ folderExists = true } = {}) {
-  const getJsonCalls = [];
-  const postJsonCalls = [];
-  const postBinaryCalls = [];
+function fakeClient() {
   return {
     authorHost: 'https://author-test.adobeaemcloud.com',
-    getJsonCalls,
-    postJsonCalls,
-    postBinaryCalls,
     async buildHeaders(extra = {}) {
       return { Authorization: 'Bearer tok', ...extra };
-    },
-    async getJson(path) {
-      getJsonCalls.push(path);
-      if (!folderExists) return null;
-      return { entities: [] };
-    },
-    async postJson(path, body) {
-      postJsonCalls.push({ path, body });
-      return { ok: true, status: 201 };
-    },
-    async postBinary(path, bytes, contentType) {
-      postBinaryCalls.push({ path, bytes, contentType });
-      return { ok: true, status: 201 };
     },
   };
 }
@@ -50,24 +30,9 @@ describe('createUploadStrategy factory', () => {
     expect(s).toBeInstanceOf(RepositoryUploadStrategy);
   });
 
-  it('returns ClassicUploadStrategy when name=classic', () => {
-    const s = createUploadStrategy('classic', { client: fakeClient(), fetchFn: fetch });
-    expect(s).toBeInstanceOf(ClassicUploadStrategy);
-  });
-
-  it('returns OpenApiUploadStrategy when name=openapi', () => {
-    const s = createUploadStrategy('openapi', { client: fakeClient(), fetchFn: fetch });
-    expect(s).toBeInstanceOf(OpenApiUploadStrategy);
-  });
-
-  it('auto-selects repository when apiKey present and name=null', () => {
+  it('auto-selects repository when name=null', () => {
     const s = createUploadStrategy(null, { client: fakeClient(), apiKey: 'k', fetchFn: fetch });
     expect(s).toBeInstanceOf(RepositoryUploadStrategy);
-  });
-
-  it('auto-selects classic when no apiKey and name=null', () => {
-    const s = createUploadStrategy(null, { client: fakeClient(), fetchFn: fetch });
-    expect(s).toBeInstanceOf(ClassicUploadStrategy);
   });
 
   it('throws on unknown strategy name', () => {
@@ -77,88 +42,20 @@ describe('createUploadStrategy factory', () => {
 });
 
 // ---------------------------------------------------------------------------
-// ClassicUploadStrategy
-// ---------------------------------------------------------------------------
-
-describe('ClassicUploadStrategy', () => {
-  it('uploadAsset delegates to postBinary on the classic path', async () => {
-    const client = fakeClient();
-    const strategy = new ClassicUploadStrategy({ client });
-    const res = await strategy.uploadAsset({
-      folderPath: '/content/dam/acme',
-      fileName: 'hero.png',
-      bytes: smallPng,
-      contentType: 'image/png',
-    });
-    expect(res.repoPath).toBe('/content/dam/acme/hero.png');
-    expect(client.postBinaryCalls[0].path).toBe('/api/assets/acme/hero.png');
-  });
-
-  it('ensureFolder: returns created=false when folder exists', async () => {
-    const client = fakeClient({ folderExists: true });
-    const strategy = new ClassicUploadStrategy({ client });
-    const res = await strategy.ensureFolder({ folderPath: '/content/dam/acme' });
-    expect(res.created).toBe(false);
-  });
-
-  it('ensureFolder: returns created=true and POSTs when folder missing', async () => {
-    const client = fakeClient({ folderExists: false });
-    const strategy = new ClassicUploadStrategy({ client });
-    const res = await strategy.ensureFolder({ folderPath: '/content/dam/acme' });
-    expect(res.created).toBe(true);
-    expect(client.postJsonCalls[0].path).toBe('/api/assets/acme');
-  });
-
-  it('uploadImages captures per-file failures without aborting the batch', async () => {
-    const client = fakeClient();
-    let callCount = 0;
-    client.postBinary = async () => {
-      callCount += 1;
-      if (callCount === 1) throw new Error('disk full');
-      return { ok: true, status: 201 };
-    };
-    const strategy = new ClassicUploadStrategy({ client });
-    const images = [
-      { fileName: 'a.png', bytes: smallPng, contentType: 'image/png' },
-      { fileName: 'b.png', bytes: smallPng, contentType: 'image/png' },
-    ];
-    const res = await strategy.uploadImages({ folderPath: '/content/dam/acme', images });
-    expect(res.uploaded).toHaveLength(1);
-    expect(res.failures).toHaveLength(1);
-    expect(res.failures[0].fileName).toBe('a.png');
-    expect(res.failures[0].error).toMatch(/disk full/);
-  });
-});
-
-// ---------------------------------------------------------------------------
 // RepositoryUploadStrategy (mock fetch)
 // ---------------------------------------------------------------------------
 
 describe('RepositoryUploadStrategy', () => {
-  function buildFetch({ txn = '1234', assetId = 'urn:aaid:aem:abc', etag = '"0"' } = {}) {
+  function buildFetch({ assetId = 'urn:aaid:aem:abc', etag = '"0"' } = {}) {
     const putCalls = [];
     const postCalls = [];
 
     const fetchFn = vi.fn(async (url, opts) => {
       const method = opts?.method || 'GET';
 
-      // Step 1 — GET folder → return Location with ;t=<txn>
-      if (method === 'GET' && url.includes('/adobe/repository?path=')) {
-        return {
-          ok: true,
-          status: 200,
-          headers: {
-            get: (k) => (k === 'location'
-              ? `https://author-test.adobeaemcloud.com/adobe/repository/content/dam/acme;t=${txn}`
-              : null),
-          },
-          json: async () => ({}),
-        };
-      }
-
-      // Step 2 — POST ;api=create → asset-id + etag
+      // Step 1 — POST ;api=create → asset-id + etag
       if (method === 'POST' && url.includes(';api=create')) {
-        postCalls.push({ step: 'create', url });
+        postCalls.push({ step: 'create', url, headers: opts.headers });
         return {
           ok: true,
           status: 200,
@@ -173,9 +70,11 @@ describe('RepositoryUploadStrategy', () => {
         };
       }
 
-      // Step 5 — POST finalize → 201 + Location
+      // Step 4 — POST finalize → 201 + Location
       if (method === 'POST' && url.includes('block_upload_finalize')) {
-        postCalls.push({ step: 'finalize', url });
+        postCalls.push({
+          step: 'finalize', url, headers: opts.headers, body: opts.body,
+        });
         return {
           ok: true,
           status: 201,
@@ -188,9 +87,11 @@ describe('RepositoryUploadStrategy', () => {
         };
       }
 
-      // Step 3 — POST ;api=block_upload → SAS URLs + finalize URL
+      // Step 2 — POST ;api=block_upload → SAS URLs + finalize URL
       if (method === 'POST' && url.includes(';api=block_upload')) {
-        postCalls.push({ step: 'block_upload', url });
+        postCalls.push({
+          step: 'block_upload', url, headers: opts.headers, body: opts.body,
+        });
         return {
           ok: true,
           status: 200,
@@ -209,9 +110,9 @@ describe('RepositoryUploadStrategy', () => {
         };
       }
 
-      // Step 4 — PUT to Azure Blob SAS URL
+      // Step 3 — PUT to presigned blob URL
       if (method === 'PUT' && url.includes('blob.azure.test')) {
-        putCalls.push({ url, size: opts?.body?.byteLength });
+        putCalls.push({ url, size: opts?.body?.byteLength, headers: opts.headers });
         return {
           ok: true, status: 201, headers: { get: () => null }, text: async () => '',
         };
@@ -225,7 +126,7 @@ describe('RepositoryUploadStrategy', () => {
     return { fetchFn, putCalls, postCalls };
   }
 
-  it('uploadAsset: executes all 5 steps and returns repoPath', async () => {
+  it('uploadAsset: executes the repository create -> block_upload -> PUT -> finalize flow', async () => {
     const client = fakeClient();
     const { fetchFn, putCalls, postCalls } = buildFetch();
     const strategy = new RepositoryUploadStrategy({ client, fetchFn });
@@ -241,6 +142,15 @@ describe('RepositoryUploadStrategy', () => {
     expect(res.repoName).toBe('hero.png');
     expect(postCalls.map((c) => c.step)).toEqual(['create', 'block_upload', 'finalize']);
     expect(putCalls).toHaveLength(1);
+    expect(fetchFn.mock.calls.some(([url, opts]) => (
+      (opts?.method || 'GET') === 'GET' && url.includes('/adobe/repository?path=')
+    ))).toBe(false);
+    expect(postCalls[0].url).toBe(
+      'https://author-test.adobeaemcloud.com/adobe/repository/content/dam/acme;api=create;path=hero.png;intermediates=true',
+    );
+    expect(postCalls[0].headers['x-api-key']).toBe('aem-assets-frontend-1');
+    expect(JSON.parse(postCalls[1].body).assetMetadata).toEqual({});
+    expect(JSON.parse(postCalls[2].body)).toHaveProperty('_links');
   });
 
   it('uploadAsset: splits large bytes into multiple blocks', async () => {
@@ -250,14 +160,6 @@ describe('RepositoryUploadStrategy', () => {
 
     const fetchFn = vi.fn(async (url, opts) => {
       const method = opts?.method || 'GET';
-      if (method === 'GET') {
-        return {
-          ok: true,
-          status: 200,
-          headers: { get: (k) => (k === 'location' ? ';t=1' : null) },
-          json: async () => ({}),
-        };
-      }
       if (method === 'POST' && url.includes(';api=create')) {
         return {
           ok: true,
@@ -306,7 +208,7 @@ describe('RepositoryUploadStrategy', () => {
         };
       }
       return {
-        ok: false, status: 404, headers: { get: () => null }, text: async () => '',
+        ok: false, status: 404, headers: { get: () => null }, text: async () => 'unexpected',
       };
     });
 
@@ -328,14 +230,6 @@ describe('RepositoryUploadStrategy', () => {
     const client = fakeClient();
     const fetchFn = vi.fn(async (url, opts) => {
       const method = opts?.method || 'GET';
-      if (method === 'GET') {
-        return {
-          ok: true,
-          status: 200,
-          headers: { get: (k) => (k === 'location' ? ';t=1' : null) },
-          json: async () => ({}),
-        };
-      }
       if (method === 'POST' && url.includes(';api=create')) {
         return {
           ok: false, status: 403, headers: { get: () => null }, text: async () => 'forbidden',
@@ -378,17 +272,24 @@ describe('RepositoryUploadStrategy', () => {
     expect(res.failures[0].fileName).toBe('fail.png');
     expect(res.uploaded).toHaveLength(1);
   });
-});
 
-// ---------------------------------------------------------------------------
-// OpenApiUploadStrategy
-// ---------------------------------------------------------------------------
-
-describe('OpenApiUploadStrategy', () => {
-  it('throws NotImplementedError on all methods', async () => {
-    const s = new OpenApiUploadStrategy();
-    await expect(s.uploadAsset({})).rejects.toThrow(/not yet implemented/);
-    await expect(s.ensureFolder({})).rejects.toThrow(/not yet implemented/);
-    await expect(s.uploadImages({})).rejects.toThrow(/not yet implemented/);
+  it('ensureFolder creates folders through the repository API', async () => {
+    const client = fakeClient();
+    const calls = [];
+    const fetchFn = vi.fn(async (url, opts) => {
+      calls.push({ url, opts });
+      return {
+        ok: true, status: 200, headers: { get: () => null }, text: async () => '',
+      };
+    });
+    const strategy = new RepositoryUploadStrategy({ client, fetchFn });
+    const out = await strategy.ensureFolder({ folderPath: '/content/dam/acme' });
+    expect(out.created).toBe(true);
+    expect(calls[0].url).toBe(
+      'https://author-test.adobeaemcloud.com/adobe/repository/content/dam;api=create;path=acme;intermediates=true;respondWith=%7B%22reltype%22%3A%22http%3A%2F%2Fns.adobe.com%2Fadobecloud%2Frel%2Fmetadata%2Frepository%22%7D',
+    );
+    expect(calls[0].opts.method).toBe('POST');
+    expect(calls[0].opts.headers['Content-Type']).toBe('application/vnd.adobecloud.directory+json');
+    expect(calls[0].opts.headers['x-api-key']).toBe('aem-assets-frontend-1');
   });
 });

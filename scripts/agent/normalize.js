@@ -65,6 +65,31 @@ export function normalizeKeywords(input) {
   return out;
 }
 
+function normalizeVocabularyValue(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function singularizeToken(token) {
+  if (token.endsWith('ies') && token.length > 3) return `${token.slice(0, -3)}y`;
+  if (token.endsWith('es') && token.length > 2) return token.slice(0, -2);
+  if (token.endsWith('s') && token.length > 1) return token.slice(0, -1);
+  return token;
+}
+
+function normalizedVocabularyKeys(value) {
+  const normalized = normalizeVocabularyValue(value);
+  const keys = new Set();
+  if (!normalized) return keys;
+  keys.add(normalized);
+  keys.add(normalized.split('-').map(singularizeToken).join('-'));
+  return keys;
+}
+
 /**
  * Map a loose value onto a controlled vocabulary, case-insensitively. Returns the
  * canonical vocab entry, or null when there is no confident match. Only used when the
@@ -72,9 +97,14 @@ export function normalizeKeywords(input) {
  */
 export function mapToVocabulary(value, vocab) {
   if (typeof value !== 'string') return null;
-  const needle = value.trim().toLowerCase();
+  const needle = value.trim();
   if (!needle) return null;
-  const match = vocab.find((entry) => entry.toLowerCase() === needle);
+
+  const needleKeys = normalizedVocabularyKeys(needle);
+  const match = vocab.find((entry) => {
+    const entryKeys = normalizedVocabularyKeys(entry);
+    return [...needleKeys].some((key) => entryKeys.has(key));
+  });
   return match || null;
 }
 

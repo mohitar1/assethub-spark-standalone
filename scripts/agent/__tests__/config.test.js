@@ -37,6 +37,11 @@ describe('config', () => {
       expect(opts.bringIn).toBe(true);
       expect(opts.sourceUrl).toBe('https://x.com');
     });
+
+    it('parses metadata mode explicitly', () => {
+      expect(parseArgs(['--customer-key', 'x']).metadataMode).toBe('filename');
+      expect(parseArgs(['--customer-key', 'x', '--metadata-mode', 'vision']).metadataMode).toBe('vision');
+    });
   });
 
   describe('validateOptions', () => {
@@ -46,6 +51,10 @@ describe('config', () => {
     it('rejects an unknown write mode', () => {
       const errs = validateOptions(parseArgs(['--customer-key', 'x', '--write-mode', 'nope']));
       expect(errs.some((e) => e.includes('write-mode'))).toBe(true);
+    });
+    it('rejects an unknown metadata mode', () => {
+      const errs = validateOptions(parseArgs(['--customer-key', 'x', '--metadata-mode', 'robot']));
+      expect(errs.some((e) => e.includes('metadata-mode'))).toBe(true);
     });
     it('passes for a valid set', () => {
       expect(validateOptions(parseArgs(['--customer-key', 'x']))).toEqual([]);
