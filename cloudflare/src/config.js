@@ -14,13 +14,6 @@ const config = {
   // AEM environment (Program-Environment) id for the backing DM tenant.
   AEM_ENV_ID: 'p203220-e2129061',
 
-  // Demo customer scope — always required. Every asset search is restricted to assets
-  // tagged assetMetadata.company === DEMO_COMPANY, so the portal only shows assets for
-  // the configured customer. Default is 'frescopa' (our own demo repo). When running the
-  // enrichment agent for a prospect (e.g. 'santander'), the agent auto-patches this value
-  // after a successful run. Value is the customer key, NOT the logged-in viewer's company.
-  DEMO_COMPANY: 'frescopa',
-
   // Content Optimization Agent environment. COA is called with the same DM
   // S2S technical account/token as Dynamic Media, so this must match whatever
   // IMS environment that account's credentials were issued against — not an

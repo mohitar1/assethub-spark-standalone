@@ -8,7 +8,6 @@ import {
   forceContentAISearchFilter,
   searchContentAIAuthorization,
 } from '../dm.js';
-import config from '../../config.js';
 
 /**
  * Unit tests for dm.js (Dynamic Media Origin Handler)
@@ -41,13 +40,6 @@ vi.mock('../../user', () => ({
     ALL: 'all',
   },
 }));
-
-// Mock config with a mutable copy so individual tests can toggle DEMO_COMPANY
-// (the real config is frozen). All other values are preserved from the real config.
-vi.mock('../../config.js', async (importOriginal) => {
-  const actual = await importOriginal();
-  return { default: { ...actual.default } };
-});
 
 // Mock console.log for authorization tests
 vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -848,85 +840,6 @@ describe('dm.js - ContentAI Authorization', () => {
       const authClauses = [internalStatusClause];
       const assetMetadata = { internalStatus: 'preview' };
       const result = checkAssetMetadataAuthorization(authClauses, assetMetadata);
-      expect(result.violated).toBe(true);
-    });
-  });
-
-  describe('buildAssetAuthClauses — demo customer scope (DEMO_COMPANY)', () => {
-    const companyClause = { term: { 'assetMetadata.company': ['santander'] } };
-
-    afterEach(() => {
-      config.DEMO_COMPANY = null;
-    });
-
-    it('adds the company scope term for external users when DEMO_COMPANY is set', async () => {
-      config.DEMO_COMPANY = 'santander';
-      const request = { user: { email: 'user@example.com', userType: 'external' } };
-      const clauses = await buildAssetAuthClauses(request, {});
-      expect(clauses).toContainEqual(companyClause);
-    });
-
-    it('applies the company scope term even to admins (demo must never leak other assets)', async () => {
-      config.DEMO_COMPANY = 'santander';
-      const request = { user: { email: 'admin@adobe.com', roles: ['admin'], userType: 'internal' } };
-      const clauses = await buildAssetAuthClauses(request, {});
-      expect(clauses).toEqual([companyClause]);
-    });
-
-    it('adds no company term when DEMO_COMPANY is null (admin unchanged: [])', async () => {
-      config.DEMO_COMPANY = null;
-      const request = { user: { email: 'admin@adobe.com', roles: ['admin'], userType: 'internal' } };
-      const clauses = await buildAssetAuthClauses(request, {});
-      expect(clauses).toEqual([]);
-    });
-
-    it('adds no company term when DEMO_COMPANY is null (external unchanged)', async () => {
-      config.DEMO_COMPANY = null;
-      const request = { user: { email: 'user@example.com', userType: 'external' } };
-      const clauses = await buildAssetAuthClauses(request, {});
-      expect(clauses.some((c) => c.term?.['assetMetadata.company'])).toBe(false);
-    });
-
-    it('takes the scope value from config.DEMO_COMPANY, NOT the viewer session company', async () => {
-      config.DEMO_COMPANY = 'santander';
-      // Viewer belongs to a different org (e.g. an Adobe SE demoing Santander).
-      const request = { user: { email: 'se@adobe.com', userType: 'external', company: 'adobe' } };
-      const clauses = await buildAssetAuthClauses(request, {});
-      expect(clauses).toContainEqual(companyClause);
-      expect(clauses).not.toContainEqual({ term: { 'assetMetadata.company': ['adobe'] } });
-    });
-
-    it('coexists with the country and internalStatus clauses for external users', async () => {
-      config.DEMO_COMPANY = 'santander';
-      const request = { user: { email: 'user@example.com', userType: 'external', country: 'us' } };
-      const clauses = await buildAssetAuthClauses(request, {});
-      expect(clauses).toContainEqual(companyClause);
-      expect(clauses).toContainEqual({ term: { 'assetMetadata.allowedCountries': ['us', 'usa', 'global'] } });
-      expect(clauses).toContainEqual({
-        or: [
-          { term: { 'assetMetadata.internalStatus': ['approved'] } },
-          { not: [{ exists: { field: 'assetMetadata.internalStatus' } }] },
-        ],
-      });
-    });
-
-    it('is injected into the ContentAI search filter by forceContentAISearchFilter', async () => {
-      config.DEMO_COMPANY = 'santander';
-      const request = { user: { email: 'user@example.com', userType: 'external' } };
-      const authClauses = await buildAssetAuthClauses(request, {});
-      const search = { query: [{ and: [] }] };
-      forceContentAISearchFilter(search, authClauses);
-      expect(search.query[0].and).toContainEqual({ and: authClauses });
-      expect(authClauses).toContainEqual(companyClause);
-    });
-
-    it('checkAssetMetadataAuthorization passes an asset tagged with the customer company', () => {
-      const result = checkAssetMetadataAuthorization([companyClause], { company: 'santander' });
-      expect(result.violated).toBe(false);
-    });
-
-    it('checkAssetMetadataAuthorization violates an asset tagged with a different company', () => {
-      const result = checkAssetMetadataAuthorization([companyClause], { company: 'acme' });
       expect(result.violated).toBe(true);
     });
   });

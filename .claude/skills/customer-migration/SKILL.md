@@ -1,22 +1,20 @@
 ---
 name: customer-migration
-description: Full customer migration for a forked Assets Hub Spark repo — rebrand the site's design/content via Catalyst, get the backend (Cloudflare, Content Hub, local dev) running, then populate the site with the customer's own assets and make them searchable/filterable. Use when a customer forks this repo and asks to rebrand/restyle the site, or asks to get the portal/site running locally, or asks to populate/bring in the customer's assets, fill the portal with their content, tag their assets, or make the assets searchable, or asks for a full migration/onboarding — any of these trigger the same one skill, run in order (rebrand first, backend second, assets third). Not for initial site migration into EDS (a different, prior step).
+description: Full customer migration for a forked Assets Hub Spark repo — rebrand the site's design/content via Catalyst, then get the backend (Cloudflare, Content Hub, local dev) running. Use when a customer forks this repo and asks to rebrand/restyle the site, or asks to get the portal/site running locally, or asks for a full migration/onboarding — any of these trigger the same one skill, run in order (rebrand first, backend second). Not for initial site migration into EDS (a different, prior step).
 ---
 
 # Customer Migration
 
-One skill, three phases: **Phase A — rebrand via Catalyst**, then **Phase B
-— backend onboarding**, then **Phase C — asset population** (bring in the
-customer's own assets and make them searchable). A full migration runs
-A then B then C, but any can be skipped: the customer may only want the
-rebrand, only want the backend running, only want their assets populated,
-or have earlier phases already done. Start every invocation with
+One skill, two phases: **Phase A — rebrand via Catalyst**, then **Phase B
+— backend onboarding**. A full migration runs A then B, but either can be
+skipped: the customer may only want the rebrand, only want the backend
+running, or have the rebrand already done. Start every invocation with
 the entry flow below, which resolves what's wanted and what's already
-done before touching any phase.
+done before touching either phase.
 
 ## Invariants (apply throughout — never restated per step)
 
-These hold in all three phases. Steps below reference them rather than
+These hold in both phases. Steps below reference them rather than
 repeating them:
 
 - **I1 — Outcomes only, never internal terms.** Never expose this
@@ -48,193 +46,60 @@ repeating them:
 
 ## Entry flow — run first, every invocation
 
-Do this **before asking the customer anything or doing any rebrand work**.
+Do this **before starting either phase and before any tool, environment, or
+plugin availability check** (including the Phase A design-plugin gate below).
 The very first thing the customer sees is the entry question — never a
-readiness note or setup mechanics. But the moment routing (step 3) resolves
-to a rebrand (`intent` is `full` or `frontend-only`), the excat tool
-pre-requisite (below) runs immediately, before A.1 and before anything else
-in Phase A — it is a pre-requisite *of entering Phase A at all*, not a
-mid-phase surprise.
+readiness note, a blocker, or setup mechanics. Availability checks belong
+*inside* the phase they gate, reached only after routing (step 3).
 
 1. **Load state.** If `.internal/onboarding-state.json` exists, read it.
-   Before trusting a phase marked `done`, spot-check **one concrete fact**
-   against the actual repo, not just the file — e.g. rebrand `done` →
-   does `styles.css` actually contain the new brand's tokens; backend
-   `done` → does `cloudflare/.secrets` actually exist. A state file can be
-   stale or inherited from an unrelated branch/customer (this happened in
-   a real prior session: a fork's state file still showed a previous,
-   different customer's rebrand as `done`). If the spot-check disagrees
-   with the file, say so plainly and treat that phase as needing
-   confirmation, not as authoritative. Otherwise, resume at the first
-   non-`done` step of any phase still in progress, and don't re-ask
-   questions already answered under `customer`. If the file doesn't
-   exist, create it with the schema below.
+   Any phase it marks `done` is authoritative — never re-run it. Resume
+   at the first non-`done` step of any phase still in progress, and don't
+   re-ask questions already answered under `customer`. If the file
+   doesn't exist, create it with the schema below.
 
-2. **Ask two separate, sequential questions — never merge them, never
-   skip the first, never let the second precede it.** Each is its own
-   standalone question/prompt; get an answer to the first before
-   showing the second. Do not create `.internal/onboarding-state.json`,
-   read the repo, check permissions, or do any other work until
-   `customer.deployTarget` is resolved (explicitly answered, or a stated
-   default per below) — this is a hard gate, not a nice-to-have.
-
-   **First, and always explicitly** — this decides which backend
-   everything downstream uses, so it leads:
-
-   > "Is this going to become [customer]'s own real portal — the one
-   > they'll actually run and manage going forward, with their own
-   > content environment set up specifically for them — or is this so
-   > we can show them a demo of what a rebrand would look like, using
-   > the environment we already use for these previews?"
-
-   The concrete, technical difference this question is resolving —
-   state it plainly if the customer asks "what's the difference" or
-   seems unsure, but don't over-explain unprompted:
-   - **"Real portal"** → a brand-new, dedicated AEM content environment
-     (a new AEM Program+Environment, new Content Hub credentials) is
-     provisioned specifically for this customer. Nothing is shared with
-     any other customer or demo. This is what an actual customer
-     migration requires — their assets, their content, their environment.
-   - **"Demo"** → this fork reuses the same AEM content environment
-     already used for other demo previews. Nothing new is provisioned;
-     it's for showing what the rebrand looks like, not for the customer's
-     real content going forward.
-
-   Map straight to `customer.deployTarget`: "real portal" → `"dedicated"`,
-   "demo" → `"shared"`. Never frame this as a speed/effort tradeoff
-   ("faster" vs "takes longer") — that biases the answer toward whichever
-   sounds easier instead of reflecting what they actually need.
-
-   Never skip this on a keyword match, even an apparently unambiguous
-   one — the word "migrate" alone is not reliable (a real prior session
-   had a customer ask to "migrate this portal" while actually meaning a
-   demo). If the answer is still vague after asking ("whatever's
-   easiest," "just get it going"), don't guess silently: state a default
-   out loud and let them correct it — *"I'll treat this as a demo for
-   now — say the word if it's actually their real portal"* — then
-   proceed with `deployTarget = "shared"` as a stated, correctable
-   assumption, not a silent guess.
-
-   **Second** (unless the request already makes it unambiguous — e.g.
-   "just get it running" is backend-only). Ask in plain outcome language
-   — **no internal terms** (I1): never the word "rebrand," "scope,"
-   "phase," "frontend," or "backend" in anything the customer sees,
-   including a picker's header and option labels. In conversation,
-   wording like:
+2. **Ask what's wanted** (unless the request already makes it
+   unambiguous — e.g. "just get it running" is backend-only). Ask in
+   plain outcome language — **no internal terms** (I1): never the word
+   "rebrand," "scope," "phase," "frontend," or "backend" in anything the
+   customer sees, including a picker's header and option labels. In
+   conversation, wording like:
 
    > "Want me to give the site a fresh look and update its content for
    > the new brand, or is that already done? Either way, I'll then get
-   > it running for you — and fill it with your own assets so they're
-   > easy to find by searching and filtering on what's in each one."
+   > it running for you."
 
    If you render this as a multiple-choice picker, use a plain header
-   ("Getting started" / "What should I do") and only offer choices that
-   make sense given what you already know from the state file — don't
-   blindly present "already done" options on a genuinely first-ever
-   request, since a customer asking for the first time has no "already
-   done" state to report; that's nonsensical to ask them. Each option
-   states a concrete, checkable end result — something the customer
-   could verify by looking at it, never a vague state like "fully
-   working," and never phrased as an apology/disclaimer ("I won't set up
-   ... yet").
+   ("Getting started" / "What should I do") and outcome-worded options —
+   e.g. "New look + get it running" / "New look only" / "Already updated
+   — just get it running." Do **not** label options "Rebrand scope,"
+   "Rebrand only," "Already rebranded," etc.
 
-   **On a fresh request** (no prior state, or `rebrand.status` is not yet
-   `done`), offer only:
-
-   - "Give it Disney's look and content, get it up and running so you
-     can open it and click through it, and load in Disney's own assets
-     so they're searchable" (full)
-   - "Just give it Disney's look and content for now — I'll get it
-     running and load Disney's assets in a later step" (frontend-only)
-   - "Something else" (free text)
-
-   **The "get it up and running" phrase means something different
-   depending on `deployTarget`** — say the right one, don't reuse the
-   same words for both:
-
-   - **`"shared"` (demo)**: "get it up and running" = merge the rebrand
-     into the existing shared preview environment, which is already
-     deployed and live — nothing to set up, no local step at all. Once
-     merged, it's simply visible there.
-   - **`"dedicated"` (real portal)**: "get it up and running" = get it
-     working on your own machine first so you (or the customer) can
-     verify it before it goes live, then walk through setting up their
-     real environment so it can actually go live. Do **not** say or imply
-     it'll be "live"/"deployed" immediately — going live is a distinct,
-     later step (real sign-in setup + merge, `deploy.md` D.6.5/D.7) that
-     the customer explicitly decides to do when ready, not an automatic
-     consequence of this choice.
-
-   **On a resumed request** where the state file already shows
-   `rebrand.status: done` (verified via the spot-check in entry step 1,
-   not just trusted blindly), instead offer:
-
-   - "Get it up and running so you can open it and click through it,
-     then load in Disney's own assets so they're searchable" (backend-only)
-   - "Just get it up and running so you can open it and click through
-     it — I'll load Disney's assets in a later step" (backend-only,
-     defer assets)
-   - "Just load in Disney's own assets so they're searchable — it's
-     already up and running" (assets-only)
-   - "Something else" (free text)
-
-   The same `deployTarget`-dependent meaning of "get it up and running"
-   above applies here too.
-
-   Do **not** label options "Rebrand scope," "Rebrand only," "Already
-   rebranded," "boot locally," "get it running" alone with no outcome
-   attached, or any other internal step/phase name — every option must
-   state what the customer will concretely be able to do or see
-   afterward, with no follow-up question needed to decode it, and never
-   read like a disclaimer about what won't happen.
-
-   Map the answer to `intent` and the phase statuses:
-   - new look + running / yes → `intent` = `full`, rebrand runs; Phase A
-     → B → C all run.
+   Map the answer to `intent` and the rebrand phase's status:
+   - new look + running / yes → `intent` = `full`, rebrand runs.
    - already done / skip that / just get it running → mark the rebrand
-     phase `done` (`intent` = `backend-only`), skip Phase A; B → C run.
+     phase `done` (`intent` = `backend-only`), skip Phase A.
    - new look only, nothing else → `intent` = `frontend-only`; mark
-     backend and asset-population `not-requested` after Phase A.
-   - just populate/bring in the assets, make them searchable, fill the
-     portal with their content (rebrand + backend already done) →
-     `intent` = `assets-only`; route straight to Phase C. Its early
-     steps (C.1–C.2) re-derive the customer key and credentials from the
-     repo/state at run time, so entering C directly is safe (same pattern
-     as Phase B's B.1–B.4). If C finds no Content Hub creds or `aemEnvId`,
-     it drops into B.7 to collect them first, then continues.
+     backend `not-requested` after Phase A.
 
 3. **Route** to the first genuinely-pending phase — rebrand before
-   backend before asset-population when more than one is pending.
-   Entering Phase B or Phase C directly is safe: their early steps
-   (B.1–B.4 / C.1–C.2) re-derive everything they need from the repo at
-   run time, independent of whether earlier phases ran.
+   backend when both are pending. Entering Phase B directly is safe: its
+   early steps (B.1–B.4) re-derive everything they need from the repo at
+   run time, independent of whether Phase A ran.
 
 ## Shared state file
 
-All three phases read and write the same `.internal/onboarding-state.json`
+Both phases read and write the same `.internal/onboarding-state.json`
 (gitignored via the existing `.internal` entry — do not add a new ignore
 rule). It is the resumability mechanism (see entry flow, step 1) and the
 record of what the customer asked for.
 
 `intent` records the customer's answer to the entry question
-(`full` / `frontend-only` / `backend-only` / `assets-only`); it's
-revisitable — a customer who chose `backend-only` can ask for the rebrand
-or asset population later. A
+(`full` / `frontend-only` / `backend-only`); it's revisitable — a
+customer who chose `backend-only` can ask for the rebrand later. A
 phase's `status` may be `in_progress`, `done`, or `not-requested`
 (the customer explicitly didn't want it — a valid end state, distinct
 from an unfinished `in_progress`).
-
-`customer.deployTarget` (`null` / `"shared"` / `"dedicated"`) records the
-entry flow's other question — whether this is a demo (reuses the same
-shared AEM environment and Cloudflare account already used for other
-demos) or the customer's own real, separate portal (its own AEM
-environment and Cloudflare account, fully provisioned). Set once at
-entry (see entry flow step 2), read by B.7 (which credentials to
-collect), Phase C (which environment assets land in), and the deploy
-stage (which of the two paths applies) — never re-derived or re-asked
-downstream. Revisitable the same way `intent` is: if the customer
-corrects it later, update it and re-evaluate any step that already ran
-under the old value.
 
 Schema:
 
@@ -247,8 +112,7 @@ Schema:
     "githubOrg": null,
     "githubRepo": null,
     "aemEnvId": null,
-    "authBypassActive": null,
-    "deployTarget": null
+    "authBypassActive": null
   },
   "phases": {
     "rebrand": {
@@ -284,28 +148,7 @@ Schema:
         "remote-secrets-pushed": "pending",
         "remote-d1-migrated": "pending",
         "ci-token-set": "pending",
-        "real-auth-configured": "pending",
         "deployed-via-merge": "pending"
-      }
-    },
-    "asset-population": {
-      "status": "in_progress",
-      "lastUpdated": null,
-      "lane": null,
-      "customerKey": null,
-      "assetSourceUrl": null,
-      "steps": {
-        "customer-key-resolved": "pending",
-        "author-access-verified": "pending",
-        "assets-resolved": "pending",
-        "category-vocab-resolved": "pending",
-        "metadata-generated": "pending",
-        "metadata-written": "pending",
-        "assets-published": "pending",
-        "scope-config-written": "pending",
-        "scope-applied-locally": "pending",
-        "search-scope-verified": "pending",
-        "scope-deployed": "not-requested"
       }
     }
   }
@@ -330,46 +173,11 @@ Per I4, a customer who only runs locally leaves every deploy-only step
 for the chosen tier are done (a `"preview"` tier needs fewer than a
 `"local-login"` tier — see B.5).
 
-For `deployTarget == "shared"` (demo): B.5 skips straight to marking
-every run-tier step (`tier-selected` through `boot-verified`)
-`"not-requested"` and the phase `"done"` — there is no local run to do,
-so these are not left `pending`/unfinished, they were never applicable.
-`scopeChoice` stays `null` in this case (see below). Deploy-only steps
-stay `pending`/`not-requested` too unless the customer separately asks
-to deploy the demo (rare).
-
-For `deployTarget == "dedicated"` (real migration): B.5 sets
-`scopeChoice` to `"local-no-login"` directly, without asking — it's the
-only valid tier for a real migration, so this is not a customer choice
-to record as "revisitable" in the usual sense. `real-auth-configured`
-(new, set by `deploy.md` D.6.5) is dedicated-only and always `pending`
-until deploy time — for `"shared"` it stays `pending` too but is simply
-never reached, since deploy for a demo doesn't need real auth.
-
 `backend-onboarding.scopeChoice`
 (`null` / `"preview"` / `"local-no-login"` / `"local-login"`) is
 revisitable mutable state, not a completion marker — a customer can pick
 `"preview"` now and ask for more later. It lives alongside `status`, not
-inside `steps`. See B.5 for its use. Internal only (I1). It stays `null`
-for a `"shared"` customer, since a demo never picks a local-run tier at
-all.
-
-The `asset-population` steps also split along two axes:
-
-- **Local steps** (`customer-key-resolved` through
-  `search-scope-verified`) — bringing in / labelling the customer's
-  assets and scoping the *local* portal to them. These are the whole
-  outcome for a local demo (no deploy needed — see Phase C).
-- **Deploy-only step** (`scope-deployed`) — only relevant if the customer
-  wants the scoped demo on a hosted URL; it defaults to `not-requested`
-  (I4) and only becomes active via Phase B's opt-in deploy stage.
-
-`asset-population.lane` (`null` / `"enrich-existing"` / `"bring-in"`)
-records which discovery path ran; `customerKey` is the slug of
-`customer.name`; `assetSourceUrl` is set only for the bring-in (website)
-path. All three live alongside `status`, not inside `steps`. Internal
-only (I1). Set `phases["asset-population"].status` to `"done"` once the
-local steps for the chosen lane are done.
+inside `steps`. See B.5 for its use. Internal only (I1).
 
 ## Companion file: customer-config intake (Phase B only)
 
@@ -383,13 +191,13 @@ locally. Not used by Phase A.
 
 # Phase A — Rebrand via Catalyst
 
-**Precondition — this tool check is a pre-requisite of Phase A, run
-immediately by the entry flow the instant routing resolves to a rebrand
-(`intent` = `full` or `frontend-only`) — never deep inside A.1, and never
-discovered only after A.2 tries to invoke the skill and fails.** If
-`intent` is still `null`, the entry question hasn't been answered yet — do
-that first (entry flow step 2), then come straight here before anything
-else in Phase A.
+**Precondition — do not enter Phase A (including the excat check below)
+until the entry flow has run:** you must have already posed the entry
+question and recorded `intent` in the state file. If `intent` is still
+`null`, you are not in Phase A yet — go back and do the entry flow's step 2
+(pose the plain-language entry question) first, and stop there until the
+customer answers. The excat availability check is the *first thing inside*
+Phase A, not the first thing the customer sees.
 
 Rebrand the site's design/content to a new brand identity. The design/CSS
 migration is done by the **Catalyst (excat) design skill**, not by hand —
@@ -397,76 +205,46 @@ design tokens, asset colors, content register rewrite, and publish all
 work independently of whether the fork's backend is set up yet. Do not
 defer this phase waiting on Phase B — it doesn't need it.
 
-**Required tool.** This phase drives the excat design skill
-**`excat-complete-design-expert`**, shipped from the `excat-marketplace`
-(source: the Adobe Experience Catalyst `aem-excat-plugin` repo's
-`excat-marketplace` directory) as the `excat` plugin. Don't assume it's
-missing and don't assume it's present — determine actual state with the
-live CLI, never with a cached/static config file, since that can be stale
-relative to a session that already fixed it, or relative to a *different*
-CLI's config entirely (Claude Code and Copilot CLI each keep their own,
-separate plugin registrations — a plugin enabled in one is invisible to
-the other).
+**Required tool — check on entering Phase A, before A.1** (i.e. only after
+the entry flow has run and routed here — never as the first thing the
+customer sees; see the entry flow's ordering rule). This phase drives the
+excat design skill **`excat-complete-design-expert`** (plugin `excat`, from
+the `excat-marketplace` shipped by the Adobe Experience Catalyst
+`aem-excat-plugin`). Don't assume it's missing and don't assume it's
+present — actually determine which of three states you're in, because
+"installed globally" and "enabled for this project" are different things:
 
-The plugin/marketplace mechanics below are **operator-facing** setup,
-addressed to whoever runs this session — not customer-facing prose. I1
-still forbids naming `excat`/the plugin in anything an end customer reads
-(the entry question, run-tier choices, completion reports). Never let this
-tooling handoff bleed into a customer-facing message.
+The plugin/enable mechanics below (skill names, `/plugin`, marketplace) are
+**operator-facing** setup, addressed to whoever runs this session — not
+customer-facing prose. That's the one place naming `excat`/the plugin is
+fine; I1 still forbids it in anything an end customer reads (e.g. the entry
+question, run-tier choices, completion reports). Never let this tooling
+handoff bleed into a customer-facing message.
 
-**Detect which CLI is running this session** (its command name — `claude`
-or `copilot` — determines which commands below to use; do not run both
-commands for state that's foreign to the CLI in use, since it will report
-a false "not found").
+1. **Skill invokable now** — `excat-complete-design-expert` appears in
+   this session's available-skills list. → Proceed; A.2 invokes it in
+   Complete Migration mode.
 
-1. **Skill invokable now** — `excat-complete-design-expert` already
-   appears in this session's available-skills list (check with
-   `copilot skill list` or `claude plugin list` per the active CLI,
-   looking for it enabled/loaded). → Proceed; A.2 invokes it in Complete
-   Migration mode.
+2. **Plugin installed but not enabled for this project** — it's in
+   `~/.claude/plugins/installed_plugins.json` (look for
+   `excat@excat-marketplace`) but the skill isn't in the session list.
+   This is the common case. → **Guide the operator to enable it**, don't
+   tell them to install: have them run `/plugin` (Manage plugins →
+   `excat-marketplace` → `excat` → Enable) for this project, or add
+   `excat@excat-marketplace` to `enabledPlugins` for this project, then
+   restart the session so the skill loads. To check install state you may
+   read `installed_plugins.json` and `known_marketplaces.json`.
 
-2. **Marketplace not registered for this CLI.** Check with
-   `copilot plugin marketplace list` / `claude plugin marketplace list`.
-   If `excat-marketplace` is absent, this CLI has simply never been told
-   about it — it may well be fully set up in the *other* CLI already,
-   which does not carry over. → Ask the operator once, in one sentence,
-   for permission to register it and install (state the marketplace path
-   you'll use — the local `aem-excat-plugin/excat-marketplace` directory,
-   or its git remote if the local path isn't present on this machine).
-   On yes, if you have shell access to run commands yourself, run them;
-   if you don't (or the run fails/needs interactive confirmation), print
-   the **exact commands for the operator's actual CLI** — never a
-   generic "run /plugin install" — as two literal, copy-pasteable lines:
-   - Copilot CLI:
-     `copilot plugin marketplace add <path-or-repo-of-excat-marketplace>`
-     `copilot plugin install excat@excat-marketplace`
-   - Claude Code:
-     `claude plugin marketplace add <path-or-repo-of-excat-marketplace>`
-     `claude plugin install excat@excat-marketplace`
-   (then continue to state 3 for Claude Code to confirm/enable for this
-   project — Copilot CLI has no separate step).
-   Either way — whether you ran it or the operator did — re-check
-   afterward (`copilot skill list` / `claude plugin list`) that the skill
-   now actually loaded; an install can still require a restart, in which
-   case say so plainly and wait; don't assume it's live yet.
+3. **Not installed at all** — no `excat@excat-marketplace` entry. → Have
+   the operator add the marketplace and install: `/plugin marketplace add
+   <path-or-repo of aem-excat-plugin/excat-marketplace>` then
+   `/plugin install excat@excat-marketplace`, then enable per state 2.
 
-3. **Installed but not enabled for this project** (Claude Code only —
-   Copilot CLI has no separate per-project enable step once installed).
-   `claude plugin list` shows `excat@excat-marketplace` installed but not
-   enabled for this project/scope. → Ask the operator once for
-   permission. If you have shell access, run
-   `claude plugin enable excat@excat-marketplace --project` (or the
-   matching scope flag) yourself; otherwise give them that exact command
-   to run. Either way, re-verify with `claude plugin list` afterward. If
-   a restart is required for the skill to load, say so and wait.
-
-In all cases, **never hand-roll the rebrand instead of fixing the tool** —
-editing `styles.css` / sweeping hex manually is not a substitute for this
-skill and silently misses the content rewrite and asset-color sweep. If
-the operator declines permission to install/enable, mark the rebrand phase
-`blocked`, tell them exactly which state they're in and the one command
-needed, and pause Phase A until it's resolved — don't guess or proceed
-without the skill.
+In states 2 and 3, **stop and do not hand-roll the rebrand** — editing
+`styles.css` / sweeping hex manually is not a substitute for this skill
+and silently misses the content rewrite and asset-color sweep. Mark the
+rebrand phase `blocked`, tell the operator exactly which state they're in
+and the one action to fix it, and pause Phase A until the skill loads.
 
 This phase is more than tokens: the content-register rewrite and the
 hardcoded-asset-color sweep (A.3) are this phase's own job, wrapped around
@@ -477,83 +255,32 @@ the excat skill in one larger request (A.2).
 Do these before touching any file. Ask the customer directly — these
 cannot be discovered mid-task without risking a stalled rebrand.
 
-### A.1.a: Content-authoring access (`permissions-checked`, `token.env`)
+### A.1.a: Permissions checklist (`permissions-checked`)
 
-The only access setup needed for this phase is a gitignored `token.env`
-file at the repo root with exactly two lines, `KEY=value` format, no
-quotes:
+Tell the customer to confirm both of these are enabled in Settings → LLM
+Permissions before starting:
 
-- **`DA_TOKEN`** — lets this session read/write Document Authoring
-  content for the rebrand's content-register rewrite and publish.
-- **`HLX_ADMIN_TOKEN`** — lets this session call Helix Admin (preview,
-  publish, status).
+- **Admin access** — covers Helix admin preview/publish AND, via the same
+  Adobe IMS session, Document Authoring read/write. If DA still returns a
+  401 right after enabling this, that's expected IMS-session propagation
+  lag or an Adobe sign-in prompt — not a missing separate toggle.
+- **Git access** — required for committing/pushing/opening a PR.
 
-Send this exact message (don't paraphrase, don't add any other
-confirmation step, and don't invent a settings/toggle/permissions
-screen of any kind — none exists for this flow):
+The never-paste-secrets rule (I2) covers the IMS session here and the
+`DA_TOKEN`/`HLX_ADMIN_TOKEN` below equally.
 
-> "Before I start, create a file called `token.env` in the project
-> root with these two lines (I'll never ask you to paste these in
-> chat):
-> `DA_TOKEN=<your Document Authoring access token>`
-> `HLX_ADMIN_TOKEN=<your Helix Admin token>`
-> Let me know once it's there."
+### A.1.d: DA / Helix Admin tokens (`token.env`)
 
-Then check the file exists (never read or log its contents back to the
-customer) before proceeding (I2 — never accept either token typed into
-chat; read them from the file at call time only). Confirm `token.env` is
-gitignored — if `.gitignore` has no `token.env` entry, add one, don't
-rely on another pattern covering it.
+Any Document Authoring or Helix Admin API call this phase makes (preview,
+publish, status) authenticates with two customer-supplied tokens — not
+the IMS session above. Before the first such call:
 
-Never tell the customer to look for a "Settings → LLM Permissions" screen
-or any in-product admin-access toggle — no such setting exists for this
-flow. There is no web app or Settings panel in any real invocation of
-this skill; it always runs as a CLI operating directly on a locally
-cloned repo. These two tokens are the entire access requirement.
-
-**How the customer actually gets each value** (give them these exact
-steps if they ask "how do I get one" — don't just name the env var and
-leave them to figure it out):
-
-- **`DA_TOKEN`** (Document Authoring / Adobe IMS access token):
-  1. Sign in at `https://da.live` with the Adobe account that has access
-     to this project's DA content.
-  2. Open browser DevTools → Application/Storage → Local Storage →
-     `https://da.live`, and copy the value of the IMS access token
-     stored there (commonly under a key containing `accessToken` /
-     `access_token`) — this is what the DA admin API accepts as the
-     bearer token.
-  3. This token is short-lived (session-based) — if calls start
-     returning `401`, it likely expired; have them re-open da.live,
-     re-authenticate, and grab a fresh value.
-  (If a technical/OAuth Server-to-Server integration is set up in Adobe
-  Developer Console for automation instead of a human login, the IMS
-  `access_token` from that flow can be used instead — but for a single
-  rebrand session, the da.live browser-session token above is the
-  simpler path most customers can do themselves.)
-
-- **`HLX_ADMIN_TOKEN`** (Helix/EDS Admin API key — NOT the same as a
-  `.aem.page`/`.aem.live` site-access token):
-  1. Determine `{org}` and `{site}` from the project's Helix URL, shaped
-     `https://main--{site}--{org}.aem.page`: `{org}` is the last
-     hostname segment, `{site}` is the middle segment (e.g. for
-     `https://main--myportal--acme.aem.page`, `org=acme`,
-     `site=myportal`). These usually match the GitHub org/repo.
-  2. Sign in at `https://admin.hlx.page/login/{org}/{site}/main` with an
-     Adobe account that has admin/config_admin rights on that org/site.
-  3. In DevTools → Application → Cookies for `admin.hlx.page`, copy the
-     `auth_token` cookie value — a temporary admin session token.
-  4. Use that session token to mint a real, reusable API key:
-     ```
-     curl -s -X POST \
-       -H "x-auth-token: <auth_token from step 3>" \
-       -H "Content-Type: application/json" \
-       -d '{ "description": "customer-migration rebrand", "roles": ["admin"] }' \
-       https://admin.hlx.page/config/{org}/sites/{site}/apiKeys.json
-     ```
-     The `value` field in the response is the real API key — that's
-     `HLX_ADMIN_TOKEN`. It's shown once; have them save it into
-     `token.env` immediately.
+- Ask the customer to create a gitignored `token.env` at the repo root
+  with exactly two lines, `KEY=value` format, no quotes:
+  `DA_TOKEN=...` and `HLX_ADMIN_TOKEN=...` (I2 — customer fills the
+  values; read at call time, never from chat).
+- Confirm `token.env` is gitignored. If `.gitignore` has no `token.env`
+  entry, add one — don't rely on another pattern covering it.
 
 Known quirk: a Helix Admin API (`admin.hlx.page`) preview/publish can
 `401` even with a valid `DA_TOKEN` — forward the token via an
@@ -568,24 +295,6 @@ have zero effect on the hosted `.aem.page`/`.aem.live` site — the real
 source of truth is the Document Authoring document (which is why "publish"
 is a real, separate step later). Per I3, DA content goes live on publish
 but code goes live only on merge — keep the two straight throughout.
-
-**Derive the DA source and Helix URLs, never guess or trust stale docs.**
-`README.md` can be wrong (it may still show the upstream template's own
-org/repo rather than this fork's) and there may be no `fstab.yaml` in the
-repo — neither of those is grounds to conclude "there's no content to
-rewrite." Instead:
-
-1. Get the fork's real org/repo the same way B.2 does:
-   `git remote get-url origin`, parsed as `{org}/{repo}`.
-2. Build the DA source directly: `https://da.live/#/{org}/{repo}`.
-3. Build the Helix preview/live URLs the same way B.4 does:
-   `https://{branch}--{repo}--{org}.aem.page` /
-   `https://main--{repo}--{org}.aem.live`.
-4. Actually probe the DA source (e.g. `GET
-   https://admin.da.live/list/{org}/{repo}`) before concluding there's no
-   content register. Only treat it as "nothing to rewrite" on a genuine
-   empty/404 result from this probe — never on the absence of a config
-   file or on not immediately finding brand copy in the repo's own files.
 
 ### A.1.c: Brand inputs — confirm full scope (`brand-inputs-collected`)
 
@@ -653,37 +362,16 @@ working tree or open branch.
 
 ### Asset-file color sweep (`asset-color-sweep-verified`)
 
-Run this as a **fixed checklist, not an ad hoc grep** — a manual
-grep-and-eyeball pass has, in practice, missed real misses (a leftover
-old-brand CSS class selector, and a linter auto-fix silently riding along
-in the same diff). Every item below is mandatory, and the whole checklist
-runs **twice**: once right after A.2 step 1–2's edits, and again after
-merge, against the live site — not just once, and not just against the
-local working tree.
-
-1. **Build the old→new hex map** from A.2 step 1's token diff — every
-   color value that changed, old and new side by side.
-2. **Grep every value in that map**, case-insensitive, across every
-   `*.svg`, `*.css`, and `*.scss` file in the repo — report *every* hit,
-   not a sample. Check icon SVGs for `fill="#..."` /
-   `background-image` assets for embedded raster art / hardcoded panel
-   colors, per the map, not just visually.
-3. **Grep the old brand's name itself** across CSS/SCSS selector names
-   (class/id selectors specifically, not prose) — this is what catches a
-   miss like a renamed icon file whose CSS class (e.g.
-   `.icon-<oldbrand>-mark`) still carries the old name.
-4. **Diff every file touched in A.2** against its pre-A.2 version and
-   flag any changed line **not** explained by the intended token/color/
-   name swap — this is what catches an unrelated linter auto-fix (e.g. a
-   hex-length shorthand) silently riding along in the same commit.
-
-Not every hardcoded fill is wrong (a neutral icon that turns
+Grep SVG and image assets for hardcoded hex/color values still matching
+the *old* brand — visual-comparison tooling misses these (why:
+`rebrand-plan.md` Phase 3). Check icon SVGs for `fill="#..."` and
+`background-image` assets for embedded raster art / hardcoded panel
+colors. Not every hardcoded fill is wrong (a neutral icon that turns
 brand-colored on hover is legitimate) — screenshot the pages to confirm a
-flagged file actually reads off-brand before "fixing" it.
+flagged file actually reads off-brand.
 
-Report any real misses found, fix them, and re-run the full checklist
-(both passes) clean before considering Phase A complete. Set
-`phases["rebrand"].status` to `"done"`.
+Report any real misses found, fix them, and re-check before considering
+Phase A complete. Set `phases["rebrand"].status` to `"done"`.
 
 ## Phase A completion report
 
@@ -790,36 +478,6 @@ mark step `done`.
 
 ## B.5: Local-run tier choice (`tier-selected`, sets `scopeChoice`)
 
-**First, branch on `customer.deployTarget`** (set at entry, step 2 —
-never re-ask it here):
-
-- **`"shared"` (demo)** — skip this step, and all of B.7–B.11, entirely.
-  There is no local run for a demo: the shared environment is already
-  deployed and running persistently. Once Phase A's rebrand is published
-  and its PR merged (I3 — code needs a merge to take effect), the
-  already-live shared deployment serves the new look on its own. Set
-  `phases["backend-onboarding"].status` to `"done"`, mark every step from
-  `tier-selected` through `boot-verified` as `"not-requested"` (I4 — this
-  was never asked for, not left unfinished), and leave `scopeChoice`
-  `null` (see the schema note in "Shared state file" for why). Do not
-  ask the customer anything else about running it — proceed straight to
-  the Phase B completion report, or to Phase C if asset population was
-  also requested.
-- **`"dedicated"` (real portal)** — skip the three-way menu below
-  entirely. There is only one valid local-setup tier for a real
-  migration: `"local-no-login"` (real search/assets against the
-  customer's real, dedicated Content Hub credentials, deliberately
-  without setting up real sign-in yet). Set `scopeChoice` to
-  `"local-no-login"` directly — do not ask the customer to choose;
-  proceed straight to the `"local-no-login"` branch below. Real sign-in
-  (Entra) setup is deferred to the deploy stage (see `deploy.md`'s D.6.5)
-  — it never appears as a local-run choice for a dedicated customer.
-
-The three-way menu below is now unreachable in normal operation — every
-customer's `deployTarget` is resolved before B.5 runs (entry flow step
-2). It's kept only as a **compatibility fallback**, if `deployTarget` is
-somehow still `null` here (should not happen in a normal session):
-
 There are three genuinely different ways to run this locally, at very
 different setup cost. Offer all three in plain outcome language (I1). Use
 wording like:
@@ -879,11 +537,8 @@ bindings).
 
 ### If `"local-login"`
 
-**Fallback-path option only** — never reachable for a normal dedicated
-customer under the branch above, since that branch always resolves to
-`"local-no-login"` directly. Proceed: B.7 (Content Hub creds) → B.9 (real
-Entra, bypass left off) → B.11 (boot & verify). Same skip of the deploy
-stage.
+Proceed: B.7 (Content Hub creds) → B.9 (real Entra, bypass left off) →
+B.11 (boot & verify). Same skip of the deploy stage.
 
 ### Re-entry / changing the choice later
 
@@ -904,18 +559,6 @@ Cloudflare account, the intake file, or the identity rename — those are
 deploy-only (the separate stage further below).
 
 ## B.7: Content Hub credential collection (`content-hub-creds-collected`)
-
-**First, branch on `customer.deployTarget`** (set at entry, step 2 — never
-re-ask it here):
-
-- **`"shared"` (demo)** — skip the rest of this step's collection
-  entirely. Confirm the values already present in `cloudflare/.secrets`
-  and `customer.aemEnvId` (the same shared environment other demo forks
-  already use) still work — a quick probe (C.2's read check is enough,
-  called early) rather than a fresh ask. Mark step `done` once confirmed.
-- **`"dedicated"` (real portal)** — proceed with the rest of this step
-  exactly as below: real, new credentials for this customer's own
-  environment.
 
 As mentioned at the tier choice, real search needs two values from the
 customer's Content Hub — collect them now. Ask for:
@@ -968,12 +611,6 @@ Write only the non-secret `aemEnvId` into `customer.aemEnvId`. Mark step
 
 This step **acts** on the tier choice (bypass mechanism + why it's safe
 locally: `local-run-plan.md`).
-
-**Note:** under the normal branch resolved in B.5, `scopeChoice` is
-always `"local-no-login"` for a dedicated customer — the `"local-login"`
-case below is a fallback-menu-only path (see B.5) and shouldn't occur in
-practice. Real Microsoft/Entra sign-in for a dedicated customer is set up
-later, at deploy time (`deploy.md` D.6.5), not here.
 
 **If `scopeChoice` is `"local-no-login"`:** uncomment the
 `DISABLE_AUTHENTICATION` block in `cloudflare/src/auth.js` (~161-172,
@@ -1072,236 +709,3 @@ every identity value renamed and where, and that the auth bypass is
 re-commented; the true auth state; the known PDF-preview gap
 (`adobe-pdf-viewer.js`); any intake fields left blank; the update paths
 from D.8; and the state/intake file locations.
-
----
-
-# Phase C — Asset population (make the customer's assets searchable)
-
-The final phase makes the demo coherent: after the site looks like the
-customer (A) and is running (B), fill it with the customer's **own
-assets** and make them **findable** — searchable by what's written about
-each asset and filterable by facets like Category, Campaign, Channel and
-Keywords — and scope the portal so it shows **only** this customer's
-assets. Two lanes:
-
-- **Enrich-existing (default)** — the customer's assets are already sitting
-  in their AEM folder (from an earlier migration or manual load); this lane
-  labels them so they surface in search and facets.
-- **Bring-in (opt-in cherry)** — the customer named a source website; this
-  lane pulls sample images from it into the folder first, then labels them
-  the same way.
-
-Customer-facing wording stays outcomes-only (I1) — never "enrich,"
-"metadata," "scope," "facet," "company field," or "Phase C." Speak of
-"bringing in <customer>'s assets and making them easy to find — searching
-and filtering by what's in each image."
-
-## Preconditions — runs after B.7
-
-Phase C needs a working backend context, so it is offered after the
-run-tier steps and **hard-requires B.7** (Content Hub creds in
-`cloudflare/.secrets` + `customer.aemEnvId`). If a Phase-C-only invocation
-finds no DM creds or no `aemEnvId`, drop into **B.7** to collect them
-first (don't re-implement collection), then return here. Everything else
-Phase C needs is reused from A/B — it asks for **nothing new**:
-
-| Phase C needs | Source | New ask? |
-|---|---|---|
-| `customerKey` (folder + scope value) | `customer.name` (A.1.c), slugified | No |
-| author token creds | `SPARK_DM_CLIENT_ID/SECRET` in `cloudflare/.secrets` (B.7) → binding `DM_CLIENT_ID/SECRET` | No |
-| `aemEnvId` | `customer.aemEnvId` (B.7) | No |
-| DAM folder `/content/dam/<customerKey>` | convention; bring-in auto-creates it | No |
-| source website URL | operator, **only** for the bring-in cherry | Only for cherry |
-| scope value (`DEMO_COMPANY`) | = `customerKey` (this phase writes it) | No |
-
-## C.1: Resolve the customer key (`customer-key-resolved`)
-
-Read `customer.name` from state (set in A.1.c) and slugify it (e.g.
-Santander → `santander`). This single key drives **both** the folder
-`/content/dam/<customerKey>` and the `company` scope value — they are the
-same value by construction. Record it in
-`asset-population.customerKey`. If `customer.name` is absent (a
-Phase-C-only invocation with no prior state), ask the customer which
-brand these assets are for — in plain words — and set both `customer.name`
-and the key.
-
-## C.2: Verify author access (`author-access-verified`)
-
-Confirm the DM creds from B.7 actually reach the author APIs before doing
-per-asset work: acquire a token and make one read probe. Never read the
-secret values in chat (I2) — the agent script reads them from the
-gitignored file at call time. If the probe fails, the likely cause is the
-same short list as B.11 search failures (wrong/missing
-`SPARK_DM_CLIENT_ID/SECRET`, wrong `aemEnvId`, or the technical account
-lacking access). This step also closes the startup checks the script
-performs (host/header + approval-key acceptance + folder search).
-
-## C.3: Resolve the asset set (`assets-resolved`)
-
-- **Enrich-existing lane:** the script enumerates
-  `/content/dam/<customerKey>`. If it finds assets, that's the set
-  (`lane = "enrich-existing"`). If it finds **none**, the folder is empty
-  or absent — operationally identical: *nothing to enrich.* Tell the
-  customer plainly and offer to bring assets in from their website
-  instead; don't silently succeed.
-- **Bring-in lane (cherry):** when the customer named a source website,
-  set `assetSourceUrl`, `lane = "bring-in"`, and the script pulls sample
-  images from it into the folder (auto-creating the folder), then treats
-  the new assets as the set. This lane may delegate the scrape to the
-  `scrape-webpage` skill for the source page.
-  - **Target at least 20 assets for a credible demo** (`--limit 25`, the
-    script's max). After the bring-in step reports how many images it
-    actually downloaded, check that count against this floor **before**
-    moving on to labelling:
-    - If it's below 20, don't silently proceed with a thin demo. Try, in
-      order: (1) a deeper source page on the same site with more imagery
-      (e.g. a full product-listing/collection page instead of a single
-      product page — most single pages only expose a handful of
-      `<img>`/`og:image` URLs), (2) a second source URL from the same
-      brand if the customer has one, (3) re-run with a higher `--limit`
-      once a richer source page is found. Only after those don't yield
-      enough should the agent tell the customer plainly it could only
-      find N usable images at that address and ask for another page/URL
-      — never claim success on a thin set without saying so.
-    - The count that matters is what the scraper actually **downloaded**
-      (post filename/size/thumbnail filtering), not the raw candidate URLs
-      found in the page — a page can have 100 `<img>` tags and still
-      yield only 3 real assets if most are icons, thumbnails, or below
-      the minimum size.
-
-## C.3b: Decide free-text vs strict category/channel (`category-vocab-resolved`)
-
-**Category and Channel are free-text facets, not a fixed enum** — the
-portal's search config (`docs/da-content/search.docx`'s `excFacets`)
-declares `productCategory`/`channel` as plain `{"type": "string"}`
-buckets: whatever distinct values exist on assets become the filter
-options shown. There is no built-in curated list to conform to, and the
-enrichment agent's default behavior (`scripts/agent/normalize.js`) is to
-keep whatever category/channel value it generates for each asset,
-clamped to a sane length — **not** to silently drop values that don't
-match some list. (An earlier version of this agent forced a match
-against a hardcoded banking-demo vocabulary — `accounts, cards, loans,
-mortgages...` — and silently discarded anything that didn't match,
-which is why an earlier Disney run wrote titles/descriptions fine but
-Category/Channel came back empty. That vocabulary is no longer applied
-by default.)
-
-Before running C.4, decide which mode applies:
-
-- **Free text (default, no ask needed)** — just proceed; the generator's
-  own category/channel guesses for each asset are kept as-is. Good for
-  most demos, including a from-scratch bring-in with no prior taxonomy.
-- **Strict list (opt-in)** — only if the customer has *told you* they
-  want a small, fixed set of categories/channels (e.g. "we only use
-  Characters, Parks, Cruise Line, Movies"), pass that list explicitly to
-  the agent's `--product-category-vocab`/`--channel-vocab` flags (or the
-  `normalizeGenerated(raw, { productCategoryVocab, channelVocab })`
-  options if invoking the module directly) so values are mapped-or-dropped
-  against exactly that list. Never invent a curated list yourself and
-  silently apply it — that reproduces the original bug for a different
-  vocabulary.
-
-## C.4–C.6: Label, save and publish
-
-The script does the heavy lifting per asset (bounded concurrency,
-idempotent — re-runs skip already-labelled assets unless forced):
-
-- **`metadata-generated`** — for each asset it looks at a small preview of
-  the image and produces a title, description, keywords and — where it can
-  tell — a category, campaign and channel. Category/Channel are kept as
-  free text per C.3b unless a strict vocab was explicitly opted into. It
-  also stamps the customer scope value and marks each asset approved so
-  it's demo-ready.
-- **`metadata-written`** — saves those onto the assets (bulk where
-  possible, per-asset otherwise), retrying safely on conflicts.
-- **`assets-published`** — publishes the assets in batches so they appear
-  in the portal's search index.
-
-Run the script in **dry-run first** for review — check that the printed
-category/channel values look right — then live. It returns a per-asset
-report (labelled / skipped / failed) that these steps record.
-
-## C.7: Scope the portal to this customer (`scope-config-written`,
-`scope-applied-locally`)
-
-So the demo shows **only** this customer's assets, set the scope value
-once in local config: `config.DEMO_COMPANY = '<customerKey>'` in
-`cloudflare/src/config.js` (default `null` = unchanged upstream
-behaviour). The worker reads it at runtime and injects a
-`company = <customerKey>` filter into every search — exactly "hard-code
-customer = X in the query." This is a **local edit**: it takes effect on
-the next `npm run dev` restart (miniflare simulates the binding — the same
-basis on which Phase B treats placeholder `wrangler.toml` ids as fine for
-local dev). Restart to apply.
-
-**No deployment is required for the demo.** The label-and-publish work
-calls AEM APIs directly (nothing to do with Cloudflare), and the scope
-change is a local config edit applied by a local restart — no merge, no
-CI, no `wrangler deploy`. `scope-deployed` stays `not-requested` (I4)
-unless the customer explicitly wants the scoped demo on a **hosted**
-`.aem.live` URL — then it follows Phase B's opt-in deploy stage
-(`deploy.md`), live on merge (I3).
-
-## C.8: Verify (`search-scope-verified`)
-
-Don't just confirm the write/publish calls returned success — confirm the
-**visible outcome** in the running portal, the same way an end user would
-see it:
-
-1. Searching words from an asset's generated title/description returns it.
-2. Open the Category filter panel (and Campaign/Channel/Keywords if
-   configured) and confirm buckets exist for the values just written, with
-   **non-zero counts** — e.g. after enriching Disney assets tagged
-   `Movies & Shows`, the Category panel must show `Movies & Shows (N)`
-   with `N >= 1`, not `(0)`. A bucket showing but stuck at `(0)` after
-   labelling/publishing is the signature of this phase's known failure
-   mode (values written but silently dropped or not indexed yet) — treat
-   it as **not verified**, re-check C.3b (was a stale vocab applied?) and
-   confirm publish actually completed (`assets-published`, not just
-   `metadata-written`) before retrying.
-3. Filtering by one of those buckets actually narrows results to matching
-   assets, and only this customer's assets appear.
-
-Mark the phase `done` only once all three checks pass (I4: the local
-outcome is a complete end state; a hosted deploy is optional extra).
-
-## Delegation — the script does the API work
-
-The steps above are thin orchestration; the author API calls live in the
-agent controller **`scripts/agent/enrich-assets.js`** (run from the repo
-root with Node ≥ 18). The skill invokes it, passing the resolved key and
-letting it read creds from the gitignored file at call time:
-
-```
-node scripts/agent/enrich-assets.js \
-  --customer-key <customerKey> \
-  [--dam-path /content/dam/<customerKey>] \
-  [--bring-in --source-url <url>] \
-  [--dry-run] [--force] [--no-publish] \
-  [--secrets-file cloudflare/.secrets]
-```
-
-- Default lane is enrich-existing; `--bring-in --source-url <url>` selects
-  the cherry lane. `--dry-run` performs enumerate→read→generate→normalize
-  and emits the intended writes **without** writing or publishing — always
-  do this first. `--force` re-labels already-labelled assets;
-  `--no-publish` stops before publish. Creds resolve from env →
-  `cloudflare/.secrets` (B.7) → root `secret.env`; **no new secret**.
-- See `scripts/agent/README.md` for the full flag list, the offline
-  `--fixture` mode, and the report format.
-
-## Phase C completion report (outcomes-only)
-
-Summarize plainly: which of the customer's assets are now in the portal
-and searchable; that filtering by what's in each image works (name the
-facets that lit up); that the local demo shows only this customer's
-assets; and any per-asset items that couldn't be brought in or labelled.
-
-**Always ask, plainly, whether they want this at a real address they can
-share now** — never only if the customer happens to ask first. Something
-like: "Want me to put this on a real link you can send people, instead of
-just running here?" If yes, this routes into the deploy stage
-(`deploy.md`), which reads the already-recorded `customer.deployTarget`
-and proceeds on the matching path without asking again. If they say no,
-that's a valid, complete end state (I4) — don't push further. Never
-surface internal terms (I1) or secret values (I2).

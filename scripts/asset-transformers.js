@@ -410,13 +410,6 @@ export function populateAssetFromContentAIHit(contentAIHit) {
   const xcmKeywords = extractKeywords(assetMetadata['xcm:keywords']);
   const xcmMachineKeywords = extractKeywords(assetMetadata['xcm:machineKeywords']);
 
-  // Business-taxonomy fields written by the customer-migration enrichment agent
-  // (scripts/agent/normalize.js FIELD.PRODUCT_CATEGORY/CAMPAIGN/CHANNEL). Mapped
-  // straight through as plain strings; absent on assets that predate enrichment.
-  const productCategory = safeStringField(assetMetadata, 'productCategory');
-  const campaign = safeStringField(assetMetadata, 'campaign');
-  const channel = safeStringField(assetMetadata, 'channel');
-
   return {
     // Core identifiers
     assetId,
@@ -451,11 +444,6 @@ export function populateAssetFromContentAIHit(contentAIHit) {
     xcmMachineKeywords,
     smartTags: xcmMachineKeywords || 'N/A',
     tags: xcmKeywords,
-
-    // Business-taxonomy fields (present only on enriched assets)
-    productCategory,
-    campaign,
-    channel,
 
     // Localization
     japaneseTitle: safeStringField(assetMetadata, 'dc:title_ja'),

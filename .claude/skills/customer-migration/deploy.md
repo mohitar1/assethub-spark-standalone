@@ -18,40 +18,17 @@ or merges to the customer's `main`.
 
 ## D.1: Bypass gate (`deploy-bypass-gated`)
 
-Do this **first**, before anything else in this stage, **regardless of
-which path below applies** — a fabricated admin user is a real risk the
-moment anything is public, demo or not; this step is never skipped
-either way. If `customer.authBypassActive` is `true`, the repo is
-**not** deploy-ready: re-comment the `DISABLE_AUTHENTICATION` block in
-`cloudflare/src/auth.js` (lines ~161-172) — the exact inverse of the edit
-B.9 made — set `customer.authBypassActive` to `false`, and tell the
-customer real login is now required, which is why the Entra registration
-(D.6 / the note below) matters. Refuse to proceed with deploy while the
-bypass is active. Mark step `done` once re-commented.
-
-## Which path applies (`customer.deployTarget`)
-
-Read `customer.deployTarget` — set once at `SKILL.md`'s entry flow step
-2, never re-asked here. It decides everything from this point on:
-
-- **`"shared"` (demo)** — reusing the same Cloudflare account/AEM
-  environment already used for other demos. Skip **D.2–D.5** entirely —
-  no new Cloudflare account, no new KV/D1/secrets store, nothing to
-  provision. Go straight to **D.6's lightweight form** below, then D.7.
-- **`"dedicated"` (real portal)** — the customer's own separate,
-  isolated environment. Continue through **D.2–D.8** exactly as written
-  below, unchanged.
-- **If `deployTarget` is still `null`** (a state file from before this
-  distinction existed) — fall back to asking the question once, here,
-  using the same wording as `SKILL.md` entry flow step 2, then proceed
-  on the answer as above. This is a compatibility path only; new runs
-  should never reach this branch.
+Do this **first**, before anything else in this stage. If
+`customer.authBypassActive` is `true`, the repo is **not** deploy-ready:
+a fabricated admin user must never ship. Re-comment the
+`DISABLE_AUTHENTICATION` block in `cloudflare/src/auth.js` (lines
+~161-172) — the exact inverse of the edit B.9 made — set
+`customer.authBypassActive` to `false`, and tell the customer real login
+is now required, which is why the Entra registration (D.6 / the note
+below) matters. Refuse to proceed with deploy while the bypass is
+active. Mark step `done` once re-commented.
 
 ## D.2: Intake file generation (`intake-file-generated`)
-
-**Only for `deployTarget == "dedicated"`.** Skip this and D.3–D.5
-entirely for `"shared"` — see above.
-
 
 Several values need the customer to run a command or look something up
 in their own Cloudflare account first — not answerable one-at-a-time in
@@ -140,10 +117,6 @@ step `done`.
 
 ## D.4: Push secrets to the remote Secrets Store (`remote-secrets-pushed`)
 
-**Only for `deployTarget == "dedicated"`.** For `"shared"`, the deployed
-worker already has these secrets set (they're the same account other
-demos already deploy through) — skip straight to D.6.
-
 Critical distinction: the `cloudflare/.secrets` file (from B.7) populates
 only the **local** simulated store — it never reaches the deployed
 worker, and nothing pushes it automatically. The deployed worker's
@@ -167,10 +140,6 @@ confirms all are set.
 
 ## D.5: Migrate the remote D1 databases (`remote-d1-migrated`)
 
-**Only for `deployTarget == "dedicated"`.** For `"shared"`, the remote
-databases already have their schema applied (same shared account) —
-skip straight to D.6.
-
 Local D1 setup uses `--local`; the real production databases need the
 schema applied explicitly, and there is no migrations framework wired
 up. The **customer runs**, once per database, under their own session:
@@ -186,29 +155,15 @@ the customer confirms.
 
 ## D.6: Set the CI deploy token (`ci-token-set`)
 
-Deploy runs in GitHub Actions and needs exactly one repo secret,
-`CLOUDFLARE_API_TOKEN`, on **this fork's own repo** — GitHub Actions
-secrets are per-repo, so even a fork sharing a Cloudflare account needs
-its own copy of the value.
-
-- **`deployTarget == "dedicated"`** — the **customer adds**
-  `CLOUDFLARE_API_TOKEN` to their fork's GitHub repo secrets (Settings →
-  Secrets and variables → Actions → New repository secret), scoped to
-  deploy Workers on their own account. The agent can't and shouldn't set
-  this. Mark step `done` once confirmed.
-- **`deployTarget == "shared"`** — this is not a new value to create:
-  the same Cloudflare account already deploys other demo forks, so the
-  token already exists somewhere. Check whether this specific fork's
-  repo secrets already have `CLOUDFLARE_API_TOKEN` set; if not, the
-  **operator** (whoever has access to the shared account/another demo
-  fork already using it) copies that existing value in — nothing new is
-  looked up or created in Cloudflare itself. Still I2: the agent never
-  handles the actual value, only confirms the secret name exists. Mark
-  step `done` once confirmed present.
+Deploy runs in GitHub Actions and needs exactly one repo secret. The
+**customer adds** `CLOUDFLARE_API_TOKEN` to their fork's GitHub repo
+secrets (Settings → Secrets and variables → Actions → New repository
+secret), scoped to deploy Workers on their account. The agent can't and
+shouldn't set this. Mark step `done` once confirmed.
 
 ## D.7: Deploy via merge (`deployed-via-merge`)
 
-Applies to both paths, unchanged. Deploy is CI-driven, not a script: `.github/workflows/release.yaml` runs
+Deploy is CI-driven, not a script: `.github/workflows/release.yaml` runs
 `wrangler deploy --env production` on push to `main`, and `build.yaml`
 auto-deploys a per-PR branch worker on pull requests. So **deploying =
 merging to `main`**.
