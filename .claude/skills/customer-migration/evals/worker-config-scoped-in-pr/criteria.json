@@ -1,0 +1,40 @@
+{
+  "context": "Guards that the demo-company-set step actually writes both scope keys (DEMO_COMPANY and DEMO_BASE_PATH) = companyKey into cloudflare/src/config.js and treats that change as PR-bound (the per-PR worker is built from it), not a local-only edit. This is the fatal omission that broke the company filter, preview routing, and login in a real migration.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "DEMO_COMPANY set to the company key",
+      "max_score": 30,
+      "description": "cloudflare/src/config.js contains DEMO_COMPANY set to 'acme'.",
+      "check": { "type": "fileContains", "file": "cloudflare/src/config.js", "value": "DEMO_COMPANY: 'acme'" }
+    },
+    {
+      "name": "DEMO_BASE_PATH set to the company base",
+      "max_score": 30,
+      "description": "cloudflare/src/config.js contains DEMO_BASE_PATH set to '/acme'.",
+      "check": { "type": "fileContains", "file": "cloudflare/src/config.js", "value": "DEMO_BASE_PATH: '/acme'" }
+    },
+    {
+      "name": "Old production default removed",
+      "max_score": 10,
+      "description": "The stale DEMO_COMPANY: 'frescopa' default no longer remains in config.js.",
+      "check": { "type": "fileNotContains", "file": "cloudflare/src/config.js", "value": "DEMO_COMPANY: 'frescopa'" }
+    },
+    {
+      "name": "demo-company-set marked done",
+      "max_score": 15,
+      "description": "steps.demo-company-set is 'done' in the state file.",
+      "check": { "type": "jsonPath", "file": ".internal/onboarding-state.json", "path": "steps.demo-company-set", "equals": "done" }
+    },
+    {
+      "name": "Change is treated as PR-bound, not local-only",
+      "max_score": 10,
+      "description": "The agent conveys that the config change must be committed to the PR because the deployed per-PR worker is built from it; it does not claim a local-only edit is sufficient for the shared preview."
+    },
+    {
+      "name": "Plain language, no internal terms",
+      "max_score": 5,
+      "description": "No DEMO_COMPANY/config.js/worker/branch/daFolder jargon is exposed to the customer (I1)."
+    }
+  ]
+}

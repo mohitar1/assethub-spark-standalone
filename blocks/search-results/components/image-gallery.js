@@ -18,7 +18,7 @@ import {
 } from '../../../scripts/modal-utils.js';
 import { buildAssetDetailsUrl } from '../../../scripts/asset-id-utils.js';
 import showToast from '../../../scripts/toast/toast.js';
-import { getAppLabel } from '../../../scripts/locale-utils.js';
+import { getAppLabel, localizePath } from '../../../scripts/locale-utils.js';
 import { getSearchPlaceholders, ph } from '../utils/placeholders.js';
 
 let popstateHandler = null;
@@ -134,8 +134,8 @@ export async function createImageGallery(container, callbacks) {
     const displayedCount = visibleImages.length;
     const selectedCount = selectedCards.size;
     const hasMorePages = state.currentPage + 1 < state.totalPages;
-    const searchGuideUrl = ph(placeholders, 'assetSearchGuideUrl', '/en/training-resources');
-    const trainingResourcesPageUrl = ph(placeholders, 'trainingResourcesPageUrl', '/en/training-resources');
+    const searchGuideUrl = localizePath(ph(placeholders, 'assetSearchGuideUrl', '/training-resources'));
+    const trainingResourcesPageUrl = localizePath(ph(placeholders, 'trainingResourcesPageUrl', '/training-resources'));
     const assetManagementEmail = 'assetmanagers@example.com';
     const noResultsMessage1 = ph(placeholders, 'noResultsMessage1', 'Not getting any results from your search? Review our Asset Search Guide for best practices and search tips.');
     const noResultsMessage2 = ph(placeholders, 'noResultsMessage2', 'Still not finding what you need? Reach out to our Asset Management Team. Our team can help you find the right content for your next project.');

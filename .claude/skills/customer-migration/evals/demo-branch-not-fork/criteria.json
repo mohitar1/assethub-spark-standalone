@@ -1,0 +1,31 @@
+{
+  "context": "Tests that a demo runs on a new branch of the shared showcase repo (never a fork) and copies existing DA content into a company folder /<companyKey> before rebranding, leaving the shared original untouched. Guards against the old fork-based flow and against rebranding the site in place.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Uses a branch of the current repo, not a fork",
+      "max_score": 25,
+      "description": "The agent creates or uses a new branch of the current repo (org/repo derived from git remote origin) for the rebrand's code, and does not fork the repository."
+    },
+    {
+      "name": "Copies existing content into the company folder first",
+      "max_score": 30,
+      "description": "Before rebranding, the agent copies the existing DA content (pages plus nav/footer/metadata) into /acme non-destructively (copy, not move), leaving the shared original intact."
+    },
+    {
+      "name": "Rebrand scoped to the company folder",
+      "max_score": 20,
+      "description": "The content rewrite/publish is described as targeting the /acme/... folder, not the site root."
+    },
+    {
+      "name": "No demo-vs-real-portal question",
+      "max_score": 15,
+      "description": "The agent does not ask whether this is a real portal or a demo; it proceeds as a demo (the dedicated path is disabled)."
+    },
+    {
+      "name": "Plain language, no internal terms",
+      "max_score": 10,
+      "description": "No 'fork', 'branch', 'deployTarget', 'daFolder', or other internal terms are shown to the customer."
+    }
+  ]
+}

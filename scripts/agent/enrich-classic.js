@@ -32,6 +32,7 @@ export function fieldsToProperties(fields, scope) {
     [FIELD.BRAND]: fields.brand ?? null,
     [FIELD.COMPANY]: scope.company,
     [FIELD.STATUS]: scope.status,
+    [FIELD.ALLOWED_COUNTRIES]: scope.allowedCountries,
   };
 }
 
@@ -56,14 +57,14 @@ async function planAssetClassic({
 }
 
 /**
- * Bring-in (E3): scrape a site for images and upload them into the customer folder so the
+ * Bring-in (E3): scrape a site for assets and upload them into the customer folder so the
  * normal discover -> enrich -> publish flow can then act on them. In --dry-run this scrapes
  * and downloads (to prove the pipeline) but does NOT upload. Returns the uploaded assets.
  */
 async function bringInFromSite({
   uploadStrategy, options, folderPath, log, report, fetchFn,
 }) {
-  log.info?.(`[agent] bring-in: scraping ${options.sourceUrl} for images`);
+  log.info?.(`[agent] bring-in: scraping ${options.sourceUrl} for assets`);
   const { images, candidates } = await scrapeSiteImages({
     pageUrl: options.sourceUrl,
     maxImages: options.limit && Number.isFinite(options.limit) ? options.limit : undefined,
@@ -71,15 +72,15 @@ async function bringInFromSite({
     log,
   });
   if (images.length === 0) {
-    log.warn?.(`[agent] bring-in: no downloadable images found at ${options.sourceUrl} (from ${candidates} candidates)`);
+    log.warn?.(`[agent] bring-in: no downloadable assets found at ${options.sourceUrl} (from ${candidates} candidates)`);
     return { uploaded: [] };
   }
   if (images.length < BRING_IN_MIN_TARGET_IMAGES) {
-    log.warn?.(`[agent] bring-in: only ${images.length} downloadable image(s) found at ${options.sourceUrl} (target >= ${BRING_IN_MIN_TARGET_IMAGES}) — consider a deeper source page (e.g. a collection/listing page) or a second source URL for a fuller demo.`);
+    log.warn?.(`[agent] bring-in: only ${images.length} downloadable asset(s) found at ${options.sourceUrl} (target >= ${BRING_IN_MIN_TARGET_IMAGES}) — consider a deeper source page (e.g. a collection/listing page) or a second source URL for a fuller demo.`);
   }
 
   if (options.dryRun) {
-    log.info?.(`[agent] DRY RUN — would upload ${images.length} image(s) into ${folderPath}:`);
+    log.info?.(`[agent] DRY RUN — would upload ${images.length} asset(s) into ${folderPath}:`);
     images.forEach((img) => log.info?.(`[agent]   ${folderPath}/${img.fileName}  <- ${img.sourceUrl}`));
     return { uploaded: [], dryRun: true, images };
   }
@@ -88,7 +89,7 @@ async function bringInFromSite({
   if (ensured.created) log.info?.(`[agent] bring-in: created folder ${folderPath}`);
 
   const { uploaded, failures } = await uploadStrategy.uploadImages({ folderPath, images });
-  log.info?.(`[agent] bring-in: uploaded ${uploaded.length}/${images.length} image(s) into ${folderPath}`);
+  log.info?.(`[agent] bring-in: uploaded ${uploaded.length}/${images.length} asset(s) into ${folderPath}`);
   failures.forEach((f) => {
     log.warn?.(`[agent] bring-in upload failed: ${f.fileName} — ${f.error}`);
     report.record(`${folderPath}/${f.fileName}`, OUTCOME.FAILED, { stage: 'upload', error: f.error });
@@ -114,7 +115,7 @@ export async function enrichAssetsClassic({
 }) {
   const report = new Report();
   const { customerKey } = options;
-  const scope = { company: customerKey, status: STATUS_APPROVED };
+  const scope = { company: customerKey, status: STATUS_APPROVED, allowedCountries: 'global' };
   const folderPath = options.damPath || `/content/dam/${customerKey}`;
 
   // Select upload strategy: repository (preferred when apiKey present), classic (fallback).
@@ -122,7 +123,7 @@ export async function enrichAssetsClassic({
   const strategyName = uploadStrategy.constructor.name;
   log.info?.(`[agent] enrich customer=${customerKey} folder=${folderPath} dryRun=${options.dryRun} uploadStrategy=${strategyName}`);
 
-  // [0] Bring-in (E3): scrape a site and upload images before discovery.
+  // [0] Bring-in (E3): scrape a site and upload customer assets before discovery.
   let broughtIn = null;
   if (options.bringIn) {
     if (!options.sourceUrl) {
@@ -131,7 +132,7 @@ export async function enrichAssetsClassic({
       broughtIn = await bringInFromSite({
         uploadStrategy, options, folderPath, log, report, fetchFn,
       });
-      // Dry-run bring-in stops here: the images were downloaded but not uploaded, so there
+      // Dry-run bring-in stops here: the assets were downloaded but not uploaded, so there
       // is nothing in AEM to enumerate/enrich yet.
       if (options.dryRun) {
         return { report, dryRun: true, broughtIn };

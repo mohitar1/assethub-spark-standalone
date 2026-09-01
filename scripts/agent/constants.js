@@ -95,6 +95,10 @@ export const FIELD = {
   BRAND: 'brand',
   COMPANY: 'company',
   STATUS: 'dam:status',
+  // Country-visibility gate. The worker (cloudflare/src/origin/dm.js) filters search by
+  // assetMetadata.allowedCountries against the viewer's country plus the 'global' sentinel;
+  // enriched demo assets are stamped 'global' so they are visible regardless of country.
+  ALLOWED_COUNTRIES: 'allowedCountries',
 };
 
 export const STATUS_APPROVED = 'approved';
@@ -112,3 +116,8 @@ export const BRING_IN_MAX_BYTES = 15 * 1024 * 1024;
 // Skip images smaller than this — typically icons, flags, or tiny renditions.
 export const BRING_IN_MIN_BYTES = 10 * 1024;
 export const BRING_IN_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'];
+export const BRING_IN_DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'];
+export const BRING_IN_ASSET_EXTENSIONS = [
+  ...BRING_IN_IMAGE_EXTENSIONS,
+  ...BRING_IN_DOCUMENT_EXTENSIONS,
+];

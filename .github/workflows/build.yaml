@@ -48,10 +48,24 @@ jobs:
         tag="git:${sha::7}"
         subject="$(git log -1 --pretty='%s' "$sha")"
         message="$(echo "${{ github.actor }}: $subject" | cut -c1-100)"
+        # Derive the Helix origin from the repo being built. Use the branch
+        # origin only when it can serve the login/welcome page; standalone sync
+        # branches often have Worker code but no matching AEM content branch.
+        helix_owner="${{ github.repository_owner }}"
+        helix_repo="${{ github.event.repository.name }}"
+        branch_origin="https://${ref}--${helix_repo}--${helix_owner}.aem.page"
+        main_origin="https://main--${helix_repo}--${helix_owner}.aem.page"
+        if curl -fsSI --max-time 10 "$branch_origin/public/welcome" >/dev/null; then
+          helix_origin="$branch_origin"
+        else
+          echo "::warning::AEM branch welcome page is unavailable: $branch_origin/public/welcome; using $main_origin"
+          helix_origin="$main_origin"
+        fi
         echo "ref=$ref" >> "$GITHUB_OUTPUT"
         echo "url=https://${ref}.dev.frescopamedia.com" >> "$GITHUB_OUTPUT"
         echo "tag=$tag" >> "$GITHUB_OUTPUT"
         echo "message=$message" >> "$GITHUB_OUTPUT"
+        echo "helix-origin=$helix_origin" >> "$GITHUB_OUTPUT"
 
     - run: npm ci
 
@@ -70,7 +84,7 @@ jobs:
         command: >-
           deploy --env branch
           --name "spark-eds-pr-${{ github.event.pull_request.number }}"
-          --var "HELIX_ORIGIN:https://${{ steps.setup.outputs.ref }}--assethub-spark--aem-showcase.aem.page"
+          --var "HELIX_ORIGIN:${{ steps.setup.outputs.helix-origin }}"
           --route "${{ steps.setup.outputs.ref }}.dev.frescopamedia.com/*"
           --tag "${{ steps.setup.outputs.tag }}"
           --message "${{ steps.setup.outputs.message }}"

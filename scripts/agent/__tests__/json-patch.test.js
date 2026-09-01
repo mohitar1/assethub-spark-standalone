@@ -25,6 +25,16 @@ describe('json-patch', () => {
     expect(paths).toContain('/company');
   });
 
+  it('stamps allowedCountries when the controller scope provides it', () => {
+    const ops = buildMetadataPatch({ title: 'A' }, { company: 'x', allowedCountries: 'global' });
+    expect(ops).toContainEqual({ op: 'add', path: '/allowedCountries', value: 'global' });
+  });
+
+  it('omits allowedCountries when scope does not set it', () => {
+    const ops = buildMetadataPatch({ title: 'A' }, { company: 'x' });
+    expect(ops.map((o) => o.path)).not.toContain('/allowedCountries');
+  });
+
   it('does not include empty keyword arrays', () => {
     const ops = buildMetadataPatch({ keywords: [] }, { company: 'x' });
     expect(ops.map((o) => o.path)).not.toContain('/dc:subject');

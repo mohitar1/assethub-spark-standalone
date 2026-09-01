@@ -4,6 +4,8 @@
  * Only accessible to users with admin-reports permission
  */
 
+import { localizePath } from '../../scripts/locale-utils.js';
+
 /**
  * Inline, monochrome SVG icons rendered with `fill="currentColor"` so they inherit
  * the brand colour from CSS (var(--primary-color)). Replaces the previous multicolour
@@ -24,7 +26,7 @@ const REPORT_CATEGORIES = [
         id: 'searches',
         title: 'Search Analytics',
         description: 'Search activity report',
-        url: '/en/reports/searches',
+        url: '/reports/searches',
         icon: 'search',
         status: 'available',
       },
@@ -32,7 +34,7 @@ const REPORT_CATEGORIES = [
         id: 'asset-activity',
         title: 'Asset Activity',
         description: 'Asset views, downloads, and usage audit',
-        url: '/en/reports/asset-activity',
+        url: '/reports/asset-activity',
         icon: 'chart',
         status: 'available',
       },
@@ -48,7 +50,7 @@ const REPORT_CATEGORIES = [
 function createReportCard(report) {
   const card = document.createElement('a');
   card.className = `report-card ${report.status}`;
-  card.href = report.status === 'available' ? report.url : '#';
+  card.href = report.status === 'available' ? localizePath(report.url) : '#';
 
   if (report.status === 'coming-soon') {
     card.addEventListener('click', (e) => {

@@ -7,6 +7,9 @@
 const SUPPORTED_LOCALES = ['en', 'ja'];
 const DEFAULT_LOCALE = 'en';
 const LOCALE_STORAGE_KEY = 'spark-preferred-locale';
+// Remembers the foldered-demo company base (e.g. '/volkswagen') so localized links stay
+// in-folder on boundary pages (404, root-served) where the URL drops the /<company> segment.
+const COMPANY_BASE_KEY = 'spark-company-base';
 
 /** EDS locale to AEM content path segment (country/locale) */
 const LOCALE_TO_AEM_SEGMENT = { en: 'us/en', ja: 'jp/ja' };
@@ -57,10 +60,41 @@ export function getSavedLocalePreference() {
  * Checks if the current URL path has an explicit locale prefix.
  * @returns {boolean} True if the path starts with a supported locale
  */
+export function getBasePrefix() {
+  const segments = window.location.pathname.split('/');
+  const seg1 = segments[1];
+  const seg2 = segments[2];
+  // A foldered company demo puts the locale one level deeper: /<company>/<locale>/...
+  // Detect it when segment 1 is NOT a locale but segment 2 IS. Remember it so boundary
+  // pages (e.g. /404.html) that drop the segment can still resolve the company folder.
+  if (seg1 && !SUPPORTED_LOCALES.includes(seg1) && seg2 && SUPPORTED_LOCALES.includes(seg2)) {
+    const base = `/${seg1}`;
+    try {
+      sessionStorage.setItem(COMPANY_BASE_KEY, base);
+    } catch (e) { /* storage may be unavailable */ }
+    return base;
+  }
+  // No company segment in the current URL: fall back to the last-seen base (if any) so a
+  // 404/root-served page keeps localized links inside /<company>. Empty on the root site.
+  try {
+    return sessionStorage.getItem(COMPANY_BASE_KEY) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+/**
+ * Checks if the current URL path has an explicit locale prefix. Handles both the
+ * root site (/<locale>/...) and a foldered company demo (/<company>/<locale>/...).
+ * @returns {boolean} True if a supported locale is present in the path
+ */
 export function hasLocalePrefix() {
-  const { pathname } = window.location;
-  const firstSegment = pathname.split('/')[1];
-  return firstSegment && SUPPORTED_LOCALES.includes(firstSegment);
+  const segments = window.location.pathname.split('/');
+  const seg1 = segments[1];
+  const seg2 = segments[2];
+  if (seg1 && SUPPORTED_LOCALES.includes(seg1)) return true;
+  if (getBasePrefix() && seg2 && SUPPORTED_LOCALES.includes(seg2)) return true;
+  return false;
 }
 
 /**
@@ -99,11 +133,26 @@ export function getLocaleRedirectUrl() {
  * @returns {string} The locale prefix (e.g., '/en' or '/ja') or empty string if none
  */
 export function getExplicitLocalePrefix() {
-  const { pathname } = window.location;
-  const firstSegment = pathname.split('/')[1];
+  const segments = window.location.pathname.split('/');
+  const seg1 = segments[1];
+  const seg2 = segments[2];
 
-  if (firstSegment && SUPPORTED_LOCALES.includes(firstSegment)) {
-    return `/${firstSegment}`;
+  // Root site: /<locale>/...
+  if (seg1 && SUPPORTED_LOCALES.includes(seg1)) {
+    return `/${seg1}`;
+  }
+
+  // Foldered company demo: /<company>/<locale>/... -> keep the company base in the prefix
+  // so every localized link/fetch stays inside the company folder.
+  const base = getBasePrefix();
+  if (base && seg2 && SUPPORTED_LOCALES.includes(seg2)) {
+    return `${base}/${seg2}`;
+  }
+
+  // Boundary page in a foldered demo (e.g. /404.html): the URL has no locale segment, but a
+  // remembered company base exists -> keep localized links inside the company default locale.
+  if (base) {
+    return `${base}/${DEFAULT_LOCALE}`;
   }
 
   return '';
@@ -124,7 +173,8 @@ export function getLocalePrefixFromPath() {
  */
 export function getCurrentLocale() {
   const prefix = getLocalePrefixFromPath();
-  return prefix ? prefix.substring(1) : DEFAULT_LOCALE;
+  // prefix may be '/en' (root) or '/<company>/en' (demo); the locale is the last segment.
+  return prefix ? prefix.split('/').pop() : DEFAULT_LOCALE;
 }
 
 /**
