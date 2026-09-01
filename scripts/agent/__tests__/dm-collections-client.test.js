@@ -114,7 +114,7 @@ describe('dm-collections-client', () => {
       const body = JSON.parse(init.body);
       expect(body['custom:metadata']).toEqual({ company: 'acme' });
       expect(body.accessLevel).toBe('public');
-      expect(body.items).toEqual([{ op: 'add', id: 'a1' }, { op: 'add', id: 'a2' }]);
+      expect(body.items).toEqual([{ type: 'asset', id: 'a1' }, { type: 'asset', id: 'a2' }]);
     });
 
     it('derives the collections api-key from the shared path contract', async () => {

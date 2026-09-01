@@ -151,7 +151,7 @@ export class DmCollectionsClient {
       description,
       accessLevel,
       'custom:metadata': { company },
-      items: assetIds.map((id) => ({ op: 'add', id })),
+      items: assetIds.map((id) => ({ type: 'asset', id })),
     };
     const res = await this.#request(COLLECTIONS_PATH, {
       body,
