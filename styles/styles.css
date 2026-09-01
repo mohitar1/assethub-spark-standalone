@@ -758,8 +758,8 @@ button.secondary {
 a.button.secondary:hover,
 button.button.secondary:hover,
 button.secondary:hover {
-  background-color: #7a2b17;
-  border-color: #7a2b17;
+  background-color: var(--color-dark-red);
+  border-color: var(--color-dark-red);
   color: #fff;
 }
 
