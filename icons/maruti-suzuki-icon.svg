@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="48" viewBox="0 0 220 48" role="img" aria-label="Maruti Suzuki">
+  <rect x="0" y="10" width="28" height="28" rx="4" fill="#D61F26"/>
+  <path d="M8 30V18l6 7 6-7v12h-3.2v-6.4L14 26.4l-2.8-3.8V30z" fill="#fff"/>
+  <text x="36" y="31" font-family="Roboto, Arial, sans-serif" font-size="20" font-weight="700" fill="#18171A">MARUTI SUZUKI</text>
+</svg>

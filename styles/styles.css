@@ -12,19 +12,25 @@
 
 :root {
   /* Brand palette (semantic tokens — single source of truth) */
-  --light-color: #F4E9DC;
-  --dark-color: #2C2C2C;
-  --text-color: #58181D;
-  --text-primary: #58181D;
-  --link-color: #58181D;
-  --link-hover-color: #00647D;
-  --primary-color: #00647D;
-  --primary-color-hover: #004d61;
-  --color-red: #A33532;
-  --color-dark-red: #95351D;
-  --accent-secondary: #DC6E52;
-  --accent-tertiary: #EBA439;
-  --secondary-color: #95351D;
+  --light-color: #F2F2F2;
+  --dark-color: #18171A;
+  --text-color: #212529;
+  --text-primary: #212529;
+  --link-color: #D61F26;
+  --link-hover-color: #B4181E;
+  --primary-color: #D61F26;
+  --primary-color-hover: #B4181E;
+  --color-red: #D61F26;
+  --color-dark-red: #8C1418;
+  --accent-secondary: #575A5E;
+  --accent-tertiary: #B4181E;
+  --secondary-color: #18171A;
+
+  /* Welcome/login split-screen brand panel (Maruti Suzuki) */
+  --welcome-panel-bg: #18171A;
+  --welcome-panel-accent-rgb: 214 31 38;
+  --welcome-panel-mark-image: url('/icons/maruti-suzuki-beans.svg');
+  --welcome-tagline: '"Way of Life."';
 
   /* Neutral & shape tokens */
   --color-neutral-50: #fff;
@@ -67,7 +73,7 @@
 
   /* fonts */
   --body-font-family: var(--type-base-font-family);
-  --heading-font-family: baskerville, serif;
+  --heading-font-family: roboto, roboto-fallback, sans-serif;
 
   /* font sizes */
   --body-font-size-m: 18px;
@@ -744,8 +750,8 @@ button.button:disabled:hover {
 a.button.secondary,
 button.button.secondary,
 button.secondary {
-  background-color: #95351D;
-  border-color: #95351D;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
   color: #fff;
 }
 
@@ -941,7 +947,7 @@ main .section.full-width > div {
   border-radius: 12px;
 }
 
-/* Frescopa landing hero: compact, elegant, beige; the search pill is the focal point */
+/* Landing hero: compact hero with brand background; the search pill is the focal point */
 main .section.search-hero {
   background: var(--light-color) url('backgrounds/big.svg') no-repeat center top / cover;
   color: var(--text-color);
