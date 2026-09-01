@@ -122,6 +122,9 @@ const CONTENTAI_COLLECTION_SEARCH_ACL = {
 /** ContentAI term path for collection access level in search queries */
 const CONTENTAI_COLLECTION_ACCESS_LEVEL = 'collectionMetadata.accessLevel';
 
+/** ContentAI term path for the demo company tag stamped on every collection (see stampCollectionCompany). */
+const CONTENTAI_COLLECTION_COMPANY = 'collectionMetadata.custom:metadata.company';
+
 // ==========================================
 // Collection Roles
 // ==========================================
@@ -524,6 +527,31 @@ function forceContentAISearchFilter(search, authClauses) {
 }
 
 /**
+ * Force custom:metadata.company = config.DEMO_COMPANY into a collection create/update
+ * request body before it is proxied upstream. Without this, a collection written through
+ * the portal UI (or any client other than the enrichment agent) would have no company tag
+ * — or could lose an existing one on a later update — making it invisible to the company
+ * filter in collectionsSearchContentAIAuthorization (findable only by direct-id link, per
+ * checkCollectionAuthorization's ACL-only check). Mutates `body` in place; a no-op when
+ * DEMO_COMPANY is unset or the body isn't a collection payload (missing/non-object parse).
+ */
+function stampCollectionCompany(body) {
+  if (!config.DEMO_COMPANY || typeof body !== 'string' || body.length === 0) return body;
+  let parsed;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return body;
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return body;
+  parsed['custom:metadata'] = {
+    ...(parsed['custom:metadata'] || {}),
+    company: config.DEMO_COMPANY,
+  };
+  return JSON.stringify(parsed);
+}
+
+/**
  * Build ContentAI authorization clauses for asset search and metadata access.
  *
  * Asset visibility is controlled by metadata fields tagged on Content Hub assets:
@@ -688,8 +716,20 @@ function collectionsSearchContentAIAuthorization(request, search, options = {}) 
   const user = request.user;
   const userEmailLower = user?.email?.toLowerCase();
 
+  // --- Customer scope filter (always applied, mirrors the asset-search company clause) ---
+  // Every collections search is restricted to collections tagged
+  // collectionMetadata.custom:metadata.company === DEMO_COMPANY, so a demo only ever
+  // surfaces this company's collections — never another company's, and never an
+  // untagged collection (e.g. a user's personal mohitar-private/public-mohitar
+  // collections, or the base showcase's own collections). Injected before the
+  // unauthenticated/ACL branches below so it applies unconditionally, including to admins.
+  const companyClause = config.DEMO_COMPANY
+    ? [{ term: { [CONTENTAI_COLLECTION_COMPANY]: [config.DEMO_COMPANY] } }]
+    : [];
+
   if (!userEmailLower) {
     forceContentAISearchFilter(search, [
+      ...companyClause,
       {
         term: { [CONTENTAI_COLLECTION_SEARCH_ACL.owner]: ['___does_not_exist___'] },
       },
@@ -711,7 +751,7 @@ function collectionsSearchContentAIAuthorization(request, search, options = {}) 
   // Backward-compatible mode when no relationship is specified.
   if (options.relationship === undefined) {
     const aclFilter = chunkIntoOr([searchOwnerClause, searchEditorClause, searchViewerClause]);
-    forceContentAISearchFilter(search, [aclFilter]);
+    forceContentAISearchFilter(search, [...companyClause, aclFilter]);
     console.warn(`[${userEmailLower}] collections search filter applied (legacy ACL)`);
     return;
   }
@@ -768,7 +808,7 @@ function collectionsSearchContentAIAuthorization(request, search, options = {}) 
     authClauses = [accessPublic];
   }
 
-  forceContentAISearchFilter(search, authClauses);
+  forceContentAISearchFilter(search, [...companyClause, ...authClauses]);
   console.warn(
     `[${userEmailLower}] collections search filter applied (ContentAI)` +
       `${relationship !== CollectionListSegment.PUBLIC ? ` [relationship=${relationship}]` : ''}` +
@@ -826,6 +866,16 @@ export async function originDynamicMedia(request, env, ctx) {
   const headers = new Headers(request.headers);
   // Convert body to string immediately so we can log it later
   let body = request.body ? await request.text() : null;
+
+  // Collection create (POST /adobe/assets/collections) and update
+  // (POST /adobe/assets/collections/{id}, excluding the /search and /items sub-paths)
+  // always get the demo company tag forced into their body — see stampCollectionCompany.
+  if (
+    request.method === 'POST'
+    && url.pathname.match(/^\/adobe\/assets\/collections(\/(?!search$)[^/]+)?$/)
+  ) {
+    body = stampCollectionCompany(body);
+  }
 
   // set DM authorization
   const imsToken = await getIMSToken(request, env);
@@ -1021,6 +1071,7 @@ export {
   collectionsSearchContentAIAuthorization,
   forceContentAISearchFilter,
   searchContentAIAuthorization,
+  stampCollectionCompany,
   // IMS token (shared with coa.js — same DM S2S technical account, same x-api-key)
   getIMSToken,
 };
