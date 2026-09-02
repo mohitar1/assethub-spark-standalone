@@ -95,7 +95,7 @@
   --status-not-started: var(--primary-color);
   --status-not-started-bg: rgb(0 147 208 / 12%);
   --status-in-progress: var(--accent-tertiary);
-  --status-in-progress-bg: rgb(235 164 57 / 12%);
+  --status-in-progress-bg: rgb(127 196 232 / 12%);
   --status-completed: #7fb078;
   --status-completed-bg: rgb(127 176 120 / 12%);
   --status-cancelled: var(--color-red);
@@ -1025,7 +1025,7 @@ main .section.search-hero .query-input-bar {
 /* Landing: Browse-by-category tiles */
 main .section.category-tiles {
   padding: 56px 72px 40px;
-  background: rgb(235 164 57 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
+  background: rgb(127 196 232 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
   text-align: center;
 }
 
