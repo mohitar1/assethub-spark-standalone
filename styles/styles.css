@@ -12,19 +12,19 @@
 
 :root {
   /* Brand palette (semantic tokens — single source of truth) */
-  --light-color: #F4E9DC;
-  --dark-color: #2C2C2C;
-  --text-color: #58181D;
-  --text-primary: #58181D;
-  --link-color: #58181D;
-  --link-hover-color: #00647D;
-  --primary-color: #00647D;
-  --primary-color-hover: #004d61;
-  --color-red: #A33532;
-  --color-dark-red: #95351D;
-  --accent-secondary: #DC6E52;
-  --accent-tertiary: #EBA439;
-  --secondary-color: #95351D;
+  --light-color: #F5F5F3;
+  --dark-color: #141414;
+  --text-color: #191919;
+  --text-primary: #191919;
+  --link-color: #D31710;
+  --link-hover-color: #A11109;
+  --primary-color: #D31710;
+  --primary-color-hover: #A11109;
+  --color-red: #D31710;
+  --color-dark-red: #A11109;
+  --accent-secondary: #3D3D3D;
+  --accent-tertiary: #8F8F8F;
+  --secondary-color: #141414;
 
   /* Neutral & shape tokens */
   --color-neutral-50: #fff;
@@ -66,8 +66,8 @@
   --color-dark-blue: var(--primary-color);
 
   /* fonts */
-  --body-font-family: var(--type-base-font-family);
-  --heading-font-family: baskerville, serif;
+  --body-font-family: "Ringside Sans", var(--type-base-font-family);
+  --heading-font-family: "Ringside Sans", var(--type-condensed-font-family);
 
   /* font sizes */
   --body-font-size-m: 18px;
@@ -120,7 +120,7 @@
 
   /* action button colors */
   --button-primary: var(--primary-color);
-  --button-primary-hover: #004d61;
+  --button-primary-hover: var(--primary-color-hover);
 
   /* label colors */
   --label-color: var(--text-color);
@@ -141,6 +141,13 @@
   --line-height-05: 1.6;
   --line-height-06: 1.25;
   --line-height-07: 1.1;
+
+  /* Lilly demo — welcome/login split-screen brand panel override */
+  --welcome-panel-bg: #141414;
+  --welcome-panel-accent-rgb: 211 23 16;
+  --welcome-panel-mark-image: url('/icons/lilly-beans.svg');
+  --welcome-tagline-line1: '"A medicine company';
+  --welcome-tagline-line2: 'that puts health above all."';
 }
 
 /* fallback fonts */
@@ -941,16 +948,16 @@ main .section.full-width > div {
 
 
 .homepage-bg {
-  background: var(--light-color) url('backgrounds/big.svg') no-repeat center center/cover;
+  background: var(--light-color);
   color: var(--text-color);
   padding: 16px;
   margin: 8px 0;
   border-radius: 12px;
 }
 
-/* Frescopa landing hero: compact, elegant, beige; the search pill is the focal point */
+/* Lilly landing hero: compact, editorial, flat surface; the search pill is the focal point */
 main .section.search-hero {
-  background: var(--light-color) url('backgrounds/big.svg') no-repeat center top / cover;
+  background: var(--light-color);
   color: var(--text-color);
   margin: 0;
   padding: 56px 0 48px;
@@ -1604,23 +1611,23 @@ picture.missing img {
 }
 
 
-.frescopa-background-red {
+.brand-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.brand-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.brand-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.brand-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.brand-background-black {
   background-color: var(--dark-color);
 }
 
@@ -1633,7 +1640,7 @@ main > .section + .background {
   padding: 10px 0;
   margin-left: auto;
   margin-right: auto;
-  background: var(--light-color) url('backgrounds/big.svg') no-repeat center center/cover;
+  background: var(--light-color);
 }
 
 main > .section + .background > div {
@@ -1642,23 +1649,23 @@ main > .section + .background > div {
 }
 
 @media (width >= 900px) {
-.frescopa-background-red {
+.brand-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.brand-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.brand-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.brand-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.brand-background-black {
   background-color: var(--dark-color);
 }
 
