@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 3,
+  "intent": "full",
+  "customer": {
+    "name": "Luma Gear",
+    "companyKey": "luma-gear",
+    "demoBranch": "demo/luma-gear",
+    "daFolder": "/luma-gear"
+  },
+  "steps": {
+    "demo-confirmed": "done",
+    "branch-resolved": "done",
+    "da-content-copied": "done",
+    "rebranded": "pending",
+    "demo-company-set": "pending",
+    "published": "pending",
+    "landed-via-pr": "pending",
+    "assets-uploaded": "pending",
+    "assets-enriched": "pending",
+    "search-scoped": "pending",
+    "collections-created": "pending"
+  }
+}

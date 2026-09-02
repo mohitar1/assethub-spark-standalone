@@ -108,10 +108,10 @@ for m in re.finditer(
     if not under_folder(path):
         violations.append("DA copy destination -> " + path)
 
-# 4) Packaged DA copy wrapper. The wrapper builds the DA copy URLs internally,
+# 4) Packaged DA copy helper. The helper builds the DA copy URLs internally,
 #    so enforce its <companyKey> arg before the script runs.
 for m in re.finditer(
-    r"(?:^|[\s\"'])(?:[^\s\"']*/)?scripts/da-copy-folder\.sh\s+[^\s\"']+\s+[^\s\"']+\s+([^\s\"']+)",
+    r"(?:^|[\s\"'])(?:[^\s\"']*/)?(?:scripts/da-copy-folder\.sh|scripts/da/copy-folder\.sh)\s+[^\s\"']+\s+[^\s\"']+\s+([^\s\"']+)",
     blob,
 ):
     company = "/" + m.group(1).strip().strip("/")

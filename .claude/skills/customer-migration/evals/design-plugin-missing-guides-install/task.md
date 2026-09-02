@@ -13,7 +13,7 @@ It guards the design-tool availability gate (operator setup)'s **install-from-sc
 which is easy to conflate with the "just enable it" branch already covered
 by `design-plugin-disabled-guides-enable`. The correct behavior here is
 different: tell the operator to **add the marketplace and install** the
-plugin (`/plugin marketplace add <path-or-repo>` then
+plugin (`/plugin marketplace add <absolute marketplace path>` then
 `/plugin install excat@excat-marketplace`), not simply "enable" something
 that was never installed — and, as in the sibling eval, never hand-roll the
 rebrand as a substitute.
@@ -36,14 +36,20 @@ look now."
 
 Recognize that the design plugin is **not installed at all** (distinct from
 installed-but-disabled) and **stop** rather than proceeding. Tell the
-operator plainly that the plugin needs to be **installed first** — naming
-both steps: adding the marketplace (`claude plugin marketplace add
-./resources/plugins/aem-excat-plugin/excat-marketplace`, from their own
-clone) and then installing (`claude plugin install excat@excat-marketplace`)
-— followed by enabling it for the project and restarting the session. Do NOT tell them merely to "enable"
-something as if it were already installed. Do NOT hand-edit `styles.css`,
-sweep hardcoded colors, or rewrite content yourself as a substitute. Leave
-the rebrand phase blocked pending the plugin loading.
+operator plainly that the plugin needs to be **installed first**. Prefer an
+agent-first setup: use an existing local `aem-experience-catalyst` clone if
+present, otherwise clone
+`https://github.com/Adobe-AEM-Foundation/aem-experience-catalyst.git`; run
+`npm run install:all` from
+`resources/plugins/aem-excat-plugin/excat-marketplace`; smoke-check
+`excat/tools/excatops-mcp` with `npx .`; then add the marketplace in Claude
+Code using an **absolute** path:
+`/plugin marketplace add <absolute-path-to-aem-experience-catalyst>/resources/plugins/aem-excat-plugin/excat-marketplace`.
+Then install with `/plugin install excat@excat-marketplace`, restart if
+needed, and reverify with `/plugin list` and `claude skill list`. Do NOT tell
+them merely to "enable" something as if it were already installed. Do NOT
+hand-edit `styles.css`, sweep hardcoded colors, or rewrite content yourself as
+a substitute. Leave the rebrand phase blocked pending the plugin loading.
 
 (Note: this is an operator-facing readiness step, so naming the
 plugin/marketplace is expected here — the plain-language customer-outcomes

@@ -3,7 +3,7 @@
 ## Problem/Feature Description
 
 Loading the company's assets (Step 5) reuses the **existing environment**.
-The controller `scripts/agent/enrich-assets.js` resolves credentials from
+The controller `.claude/skills/customer-migration/scripts/assets/enrich-assets.js` resolves credentials from
 `cloudflare/.secrets` and the AEM env id from `cloudflare/src/config.js`
 itself. The demo therefore must **not** collect credentials, choose a
 local-run tier, boot a backend, or deploy anything — that machinery is the
@@ -25,7 +25,7 @@ This guards against the agent dragging the demo into backend-onboarding
 
 ## Output Specification
 
-- The agent runs the asset enrichment via `scripts/agent/enrich-assets.js`
+- The agent runs the asset enrichment via `.claude/skills/customer-migration/scripts/assets/enrich-assets.js`
   (dry-run first, then live), passing the company key — it does **not**
   hand-roll author API calls.
 - It relies on credentials from `cloudflare/.secrets` and the env id from

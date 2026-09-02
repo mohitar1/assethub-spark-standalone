@@ -1,5 +1,5 @@
 {
-  "context": "Guards the most common regression: on a fresh rebrand request the agent must confirm the demo, check/create the branch, and COPY existing DA content into /acme BEFORE invoking the design tool or editing styling files, and must never ask the customer about a Settings/LLM-Permissions screen (access = token.env only).",
+  "context": "Guards the most common regression: on a fresh rebrand request the agent must confirm the demo, check/create the branch, and COPY existing DA content into /acme BEFORE invoking the design tool or editing styling files, and must never ask the customer about a Settings/LLM-Permissions screen. Access starts with only DA_TOKEN in token.env; the workflow derives the publish token itself.",
   "type": "weighted_checklist",
   "checklist": [
     {
@@ -19,8 +19,18 @@
     },
     {
       "name": "No Settings / permissions question",
-      "max_score": 15,
-      "description": "The agent never asks the customer to open a Settings, LLM Permissions, or permissions/admin screen; access is only the tokens in token.env."
+      "max_score": 10,
+      "description": "The agent never asks the customer to open a Settings, LLM Permissions, or permissions/admin screen; access starts with only DA_TOKEN in token.env."
+    },
+    {
+      "name": "No manual Helix token ask",
+      "max_score": 5,
+      "description": "The agent does not ask the customer for HLX_ADMIN_TOKEN or browser x-auth-token; the active workflow derives the publish token from DA_TOKEN.",
+      "check": {
+        "type": "transcriptNotMatches",
+        "value": "HLX_ADMIN_TOKEN=<|copy.*x-auth-token|admin\\.hlx\\.page.*x-auth-token",
+        "flags": "i"
+      }
     },
     {
       "name": "Plain language, no internal terms",

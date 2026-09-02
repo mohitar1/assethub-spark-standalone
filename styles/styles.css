@@ -249,9 +249,16 @@ body:has(.section.welcome) > main::before {
   background-position: bottom left, top right, center 40%;
 }
 
-/* Tagline + brand label stacked at the bottom of the brand panel */
+/* Tagline + brand label stacked at the bottom of the brand panel.
+   Split into two line custom properties (--welcome-tagline-line1/-line2) instead of one
+   string with a literal \A line-break escape: \A only renders as a line break when it's
+   parsed directly in a stylesheet content string — once it's stored inside a custom
+   property's value and substituted via var(), it's carried as literal text instead, so a
+   company override that sets a one-property tagline with \A in it silently fails to break
+   the line. Keeping the \A here, outside any custom property, avoids that class of bug
+   regardless of what a per-company override sets each line to. */
 body:has(.section.welcome) > main::after {
-  content: var(--welcome-tagline, '"The world\'s finest coffee,\Aat your fingertips."');
+  content: var(--welcome-tagline-line1, '"The world\'s finest coffee,') "\A" var(--welcome-tagline-line2, 'at your fingertips."');
   white-space: pre;
   font-family: baskerville, serif;
   font-size: 1rem;
@@ -744,16 +751,16 @@ button.button:disabled:hover {
 a.button.secondary,
 button.button.secondary,
 button.secondary {
-  background-color: #95351D;
-  border-color: #95351D;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
   color: #fff;
 }
 
 a.button.secondary:hover,
 button.button.secondary:hover,
 button.secondary:hover {
-  background-color: #7a2b17;
-  border-color: #7a2b17;
+  background-color: var(--color-dark-red);
+  border-color: var(--color-dark-red);
   color: #fff;
 }
 
@@ -1665,4 +1672,3 @@ main > .section + .background {
     margin-top: -20px;
   }
 }
-

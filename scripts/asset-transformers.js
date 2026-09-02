@@ -324,8 +324,10 @@ export function populateAssetFromMetadata(metadata) {
   // File size formatting
   const formattedSize = repoMeta?.['repo:size'] ? formatFileSize(repoMeta['repo:size']) : 'N/A';
 
-  // Keywords (standard xcm namespace)
-  const xcmKeywords = extractKeywords(assetMeta?.['xcm:keywords']);
+  // Keywords: prefer Content Hub xcm keywords, fall back to dc:subject written by
+  // the customer-migration enrichment agent.
+  const dcSubjectKeywords = extractKeywords(assetMeta?.['dc:subject']);
+  const xcmKeywords = extractKeywords(assetMeta?.['xcm:keywords']) || dcSubjectKeywords;
 
   const isExpired = new Date(
     safeMetadataStringField(repoMeta, assetMeta, 'pur:expirationDate'),
@@ -406,13 +408,16 @@ export function populateAssetFromContentAIHit(contentAIHit) {
     || assetMetadata['tiff:imageLength']
     || repositoryMetadata['tiff:imageLength'];
 
-  // Keywords (standard xcm namespace)
-  const xcmKeywords = extractKeywords(assetMetadata['xcm:keywords']);
+  // Keywords: prefer Content Hub xcm keywords, fall back to dc:subject written by
+  // the customer-migration enrichment agent.
+  const dcSubjectKeywords = extractKeywords(assetMetadata['dc:subject']);
+  const xcmKeywords = extractKeywords(assetMetadata['xcm:keywords']) || dcSubjectKeywords;
   const xcmMachineKeywords = extractKeywords(assetMetadata['xcm:machineKeywords']);
 
   // Business-taxonomy fields written by the customer-migration enrichment agent
-  // (scripts/agent/normalize.js FIELD.PRODUCT_CATEGORY/CAMPAIGN/CHANNEL). Mapped
-  // straight through as plain strings; absent on assets that predate enrichment.
+  // (.claude/skills/customer-migration/scripts/assets/normalize.js
+  // FIELD.PRODUCT_CATEGORY/CAMPAIGN/CHANNEL). Mapped straight through as plain
+  // strings; absent on assets that predate enrichment.
   const productCategory = safeStringField(assetMetadata, 'productCategory');
   const campaign = safeStringField(assetMetadata, 'campaign');
   const channel = safeStringField(assetMetadata, 'channel');

@@ -42,6 +42,14 @@ ASSET_EXC_FACETS = """{
 "label": "Campaign",
 "type": "string"
 },
+"channel": {
+"label": "Channel",
+"type": "string"
+},
+"dc:subject": {
+"label": "Keywords",
+"type": "string"
+},
 "dc:format": {
 "label": "Format",
 "type": "string"

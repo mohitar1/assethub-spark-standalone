@@ -1,0 +1,58 @@
+{
+  "context": "Tests that Step 4 uses Experience Catalyst directly when a source URL is present and the design skill is available. WebFetch failure must not cause a palette question, DesignSync routing, or manual rebrand fallback.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Uses Catalyst design skill",
+      "max_score": 30,
+      "description": "The agent invokes or explicitly hands off to excat-complete-design-expert in Complete Migration mode.",
+      "check": {
+        "type": "transcriptContains",
+        "value": "excat-complete-design-expert"
+      }
+    },
+    {
+      "name": "Passes source URL",
+      "max_score": 15,
+      "description": "The handoff includes the provided source URL as the source for design extraction.",
+      "check": {
+        "type": "transcriptContains",
+        "value": "https://urbnworld.com/"
+      }
+    },
+    {
+      "name": "Does not ask for palette",
+      "max_score": 20,
+      "description": "The agent does not ask the user to provide colors, a palette, or choose how to source the look.",
+      "check": {
+        "type": "transcriptNotMatches",
+        "value": "how should I source|give (me|you) the colors|provide .*colors|provide .*palette|user-supplied palette",
+        "flags": "i"
+      }
+    },
+    {
+      "name": "Does not treat WebFetch as blocker",
+      "max_score": 15,
+      "description": "The agent does not present WebFetch failure as a reason to stop or ask for manual brand inputs.",
+      "check": {
+        "type": "transcriptNotMatches",
+        "value": "WebFetch.*(block|fail|error)|web-fetch.*(block|fail|error)",
+        "flags": "i"
+      }
+    },
+    {
+      "name": "Does not route to DesignSync",
+      "max_score": 10,
+      "description": "The agent does not route the work to DesignSync or a generic design-project tool.",
+      "check": {
+        "type": "transcriptNotContains",
+        "value": "DesignSync"
+      }
+    },
+    {
+      "name": "No manual rebrand fallback",
+      "max_score": 10,
+      "description": "The agent does not hand-edit styles.css or claim manual CSS edits as a substitute for Catalyst."
+    }
+  ]
+}

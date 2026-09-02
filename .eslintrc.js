@@ -19,7 +19,10 @@ module.exports = {
   overrides: [
     {
       // Node CLI: the per-fork asset enrichment agent (customer-migration Phase C).
-      files: ['scripts/agent/**/*.js'],
+      files: [
+        '.claude/skills/customer-migration/scripts/assets/**/*.js',
+        '.claude/skills/customer-migration/tests/assets/**/*.js',
+      ],
       env: { node: true },
       rules: {
         'import/prefer-default-export': 'off', // small single-purpose util modules

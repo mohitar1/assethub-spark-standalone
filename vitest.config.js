@@ -24,10 +24,12 @@ export default defineConfig({
           include: [
             'scripts/**/__tests__/**/*.test.js',
             'blocks/**/__tests__/**/*.test.js',
+            '.claude/skills/customer-migration/tests/assets/**/*.test.js',
           ],
           exclude: [
             'scripts/**/__tests__/**/*.dom.test.js',
             'blocks/**/__tests__/**/*.dom.test.js',
+            '.claude/skills/customer-migration/tests/assets/**/*.dom.test.js',
           ],
           environment: 'node',
         },

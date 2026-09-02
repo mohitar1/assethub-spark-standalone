@@ -5,10 +5,10 @@
     {
       "name": "Uses the packaged copy script, not hand-rolled curl",
       "max_score": 20,
-      "description": "The agent runs scripts/da-copy-folder.sh (org/repo from git remote, companyKey acme) rather than composing its own curl copy calls.",
+      "description": "The agent runs .claude/skills/customer-migration/scripts/da/copy-folder.sh (org/repo from git remote, companyKey acme) rather than composing its own curl copy calls.",
       "check": {
         "type": "transcriptContains",
-        "value": "scripts/da-copy-folder.sh"
+        "value": ".claude/skills/customer-migration/scripts/da/copy-folder.sh"
       }
     },
     {

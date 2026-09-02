@@ -5,10 +5,10 @@
     {
       "name": "Runs enrich-assets.js against existing secrets",
       "max_score": 35,
-      "description": "The agent invokes scripts/agent/enrich-assets.js (dry-run then live) with the company key, relying on cloudflare/.secrets for creds and repo config for the env id; it does not hand-roll author API calls.",
+      "description": "The agent invokes .claude/skills/customer-migration/scripts/assets/enrich-assets.js (dry-run then live) with the company key, relying on cloudflare/.secrets for creds and repo config for the env id; it does not hand-roll author API calls.",
       "check": {
         "type": "transcriptContains",
-        "value": "scripts/agent/enrich-assets.js"
+        "value": ".claude/skills/customer-migration/scripts/assets/enrich-assets.js"
       }
     },
     {

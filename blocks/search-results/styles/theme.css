@@ -25,8 +25,8 @@
   --red-200: rgb(163 53 50 / 25%);
   --red-300: var(--color-red);
   --red-400: var(--color-red);
-  --red-500: #95351D;
-  --red-600: #7a2b17;
+  --red-500: var(--secondary-color);
+  --red-600: var(--color-dark-red);
   --highlight-hover: rgb(0 0 0 / 7%);
   --highlight-pressed: rgb(0 0 0 / 15%);
 
@@ -54,7 +54,7 @@
   --highlight-foreground-pressed: var(--light-color);
   --highlight-overlay: rgb(0 100 125 / 15%);
   --invalid-color: var(--color-red);
-  --invalid-color-pressed: #95351D;
+  --invalid-color-pressed: var(--color-dark-red);
 }
 
 /* Dark mode */
@@ -75,11 +75,11 @@
     --purple-500: #6ab4c4;
     --purple-600: #a8d4de;
     --red-100: #5c1f1e;
-    --red-200: #7a2b17;
-    --red-300: #A33532;
-    --red-400: #c44a47;
-    --red-500: #dc6e52;
-    --red-600: #eba439;
+    --red-200: var(--color-dark-red);
+    --red-300: var(--color-red);
+    --red-400: var(--color-red);
+    --red-500: var(--secondary-color);
+    --red-600: var(--accent-tertiary);
     --highlight-hover: rgb(255 255 255 / 10%);
     --highlight-pressed: rgb(255 255 255 / 20%);
   }

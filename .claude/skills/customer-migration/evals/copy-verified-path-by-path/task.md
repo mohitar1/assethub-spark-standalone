@@ -25,7 +25,7 @@ step.
 
 ## Output Specification
 
-- The agent uses the packaged `scripts/da-copy-folder.sh` (org/repo from
+- The agent uses the packaged `.claude/skills/customer-migration/scripts/da/copy-folder.sh` (org/repo from
   `git remote origin`, companyKey `acme`) — it does not hand-roll `curl`
   copy calls.
 - It expects a **full recursive** copy of every top-level entry into

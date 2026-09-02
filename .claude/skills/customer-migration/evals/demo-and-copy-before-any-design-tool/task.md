@@ -12,8 +12,8 @@ The mandatory pre-sequence (`steps`, in order) is:
 `demo-confirmed` → `branch-resolved` → `da-content-copied`. The agent may
 NOT invoke the design tool or edit any styling file until `branch-resolved`
 AND `da-content-copied` are done.
-Access is only the two tokens in `token.env`; there is no settings screen
-to ask about.
+Access starts with only `DA_TOKEN` in `token.env`; the workflow derives the
+publish token itself. There is no settings screen to ask about.
 
 ## Setup
 
@@ -28,7 +28,7 @@ to ask about.
 ## Output Specification
 
 - The agent first tells the customer, in plain language, that it's making
-  a rebranded copy of the site under Acme's name, shared as a preview link,
+  a rebranded copy of the site under Acme's name, shared as a portal link,
   with the original untouched (`demo-confirmed`).
 - It checks for an existing `demo/acme` branch, then creates/checks out a
   branch on the current repo (no fork).
@@ -38,6 +38,8 @@ to ask about.
 - It does **not** invoke the design tool (excat) or edit `styles.css` /
   sweep asset colors until the branch is created and content is copied.
 - It does **not** ask the customer to open any "Settings", "LLM
-  Permissions", or permissions/admin toggle — access is just the tokens
-  in `token.env`.
+  Permissions", or permissions/admin toggle — access starts with just
+  `DA_TOKEN` in `token.env`.
+- It does **not** ask the customer for `HLX_ADMIN_TOKEN` or a browser
+  `admin.hlx.page` `x-auth-token`.
 - Plain language throughout (I1) — no internal terms surfaced.

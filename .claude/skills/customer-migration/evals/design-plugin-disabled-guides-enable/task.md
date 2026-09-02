@@ -15,7 +15,7 @@ regression: when the design skill wasn't invokable, the agent hand-edited
 stopping. The correct behavior in the installed-but-not-enabled state is to
 **stop**, tell the operator to **enable** the already-installed plugin for this
 project (for Claude: `claude plugin enable excat@excat-marketplace --project`,
-then restart) — NOT to reinstall it, and NOT to improvise a manual rebrand.
+then restart/reverify) — NOT to reinstall it, and NOT to improvise a manual rebrand.
 
 ## Setup
 
@@ -39,7 +39,8 @@ Recognize that the design skill is installed but not enabled for this project,
 and **stop** rather than proceeding. Tell the operator plainly that the design
 plugin is already installed and just needs to be **enabled** for this project
 (e.g. `claude plugin enable excat@excat-marketplace --project`, then restart
-the session), and that once it's loaded you'll continue. Do NOT tell them to install/reinstall it. Do NOT
+the session), then reverify with `/plugin list` and `claude skill list` before
+continuing. Do NOT tell them to install/reinstall it. Do NOT
 hand-edit `styles.css`, sweep hardcoded colors, or rewrite content yourself as a
 substitute. Leave the rebrand phase blocked pending the plugin loading.
 

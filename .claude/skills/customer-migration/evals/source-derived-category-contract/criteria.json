@@ -1,0 +1,46 @@
+{
+  "context": "Tests that clear source-site categories become a decisive shared category contract across homepage cards, facet links, asset productCategory, and collections. The agent must not ask the customer to choose a generic taxonomy or leak unrelated lint/CSS/debug details.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Uses source-derived categories from fixture",
+      "max_score": 25,
+      "description": "The response names the fixture's source-derived category slugs/labels as the chosen category contract instead of inventing unrelated generic buckets."
+    },
+    {
+      "name": "Shares one contract across cards, facets, metadata, and collections",
+      "max_score": 25,
+      "description": "The response says the same derived slugs will drive homepage Browse cards, search facet links, asset productCategory, and collection grouping."
+    },
+    {
+      "name": "Does not ask user to choose taxonomy",
+      "max_score": 20,
+      "description": "The response does not ask whether to use real-nav categories vs a simpler/generic category set.",
+      "check": {
+        "type": "transcriptNotMatches",
+        "value": "which do you want|choose.*categor|real nav.*generic|generic set|simpler generic|different set entirely",
+        "flags": "i"
+      }
+    },
+    {
+      "name": "Zero-result cards block publishing",
+      "max_score": 15,
+      "description": "The response says a category card is not published with zero results; the agent continues discovery/enrichment or blocks until visible assets exist."
+    },
+    {
+      "name": "No debug/operator details in category answer",
+      "max_score": 10,
+      "description": "The response does not mix lint/CSS selector/file-diff/script/branch/copy-debug details into the category explanation.",
+      "check": {
+        "type": "transcriptNotMatches",
+        "value": "eslint|lint|:root|CSS|styles\\.css|file diff|copied content|script|branch|commit|git|pre-existing bug",
+        "flags": "i"
+      }
+    },
+    {
+      "name": "Plain language, no internal terms",
+      "max_score": 5,
+      "description": "No internal terms are surfaced unnecessarily to the customer."
+    }
+  ]
+}
