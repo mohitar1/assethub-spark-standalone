@@ -20,6 +20,9 @@ export default function decorate(block) {
       if (div.children.length === 1 && div.querySelector('picture')) div.className = 'cards-card-image';
       else div.className = 'cards-card-body';
     });
+    // A tile with no image cell (text-only) shouldn't reserve a blank image band — mark it
+    // so section CSS can collapse it cleanly instead of showing an empty white box.
+    if (!li.querySelector('.cards-card-image')) li.classList.add('no-image');
 
     const cardBody = li.querySelector('.cards-card-body');
     const link = cardBody?.querySelector('a');
@@ -59,7 +62,17 @@ export default function decorate(block) {
     });
   }
 
-  ul.querySelectorAll('picture > img').forEach((img) => img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }])));
+  ul.querySelectorAll('picture > img').forEach((img) => {
+    // DAM assets are served through the worker's own proxy (/api/adobe/assets/…), which is
+    // already an optimized delivery endpoint and only accepts ?width=. Running it through
+    // Helix's createOptimizedPicture would append Helix-only ?format=&optimize= params the
+    // proxy forwards to a delivery host that ignores/rejects them, and would strip the
+    // responsive <source> set the app authored — so leave those pictures untouched. Helix/DA
+    // images (./media_… etc.) still get re-optimized as before.
+    const { pathname } = new URL(img.src, window.location.href);
+    if (pathname.startsWith('/api/adobe/assets/')) return;
+    img.closest('picture').replaceWith(createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]));
+  });
   block.textContent = '';
   block.append(ul);
 }

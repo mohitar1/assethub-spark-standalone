@@ -125,6 +125,9 @@ export const AUTOGEN_FIELD = {
   TITLE: 'autogen:title',
   DESCRIPTION: 'autogen:description',
   SUBJECT: 'autogen:subject',
+  // AEM smart-tagging also writes predicted tags; read as additional classification
+  // evidence (never written by this agent), alongside autogen:subject.
+  PREDICTED_TAGS: 'predictedTags',
 };
 
 // The only dam:assetState value that means "AEM's asset-processing microservices have
@@ -142,12 +145,17 @@ export const ASSET_PROCESSED_POLL_TIMEOUT_MS = 60 * 1000;
 
 export const STATUS_APPROVED = 'approved';
 
+// Minimum number of populated category cards for a credible landing page. Not a fixed
+// target — the card count follows the source-derived contract — but below this the page
+// looks too thin, so the enrichment gate fails rather than publishing a sparse grid.
+export const MIN_CARDS = 4;
+
 // The DAM content root. The Assets HTTP API mirrors this tree under /api/assets.
 export const DAM_ROOT = '/content/dam';
 
 // --- Bring-in (E3: scrape a site -> upload) limits ---
 // Sensible demo-scale bounds so a scrape can't run away or pull a huge binary.
-export const BRING_IN_MAX_IMAGES = 25;
+export const BRING_IN_MAX_IMAGES = 50;
 // Below this many downloaded images, the bring-in result is too thin for a credible demo;
 // the controller warns loudly (see enrich-classic.js) instead of silently proceeding.
 export const BRING_IN_MIN_TARGET_IMAGES = 20;

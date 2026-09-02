@@ -47,7 +47,9 @@ function stringArray(value) {
  * only for whichever fields autogen left empty.
  */
 export function createAssetMetadataGenerator() {
-  return async function assetMetadataGenerate({ repoName, hints = {}, existingAssetMetadata = {} }) {
+  return async function assetMetadataGenerate({
+    repoName, hints = {}, existingAssetMetadata = {},
+  }) {
     const autogenTitle = cleanString(existingAssetMetadata[AUTOGEN_FIELD.TITLE]);
     const autogenDescription = cleanString(existingAssetMetadata[AUTOGEN_FIELD.DESCRIPTION]);
     const autogenSubject = stringArray(existingAssetMetadata[AUTOGEN_FIELD.SUBJECT]);

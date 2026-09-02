@@ -33,6 +33,19 @@ import sys
 blob = os.environ.get("HOOK_INPUT", "") or ""
 state_file = os.environ.get("STATE_FILE", "")
 
+try:
+    event = json.loads(blob) if blob.strip().startswith("{") else {}
+except ValueError:
+    event = {}
+tool_name = (
+    event.get("tool_name")
+    or (event.get("tool") or {}).get("name")
+    or event.get("toolName")
+    or ""
+)
+if tool_name in {"Write", "Edit", "MultiEdit", "NotebookEdit", "str_replace_editor"}:
+    sys.exit(0)
+
 # Resolve the allowed company folder from the onboarding state file.
 da_folder = None
 try:

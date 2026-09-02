@@ -174,13 +174,20 @@ def add_nav_role_metadata(doc, role):
     table.rows[1].cells[0].text = 'role'
     table.rows[1].cells[1].text = role
     doc.add_paragraph('')
-def add_cards(doc, cards):
-    """1-column Cards block: each row is a category tile with a Browse link."""
-    table = doc.add_table(rows=1 + len(cards), cols=1)
+def add_category_carousel(doc, cards, block_name='carousel (tiles)'):
+    """Browse-by-category carousel: each row is a slide with an image cell (col 0) and a
+    content cell (col 1: heading + blurb + facet Browse link). Two columns so cards.js /
+    carousel.js classify col 0 as the image and wire whole-slide clickability off the link.
+    Image cells are seeded empty here; per-customer runs fill them with the category
+    representative image (see the DA-index edit step). N rows \u2014 any count."""
+    table = doc.add_table(rows=1 + len(cards), cols=2)
     table.style = 'Table Grid'
-    table.rows[0].cells[0].text = 'cards'
+    table.rows[0].cells[0].text = block_name
     for i, (title, blurb, facet_value) in enumerate(cards, start=1):
-        cell = table.rows[i].cells[0]
+        # col 0: image cell (empty in the base seed; filled per customer).
+        table.rows[i].cells[0].text = ''
+        # col 1: heading + blurb + facet Browse link.
+        cell = table.rows[i].cells[1]
         cell.paragraphs[0].text = ''
         head = cell.paragraphs[0]
         head.style = doc.styles['Heading 3']
@@ -189,6 +196,11 @@ def add_cards(doc, cards):
         link_p = cell.add_paragraph()
         add_hyperlink(link_p, 'Browse \u2192', category_search_url(facet_value), bold=True)
     doc.add_paragraph('')
+
+
+# Back-compat alias \u2014 older callers used add_cards for the category tiles.
+def add_cards(doc, cards):
+    add_category_carousel(doc, cards)
 
 
 def build_index():

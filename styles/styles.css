@@ -1065,6 +1065,16 @@ main .section.category-tiles .cards > ul > li:hover {
   box-shadow: 0 12px 26px rgb(88 24 29 / 12%);
 }
 
+/* Text-only tile (no image cell) collapses to its body — never reserve a blank
+   image band that reads as a broken/unfinished card (see cards.js .no-image). */
+main .section.category-tiles .cards > ul > li.no-image {
+  justify-content: flex-start;
+}
+
+main .section.category-tiles .cards > ul > li.no-image .cards-card-body {
+  min-height: 0;
+}
+
 /* Icon/logo art (e.g. "Top Brands") only — real photo tiles like
    "Browse by channel" on brand pages must keep the base cards.css
    aspect-ratio/cover treatment untouched (see cards.js .icon-tiles). */

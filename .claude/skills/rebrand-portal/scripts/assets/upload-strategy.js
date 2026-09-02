@@ -19,7 +19,7 @@
  *             POST /adobe/repository/<folder>;api=block_upload_finalize;token=<token>
  */
 
-import { AEM_ASSETS_FRONTEND_API_KEY, DAM_ROOT } from './constants.js';
+import { AEM_ASSETS_FRONTEND_API_KEY, DAM_ROOT, BRING_IN_MAX_IMAGES } from './constants.js';
 
 // ---------------------------------------------------------------------------
 // Shared path helpers
@@ -216,7 +216,14 @@ export class RepositoryUploadStrategy {
   async uploadImages({ folderPath, images }) {
     const uploaded = [];
     const failures = [];
-    for (const img of images) {
+    // Hard run-wide cap: any caller (packaged scrape or an ad-hoc multi-page script) can
+    // reach this point with more than BRING_IN_MAX_IMAGES already collected — e.g. a loop
+    // over several source pages that caps each page individually but never the combined
+    // total. Enforcing it here, once, is the only place that catches every caller.
+    const capped = images.length > BRING_IN_MAX_IMAGES
+      ? images.slice(0, BRING_IN_MAX_IMAGES)
+      : images;
+    for (const img of capped) {
       try {
         const {
           bytes, fileName, contentType, ...evidence

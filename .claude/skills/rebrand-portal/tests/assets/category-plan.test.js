@@ -1,81 +1,130 @@
 import { describe, it, expect } from 'vitest';
-import { applyCategoryPlan, buildCategoryCoverage, slugifyCategory } from '../../scripts/assets/category-plan.js';
+import {
+  applyCategoryPlan,
+  buildCategoryCoverage,
+  slugifyCategory,
+  categorySearchUrl,
+  deterministicClassifier,
+  assetEvidence,
+} from '../../scripts/assets/category-plan.js';
+
+// Contracts are the source-derived vocabulary threaded in from Step 4 — no hardcoded list.
+const PHARMA = [
+  { slug: 'dermatology', label: 'Dermatology' },
+  { slug: 'cancer', label: 'Cancer' },
+  { slug: 'diabetes', label: 'Diabetes' },
+];
+const RETAIL = [
+  { slug: 'coffee', label: 'Coffee' },
+  { slug: 'machines', label: 'Machines' },
+];
 
 describe('category-plan', () => {
-  it('keeps existing productCategory values', () => {
+  it('keeps an existing contract-valid productCategory', () => {
     const [plan] = applyCategoryPlan([{
       asset: { assetId: 'a1', repoName: 'anything.jpg' },
       fields: { title: 'Anything' },
-      existingMetadata: { productCategory: 'existing-category' },
-    }]);
-    expect(plan.fields.productCategory).toBe('existing-category');
+      existingMetadata: { productCategory: 'cancer' },
+    }], { contract: PHARMA });
+    expect(plan.fields.productCategory).toBe('cancer');
     expect(plan.categoryAssignment.reason).toBe('existing-metadata');
   });
 
-  it('gives high confidence to a rule match sourced from AEM\'s own autogen:subject tags', () => {
+  it('honors a generated productCategory that is already a contract slug', () => {
     const [plan] = applyCategoryPlan([{
       asset: { assetId: 'a1', repoName: 'hero.jpg' },
-      fields: { title: 'Foo' },
-      existingMetadata: { 'autogen:subject': ['product', 'lifestyle shot'] },
-    }]);
-    expect(plan.fields.productCategory).toBe('products');
-    expect(plan.categoryAssignment.confidence).toBe('high');
-    expect(plan.categoryAssignment.evidence[0]).toMatch(/^autogen:subject=/);
-  });
-
-  it('falls back to medium confidence when the same rule only matches page/heading text', () => {
-    const [plan] = applyCategoryPlan([{
-      asset: { assetId: 'a1', repoName: 'hero.jpg', heading: 'Product range' },
-      fields: { title: 'Foo' },
+      fields: { title: 'Foo', productCategory: 'diabetes' },
       existingMetadata: {},
-    }]);
-    expect(plan.fields.productCategory).toBe('products');
-    expect(plan.categoryAssignment.confidence).toBe('medium');
+    }], { contract: PHARMA });
+    expect(plan.fields.productCategory).toBe('diabetes');
+    expect(plan.categoryAssignment.reason).toBe('generated-field');
   });
 
-  it('infers generic categories from source evidence', () => {
+  it('classifies pharma assets into the contract from AEM smart tags (no keyword edits)', () => {
     const [plan] = applyCategoryPlan([{
-      asset: {
-        assetId: 'a1',
-        repoName: 'hero.jpg',
-        sourcePage: 'https://brand.example/en/models/foo',
-        heading: 'Foo model range',
-      },
-      fields: { title: 'Foo Hero' },
-      existingMetadata: {},
-    }]);
-    expect(plan.fields.productCategory).toBe('products');
-    expect(plan.categoryAssignment.reason).toBe('source-evidence');
+      asset: { assetId: 'a1', repoName: 'discoid-eczema-0031.avif' },
+      fields: { title: 'Skin condition' },
+      existingMetadata: { 'autogen:subject': ['dermatology', 'psoriasis', 'skin'] },
+    }], { contract: PHARMA });
+    expect(plan.fields.productCategory).toBe('dermatology');
+    expect(plan.categoryAssignment.reason).toBe('classified');
   });
 
-  it('does not invent a category without evidence', () => {
+  it('classifies retail assets with the SAME code and a different contract', () => {
+    const [plan] = applyCategoryPlan([{
+      asset: { assetId: 'a1', repoName: 'espresso-machine.jpg', heading: 'Machines' },
+      fields: { title: 'Brewer' },
+      existingMetadata: { 'autogen:subject': ['machines'] },
+    }], { contract: RETAIL });
+    expect(plan.fields.productCategory).toBe('machines');
+  });
+
+  it('uses an injected classifier when provided', () => {
+    const classifier = () => ({ slug: 'cancer', confidence: 'high' });
+    const [plan] = applyCategoryPlan([{
+      asset: { assetId: 'a1', repoName: 'unknown.jpg' },
+      fields: { title: 'X' },
+      existingMetadata: {},
+    }], { contract: PHARMA, classifier });
+    expect(plan.fields.productCategory).toBe('cancer');
+  });
+
+  it('mandatory assignment: an evidence-less asset still lands in a contract slug (fallback)', () => {
     const [plan] = applyCategoryPlan([{
       asset: { assetId: 'a1', repoName: 'asset.bin' },
       fields: { title: 'Asset' },
       existingMetadata: {},
-    }]);
-    expect(plan.fields.productCategory).toBeUndefined();
+    }], { contract: PHARMA });
+    expect(PHARMA.map((c) => c.slug)).toContain(plan.fields.productCategory);
+    expect(plan.categoryAssignment.confidence).toBe('fallback');
   });
 
-  it('builds coverage only from categories with assets', () => {
+  it('re-maps an injected slug outside the contract via the deterministic fallback', () => {
+    const classifier = () => ({ slug: 'not-a-contract-slug' });
+    const [plan] = applyCategoryPlan([{
+      asset: { assetId: 'a1', repoName: 'psoriasis-patient.jpg' },
+      fields: { title: 'X' },
+      existingMetadata: { 'autogen:subject': ['dermatology'] },
+    }], { contract: PHARMA, classifier });
+    expect(PHARMA.map((c) => c.slug)).toContain(plan.fields.productCategory);
+  });
+
+  it('builds coverage from assigned categories', () => {
     const plans = applyCategoryPlan([
       {
-        asset: { assetId: 'a1', sourcePage: 'https://x/products' },
+        asset: { assetId: 'a1', repoName: 'cancer-story.jpg' },
         fields: { title: 'A' },
-        existingMetadata: {},
+        existingMetadata: { 'autogen:subject': ['cancer'] },
       },
       {
-        asset: { assetId: 'a2', repoName: 'asset.bin' },
+        asset: { assetId: 'a2', repoName: 'diabetes-care.jpg' },
         fields: { title: 'B' },
-        existingMetadata: {},
+        existingMetadata: { 'autogen:subject': ['diabetes'] },
       },
-    ]);
+    ], { contract: PHARMA });
     const coverage = buildCategoryCoverage(plans);
-    expect(coverage.categories).toMatchObject([{ slug: 'products', assetCount: 1 }]);
-    expect(coverage.unclassified).toEqual(['a2']);
+    const slugs = coverage.categories.map((c) => c.slug).sort();
+    expect(slugs).toEqual(['cancer', 'diabetes']);
+    expect(coverage.unclassified).toEqual([]);
   });
 
   it('slugifies display categories', () => {
     expect(slugifyCategory('SUVs & Electric')).toBe('suvs-and-electric');
+  });
+
+  it('builds the facet-filter search URL used by DA index cards', () => {
+    expect(categorySearchUrl('dermatology')).toBe(
+      '/en/search?facetFilters=%7B%22productCategory%22%3A%7B%22dermatology%22%3Atrue%7D%7D',
+    );
+  });
+
+  it('deterministicClassifier prefers smart-tag hits (double weight)', () => {
+    const classify = deterministicClassifier(PHARMA);
+    const evidence = assetEvidence(
+      { repoName: 'x.jpg' },
+      { 'autogen:subject': ['diabetes'] },
+      {},
+    );
+    expect(classify(evidence).slug).toBe('diabetes');
   });
 });

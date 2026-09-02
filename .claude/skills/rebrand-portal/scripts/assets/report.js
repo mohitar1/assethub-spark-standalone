@@ -17,6 +17,7 @@ export class Report {
     this.context = {};
     this.representatives = null;
     this.categoryCoverage = null;
+    this.cards = null;
   }
 
   record(assetId, outcome, detail = {}) {
@@ -29,6 +30,10 @@ export class Report {
 
   setCategoryCoverage(categoryCoverage) {
     this.categoryCoverage = categoryCoverage;
+  }
+
+  setCards(cards) {
+    this.cards = cards;
   }
 
   setContext(context = {}) {
@@ -60,6 +65,7 @@ export class Report {
     if (Object.keys(this.context).length > 0) json.context = this.context;
     if (this.representatives) json.representatives = this.representatives;
     if (this.categoryCoverage) json.categoryCoverage = this.categoryCoverage;
+    if (this.cards) json.cards = this.cards;
     return json;
   }
 

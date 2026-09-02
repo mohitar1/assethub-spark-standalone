@@ -1,50 +1,22 @@
 /**
- * Source-evidence category assignment.
+ * Category assignment against the source-derived contract.
  *
- * The category contract is generated from assets we actually found. It is not an
- * operator-provided strict vocabulary and it is never used to drop values.
+ * The category vocabulary is the contract the migration derives from the source site at
+ * Step 4 (one shared set of {slug,label} used by homepage cards, facet links, asset
+ * productCategory, and collections). This module does NOT invent categories and does NOT
+ * carry a hardcoded keyword vocabulary — a fixed keyword table can never be generic across
+ * verticals (a retail term list silently drops every pharma/finance/etc. asset).
  *
- * Evidence is AEM's own autogen:subject smart tags (populated once dam:assetState reaches
- * "processed" — see sling-metadata.js's waitForAssetProcessed) plus scrape-time hints
- * (page/heading/alt text, filename). autogen:subject is real signal from AEM's asset
- * processing, not a guess, so it is checked first; the page/filename evidence below is the
- * fallback for assets with no smart tags yet (or none that matched a rule).
+ * Instead, each asset is mapped to exactly one contract slug by a classifier over the
+ * asset's real metadata — AEM's own autogen:subject/predictedTags smart tags plus dc:* fields,
+ * generated title/description/keywords, filename, and source-page evidence. The classifier
+ * is dependency-injected (like `generator`): the live path uses the agent/LLM; tests inject
+ * a deterministic stub. A built-in deterministic classifier (token overlap against the
+ * contract labels) is the offline default and the fallback when the injected classifier
+ * declines an asset — assignment is mandatory, so every asset lands in one contract slug.
  */
 
 import { FIELD, AUTOGEN_FIELD } from './constants.js';
-
-const CATEGORY_RULES = [
-  {
-    slug: 'documents',
-    label: 'Documents',
-    terms: ['document', 'documents', 'pdf', 'brochure', 'catalog', 'catalogue', 'spec', 'specification', 'manual', 'guide', 'report', 'presentation'],
-  },
-  {
-    slug: 'accessories',
-    label: 'Accessories',
-    terms: ['accessory', 'accessories', 'parts', 'merchandise', 'gear', 'apparel', 'collection'],
-  },
-  {
-    slug: 'products',
-    label: 'Products',
-    terms: ['product', 'products', 'model', 'models', 'vehicle', 'vehicles', 'car', 'cars', 'shop', 'inventory', 'range'],
-  },
-  {
-    slug: 'lifestyle',
-    label: 'Lifestyle',
-    terms: ['lifestyle', 'gallery', 'inspiration', 'story', 'people', 'interior', 'city', 'road', 'travel', 'home', 'experience'],
-  },
-  {
-    slug: 'events',
-    label: 'Events',
-    terms: ['event', 'events', 'press', 'news', 'launch', 'conference', 'showroom'],
-  },
-  {
-    slug: 'campaigns',
-    label: 'Campaigns',
-    terms: ['campaign', 'campaigns', 'promotion', 'promo', 'seasonal', 'sale', 'offer'],
-  },
-];
 
 function cleanString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
@@ -67,112 +39,182 @@ export function humanizeCategorySlug(slug) {
     .join(' ');
 }
 
-function autogenSubjectTerms(metadata = {}) {
-  const value = metadata[AUTOGEN_FIELD.SUBJECT];
-  const list = Array.isArray(value) ? value : (typeof value === 'string' && value.trim() ? [value] : []);
-  return list.map((v) => String(v).trim().toLowerCase()).filter(Boolean);
+/** Facet-filter search URL for a category slug — the exact shape the DA index cards use. */
+export function categorySearchUrl(slug, { basePath = '/en' } = {}) {
+  const facetFilters = JSON.stringify({ productCategory: { [slug]: true } });
+  return `${basePath}/search?facetFilters=${encodeURIComponent(facetFilters)}`;
 }
 
-function evidenceText(asset = {}, metadata = {}, fields = {}) {
+function stringArray(value) {
+  if (Array.isArray(value)) return value.map((v) => String(v).trim()).filter(Boolean);
+  if (typeof value === 'string' && value.trim()) return [value.trim()];
+  return [];
+}
+
+function autogenSubjectTerms(metadata = {}) {
   return [
-    asset.sourcePage,
-    asset.pageTitle,
-    asset.heading,
-    asset.altText,
-    asset.nearbyText,
-    asset.fileName,
-    asset.repoName,
-    fields.title,
-    fields.description,
-    ...(Array.isArray(fields.keywords) ? fields.keywords : []),
-    ...(Array.isArray(metadata[FIELD.SUBJECT]) ? metadata[FIELD.SUBJECT] : []),
-    ...autogenSubjectTerms(metadata),
+    ...stringArray(metadata[AUTOGEN_FIELD.SUBJECT]),
+    ...stringArray(metadata[AUTOGEN_FIELD.PREDICTED_TAGS]),
+  ].map((v) => v.toLowerCase());
+}
+
+/**
+ * The evidence bundle handed to the classifier for one asset. Real AEM signal first
+ * (autogen:subject/predictedTags smart tags, dc:* fields), then generated fields, then
+ * filename/source-page context.
+ */
+export function assetEvidence(asset = {}, metadata = {}, fields = {}) {
+  return {
+    assetId: asset.assetId || null,
+    fileName: asset.fileName || asset.repoName || null,
+    sourcePage: asset.sourcePage || null,
+    heading: asset.heading || null,
+    altText: asset.altText || null,
+    nearbyText: asset.nearbyText || null,
+    smartTags: autogenSubjectTerms(metadata),
+    autogenTitle: cleanString(metadata[AUTOGEN_FIELD.TITLE]),
+    autogenDescription: cleanString(metadata[AUTOGEN_FIELD.DESCRIPTION]),
+    dcTitle: cleanString(metadata[FIELD.TITLE]) || cleanString(fields.title),
+    dcDescription: cleanString(metadata[FIELD.DESCRIPTION]) || cleanString(fields.description),
+    dcSubject: stringArray(metadata[FIELD.SUBJECT]),
+    keywords: Array.isArray(fields.keywords) ? fields.keywords : [],
+  };
+}
+
+function evidenceBlob(evidence) {
+  return [
+    evidence.fileName,
+    evidence.sourcePage,
+    evidence.heading,
+    evidence.altText,
+    evidence.nearbyText,
+    evidence.autogenTitle,
+    evidence.autogenDescription,
+    evidence.dcTitle,
+    evidence.dcDescription,
+    ...evidence.smartTags,
+    ...evidence.dcSubject,
+    ...evidence.keywords,
   ]
     .map((v) => String(v || '').toLowerCase())
     .join(' ');
 }
 
-function evidenceSnippets(asset = {}, fields = {}, metadata = {}) {
-  const autogenSubject = autogenSubjectTerms(metadata);
-  return [
-    autogenSubject.length > 0 && `autogen:subject=${autogenSubject.join(',')}`,
-    asset.sourcePage && `sourcePage=${asset.sourcePage}`,
-    asset.heading && `heading=${asset.heading}`,
-    asset.altText && `altText=${asset.altText}`,
-    (asset.fileName || asset.repoName) && `fileName=${asset.fileName || asset.repoName}`,
-    fields.title && `title=${fields.title}`,
-  ].filter(Boolean).slice(0, 4);
+/** Contract entry -> comparable tokens (slug words + label words). */
+function contractTokens(entry) {
+  return `${entry.slug} ${entry.label || ''}`
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 2);
 }
 
-function categoryFromEvidence(asset, metadata, fields) {
-  const text = evidenceText(asset, metadata, fields);
-  for (const rule of CATEGORY_RULES) {
-    if (rule.terms.some((term) => text.includes(term))) {
-      return {
-        slug: rule.slug,
-        label: rule.label,
-        // autogen:subject is AEM's own asset-processing output, not a guess — a match
-        // sourced from it is higher confidence than the same rule matching only on
-        // page/heading/filename text.
-        confidence: rule.terms.some((term) => autogenSubjectTerms(metadata).some((t) => t.includes(term)))
-          ? 'high'
-          : 'medium',
-        reason: 'source-evidence',
-      };
+/**
+ * Deterministic fallback classifier: pick the contract category whose slug/label tokens
+ * overlap the asset's evidence most; ties and no-overlap fall back to the first contract
+ * entry so assignment is always defined (mandatory single-category, never unclassified).
+ * Smart-tag hits count double (AEM's own processing output is stronger signal).
+ */
+export function deterministicClassifier(contract = []) {
+  const entries = contract.filter((c) => c && c.slug);
+  return (evidence) => {
+    if (entries.length === 0) return null;
+    const blob = evidenceBlob(evidence);
+    const smart = evidence.smartTags.join(' ');
+    let best = entries[0].slug;
+    let bestScore = -1;
+    for (const entry of entries) {
+      const tokens = contractTokens(entry);
+      let score = 0;
+      for (const tok of tokens) {
+        if (smart.includes(tok)) score += 2;
+        else if (blob.includes(tok)) score += 1;
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        best = entry.slug;
+      }
     }
-  }
-  if (asset?.sourcePage || asset?.pageTitle || asset?.heading || asset?.altText) {
-    return {
-      slug: 'brand-assets',
-      label: 'Brand Assets',
-      confidence: 'low',
-      reason: 'generic-source-evidence',
-    };
-  }
+    return { slug: best, confidence: bestScore > 0 ? 'evidence' : 'fallback' };
+  };
+}
+
+function contractSlugSet(contract = []) {
+  return new Set(contract.map((c) => c && c.slug).filter(Boolean));
+}
+
+/** Map an arbitrary value onto the nearest contract slug (exact, else slugified match). */
+function coerceToContract(value, contract = []) {
+  const slug = slugifyCategory(value);
+  if (!slug) return null;
+  const slugs = contractSlugSet(contract);
+  if (slugs.has(slug)) return slug;
   return null;
 }
 
 /**
- * Apply category assignment to planned assets. Existing productCategory wins.
+ * Assign a contract category to every planned asset.
+ *
+ * @param {Array<{asset,fields,existingMetadata,skip}>} planned
+ * @param {Object} options
+ * @param {Array<{slug,label}>} options.contract  source-derived category contract (required)
+ * @param {(evidence)=>{slug,confidence}|string|null} [options.classifier]  injected classifier;
+ *   defaults to the deterministic token-overlap classifier over the contract.
+ * @returns {Array} planned with fields.productCategory set + categoryAssignment
  */
-export function applyCategoryPlan(planned = []) {
-  return planned.map((plan) => {
-    if (!plan || !plan.fields) return plan;
-    const existing = cleanString(plan.existingMetadata?.[FIELD.PRODUCT_CATEGORY]);
-    const fields = { ...plan.fields };
+export function applyCategoryPlan(planned = [], options = {}) {
+  const contract = Array.isArray(options.contract)
+    ? options.contract.filter((c) => c && c.slug)
+    : [];
+  const classify = options.classifier || deterministicClassifier(contract);
+  const fallback = deterministicClassifier(contract);
 
-    let assignment = null;
+  return planned.map((plan) => {
+    if (!plan || !plan.fields || plan.error) return plan;
+    const fields = { ...plan.fields };
+    const metadata = plan.existingMetadata || {};
+
+    // 1) Existing contract-valid productCategory wins.
+    const existing = coerceToContract(metadata[FIELD.PRODUCT_CATEGORY], contract);
     if (existing) {
       fields.productCategory = existing;
-      assignment = {
-        slug: existing,
-        label: humanizeCategorySlug(existing),
-        confidence: 'existing',
-        reason: 'existing-metadata',
-        evidence: [`existingMetadata.${FIELD.PRODUCT_CATEGORY}=${existing}`],
-      };
-    } else if (!cleanString(fields.productCategory)) {
-      const inferred = categoryFromEvidence(plan.asset, plan.existingMetadata || {}, fields);
-      if (inferred) {
-        fields.productCategory = inferred.slug;
-        assignment = {
-          ...inferred,
-          evidence: evidenceSnippets(plan.asset, fields, plan.existingMetadata || {}),
-        };
-      }
-    } else {
-      const slug = slugifyCategory(fields.productCategory);
-      fields.productCategory = slug || fields.productCategory;
-      assignment = {
-        slug: fields.productCategory,
-        label: humanizeCategorySlug(fields.productCategory),
-        confidence: 'generated',
-        reason: 'generated-field',
-        evidence: evidenceSnippets(plan.asset, fields, plan.existingMetadata || {}),
+      return {
+        ...plan,
+        fields,
+        categoryAssignment: { slug: existing, confidence: 'existing', reason: 'existing-metadata' },
       };
     }
 
-    return { ...plan, fields, categoryAssignment: assignment };
+    // 2) A generated productCategory that is already a contract slug wins.
+    const generated = coerceToContract(fields.productCategory, contract);
+    if (generated) {
+      fields.productCategory = generated;
+      return {
+        ...plan,
+        fields,
+        categoryAssignment: { slug: generated, confidence: 'generated', reason: 'generated-field' },
+      };
+    }
+
+    // 3) Classify from real metadata evidence into the contract. Mandatory: the classifier
+    //    (or the deterministic fallback) always returns a contract slug.
+    const evidence = assetEvidence(plan.asset, metadata, fields);
+    let result = classify(evidence);
+    let slug = coerceToContract(typeof result === 'string' ? result : result?.slug, contract);
+    let confidence = (result && typeof result === 'object' && result.confidence) || 'classified';
+    if (!slug) {
+      result = fallback(evidence);
+      slug = result?.slug || (contract[0] && contract[0].slug) || null;
+      confidence = 'fallback';
+    }
+
+    if (slug) fields.productCategory = slug;
+    return {
+      ...plan,
+      fields,
+      categoryAssignment: slug
+        ? { slug, confidence, reason: 'classified' }
+        : null,
+    };
   });
 }
 
@@ -192,14 +234,8 @@ export function buildCategoryCoverage(planned = []) {
       slug,
       label: humanizeCategorySlug(slug),
       assetCount: 0,
-      evidence: [],
     };
     existing.assetCount += 1;
-    for (const snippet of plan.categoryAssignment?.evidence || []) {
-      if (!existing.evidence.includes(snippet) && existing.evidence.length < 4) {
-        existing.evidence.push(snippet);
-      }
-    }
     categories.set(slug, existing);
   }
 

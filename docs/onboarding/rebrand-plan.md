@@ -225,3 +225,25 @@ Phase 3 no longer declares completion on a finished delegation request
 alone — it requires confirming the PR is actually merged, and re-running
 the asset-color sweep against the merged, live state rather than the
 local working tree.
+
+### Correction 3: a token being written is not the same as a token being applied
+
+The asset-color sweep (Phase 3) is a residue check — it greps for
+*leftover old-brand* values. It was never a check that a *new-brand* value
+excat wrote into `styles/styles.css` actually took effect on the rendered
+page. A section's background can still read as the base theme's surface
+color after a full rebrand pass, with the sweep reporting clean, because
+the sweep only looks at source files, not the cascaded/computed result —
+a later `background-color` declaration, a more-specific selector, or a
+stale build can all silently win over the token excat set.
+
+The fix does not need a new external fetch or a user-supplied reference
+value: excat already fetched the source site and already decided the
+correct value when it edited `styles/styles.css` in Step 1. That edit is
+the ground truth. The new Step 4g check (see SKILL.md, "Background-color
+applied check") reads excat's own written value per landmark selector,
+reads the actual computed value on the deployed PR preview for the same
+selector, and hard-fails on any mismatch — before the residue sweep runs,
+since a token that never applied makes the residue grep moot. This
+replaces a screenshot judgment call ("does this look off-brand?") with a
+binary per-selector diff for backgrounds specifically.

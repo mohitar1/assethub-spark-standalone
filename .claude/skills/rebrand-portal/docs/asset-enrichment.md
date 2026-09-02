@@ -74,29 +74,36 @@ part of this tool — not for generated metadata, not for category assignment.
 
 ## How Categories Are Chosen
 
-Category assignment uses evidence in this order:
+There is **one category vocabulary**: the source-derived contract the migration builds at
+Step 4 (a shared set of `{slug, label}` used by homepage cards, facet links, asset
+`productCategory`, and collections). There is **no hardcoded keyword table** — a fixed
+vocabulary can never be generic across verticals (a retail term list silently drops every
+pharma/finance asset, which is exactly the bug this replaced).
 
-- existing `productCategory`
-- AEM's own `autogen:subject` smart tags matched against the category rule table
-  (highest-confidence rule match — this is AEM's own processing output, not a guess)
-- source page URL, page title, headings, and image alt text matched against the same
-  rule table (medium confidence)
-- filename and generated keywords as fallback evidence
+Each asset is mapped to **exactly one** contract category (mandatory — a low-confidence
+mapping is preferred over a blank/missing card). Assignment order:
 
-There is no hardcoded customer list, no generic fallback taxonomy when the source
-site is clear, and no operator-supplied strict category vocabulary. If the tool
-cannot defend a category for an asset against the source-derived evidence, it
-does not write `productCategory` for that asset and reports a category failure.
+- existing contract-valid `productCategory` (kept as-is)
+- a generated `productCategory` that is already a contract slug
+- otherwise a **classifier** maps the asset's real metadata — AEM's own
+  `autogen:subject`/`predictedTags` smart tags, `dc:title`/`dc:description`/`dc:subject`,
+  generated title/description/keywords, filename, and source-page evidence — onto the
+  nearest contract slug. The classifier is dependency-injected: the live path uses the
+  agent/LLM (which maps e.g. "psoriasis" → dermatology trivially); the offline default and
+  fallback is a deterministic token-overlap classifier over the contract.
 
-If a source-derived category has no visible assets after enrichment, the workflow
-does not publish a zero-result card or replace it with a broad search link. It
-continues source discovery/enrichment, or blocks with the missing category.
+The contract is passed in via `--categories <slugs>` (or `options.categoryContract`); it is
+never invented inside the tool. Because assignment is mandatory, every populated contract
+category has a representative asset, so the homepage card set is complete and non-sparse. A
+contract category that ends up with **zero** assets fails the card gate (below) — the
+workflow widens source discovery rather than publishing an empty card.
 
 ## Command
 
 ```bash
 node .claude/skills/rebrand-portal/scripts/assets/enrich-assets.js \
   --customer-key <customerKey> \
+  --categories <slug1,slug2,...> \
   [--dam-path /content/dam/<customerKey>] \
   [--source-url <url>] \
   [--dry-run] [--force] \
@@ -106,6 +113,10 @@ node .claude/skills/rebrand-portal/scripts/assets/enrich-assets.js \
   [--aem-env-id pNNN-eNNN] \
   [--report-file <path.json>]
 ```
+
+`--categories` is the source-derived category contract from Step 4 (comma-separated slugs,
+e.g. `--categories dermatology,cancer,diabetes,obesity,alzheimers`). Every asset is mapped
+into exactly one of these; the card set and collections use the same slugs.
 
 Examples:
 
@@ -179,8 +190,16 @@ Important fields:
 - `counts`: enriched, skipped, and failed asset counts
 - `assets`: per-asset outcome and failure reason
 - `categoryCoverage.categories`: categories that have at least one asset
-- `categoryCoverage.unclassified`: assets with no defensible category
-- `representatives.items`: one usable asset per category for card imagery
+- `representatives.items`: one usable asset per category — includes `cardImageUrl`, the
+  worker proxy URL used directly as the card image
+- `cards`: **ready-to-author landing card rows**, one per contract category. Each row has
+  `label`, `blurb`, `href` (facet-filter search URL), and `cardImageUrl`. The landing page
+  edit consumes these directly — no URL construction by hand, no raw delivery host.
+
+**Card gate.** After building `cards`, the tool fails (non-zero exit) unless every contract
+category has ≥1 asset, at least `MIN_CARDS` cards exist, and every card row has both an
+`href` and a `cardImageUrl`. A card cannot exist without a facet link and an image — this
+structurally prevents the "blank tile / dead un-clickable card" failure.
 
 Example:
 
@@ -188,13 +207,7 @@ Example:
 {
   "counts": { "enriched": 12, "skipped": 3 },
   "categoryCoverage": {
-    "categories": [
-      {
-        "slug": "derived-slug",
-        "label": "Derived Label",
-        "assetCount": 12
-      }
-    ],
+    "categories": [{ "slug": "derived-slug", "label": "Derived Label", "assetCount": 12 }],
     "unclassified": []
   },
   "representatives": {
@@ -203,10 +216,22 @@ Example:
         "productCategory": "derived-slug",
         "assetId": "urn:aaid:aem:...",
         "assetPath": "/content/dam/acme/hero.jpg",
-        "title": "Hero"
+        "repoName": "hero.jpg",
+        "title": "Hero",
+        "cardImageUrl": "/api/adobe/assets/urn:aaid:aem:.../as/hero.jpg?width=750"
       }
     }
-  }
+  },
+  "cards": [
+    {
+      "slug": "derived-slug",
+      "label": "Derived Label",
+      "assetCount": 12,
+      "blurb": "Derived Label imagery.",
+      "href": "/en/search?facetFilters=%7B%22productCategory%22%3A%7B%22derived-slug%22%3Atrue%7D%7D",
+      "cardImageUrl": "/api/adobe/assets/urn:aaid:aem:.../as/hero.jpg?width=750"
+    }
+  ]
 }
 ```
 

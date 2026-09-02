@@ -9,7 +9,7 @@ import { resolve } from 'node:path';
 
 const FLAG_WITH_VALUE = new Set([
   'customer-key', 'dam-path', 'source-url', 'secrets-file', 'limit',
-  'concurrency', 'report-file', 'fixture', 'aem-env-id',
+  'concurrency', 'report-file', 'fixture', 'aem-env-id', 'categories',
 ]);
 
 const BOOLEAN_FLAGS = new Set(['dry-run', 'force', 'bring-in']);
@@ -125,6 +125,10 @@ export function parseArgs(argv) {
     secretsFile: null,
     fixture: null,
     aemEnvId: null,
+    // Source-derived category contract (Step 4). Comma-separated slugs on the CLI, e.g.
+    // --categories dermatology,cancer,diabetes,obesity,alzheimers. normalizeContract() in
+    // enrich-assets.js parses this into [{slug,label}].
+    categoryContract: null,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -150,6 +154,7 @@ export function parseArgs(argv) {
         case 'report-file': opts.reportFile = value; break;
         case 'fixture': opts.fixture = value; break;
         case 'aem-env-id': opts.aemEnvId = value; break;
+        case 'categories': opts.categoryContract = value; break;
         default: break;
       }
     }

@@ -22,15 +22,21 @@ import {
 } from './sling-metadata.js';
 import { Report, OUTCOME } from './report.js';
 import { createAssetMetadataGenerator } from './generate.js';
-import { buildProductCategoryRepresentatives } from './representatives.js';
-import { applyCategoryPlan, buildCategoryCoverage } from './category-plan.js';
+import { buildProductCategoryRepresentatives, cardImageUrl } from './representatives.js';
+import {
+  applyCategoryPlan,
+  buildCategoryCoverage,
+  categorySearchUrl,
+  humanizeCategorySlug,
+  slugifyCategory,
+} from './category-plan.js';
 import { scrapeSiteImages } from './scrape-site.js';
 import { createUploadStrategy } from './upload-strategy.js';
 import { ImsTokenProvider } from './ims-auth.js';
 import { AuthorClient } from './author-client.js';
 import { createFixtureClient } from './fixture-client.js';
 import {
-  STATUS_APPROVED, buildHosts, buildAuthorHost, BRING_IN_MIN_TARGET_IMAGES,
+  STATUS_APPROVED, buildHosts, buildAuthorHost, BRING_IN_MIN_TARGET_IMAGES, MIN_CARDS,
 } from './constants.js';
 import { mapWithConcurrency } from './concurrency.js';
 import {
@@ -38,6 +44,81 @@ import {
 } from './config.js';
 
 export { mapWithConcurrency };
+
+/**
+ * Normalize the source-derived category contract into [{slug,label}]. Accepts an array of
+ * {slug,label}|string, or a comma-separated string of slugs (the --categories CLI form).
+ */
+export function normalizeContract(input) {
+  let entries = [];
+  if (Array.isArray(input)) entries = input;
+  else if (typeof input === 'string' && input.trim()) entries = input.split(',');
+  const out = [];
+  const seen = new Set();
+  for (const entry of entries) {
+    const raw = typeof entry === 'string' ? { slug: entry } : (entry || {});
+    const slug = slugifyCategory(raw.slug || raw.label);
+    if (!slug || seen.has(slug)) continue;
+    seen.add(slug);
+    const label = (raw.label && String(raw.label).trim()) || humanizeCategorySlug(slug);
+    out.push({ slug, label });
+  }
+  return out;
+}
+
+/**
+ * Build ready-to-author landing card rows — one per contract category (any N). Each row
+ * carries exactly what a carousel slide / cards tile needs: label, blurb, facet href, and
+ * the worker-proxy image URL of the category's representative asset. The DA-index edit
+ * consumes these directly; no per-run URL construction.
+ */
+export function buildCardRows({ contract = [], categoryCoverage = {}, representatives = {} }) {
+  const counts = new Map((categoryCoverage.categories || []).map((c) => [c.slug, c.assetCount]));
+  const reps = representatives.items || {};
+  // Contract order is the authored order; only categories with a representative asset become
+  // cards (mandatory assignment means every populated contract slug has one).
+  const slugs = contract.length
+    ? contract.map((c) => c.slug)
+    : Object.keys(reps);
+  return slugs
+    .filter((slug) => reps[slug])
+    .map((slug) => {
+      const entry = contract.find((c) => c.slug === slug);
+      const rep = reps[slug];
+      const label = (entry && entry.label) || humanizeCategorySlug(slug);
+      const blurb = rep.description || `Browse ${label} imagery.`;
+      return {
+        slug,
+        label,
+        assetCount: counts.get(slug) || 0,
+        blurb,
+        href: categorySearchUrl(slug),
+        cardImageUrl: rep.cardImageUrl || cardImageUrl(rep),
+      };
+    });
+}
+
+/**
+ * Card gate: the report must yield a credible landing card set. Fails when a contract
+ * category has zero assets, when fewer than MIN_CARDS cards exist, or when any card row is
+ * missing its facet href or image (structurally prevents dead/blank tiles).
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function checkCardGate(report, contract = []) {
+  const cards = report.cards || [];
+  const missing = report.representatives?.missing || [];
+  if (contract.length && missing.length) {
+    return { ok: false, reason: `contract categories with no assets: ${missing.join(', ')}` };
+  }
+  if (cards.length < MIN_CARDS) {
+    return { ok: false, reason: `only ${cards.length} card(s); need at least ${MIN_CARDS}. Widen source discovery or the category contract.` };
+  }
+  const broken = cards.filter((c) => !c.href || !c.cardImageUrl).map((c) => c.slug);
+  if (broken.length) {
+    return { ok: false, reason: `card(s) missing href/image: ${broken.join(', ')}` };
+  }
+  return { ok: true };
+}
 
 /**
  * Plan one asset: read metadata, skip if already enriched, fetch a rendition, generate +
@@ -220,7 +301,7 @@ async function discoverTargetAssets({
  * }>}
  */
 export async function enrichAssets({
-  options, client, generator, log = console,
+  options, client, generator, classifier, log = console,
 }) {
   const report = new Report();
   const { customerKey } = options;
@@ -271,7 +352,12 @@ export async function enrichAssets({
     },
   );
 
-  const categorized = applyCategoryPlan(planned);
+  // Category assignment maps every asset onto the source-derived contract
+  // (options.categoryContract) via the injected classifier (agent/LLM live; deterministic
+  // stub in tests) — no hardcoded keyword vocabulary. Assignment is mandatory; each asset
+  // lands in exactly one contract slug.
+  const contract = normalizeContract(options.categoryContract);
+  const categorized = applyCategoryPlan(planned, { contract, classifier });
   const withMetadataPlans = categorized.map((p) => {
     if (!p || p.error || p.skip || !p.fields) return p;
     return {
@@ -281,7 +367,13 @@ export async function enrichAssets({
   });
   const categoryCoverage = buildCategoryCoverage(withMetadataPlans);
   report.setCategoryCoverage(categoryCoverage);
-  report.setRepresentatives(buildProductCategoryRepresentatives(withMetadataPlans));
+  const representatives = buildProductCategoryRepresentatives(withMetadataPlans, {
+    expectedCategories: contract.map((c) => c.slug),
+  });
+  report.setRepresentatives(representatives);
+  // Ready-to-author landing card rows (one per contract category, any N) — the DA-index
+  // edit consumes these directly. Built from coverage + representatives, no hand URLs.
+  report.setCards(buildCardRows({ contract, categoryCoverage, representatives }));
 
   const writable = [];
   withMetadataPlans.forEach((p) => {
@@ -428,6 +520,9 @@ export async function main(argv = process.argv.slice(2)) {
       console.warn('[agent] --fixture is offline-only; forcing --dry-run.');
       options.dryRun = true;
     }
+    // No classifier injected here → applyCategoryPlan uses the deterministic token-overlap
+    // classifier over the contract. The agent/LLM can call enrichAssets({classifier}) directly
+    // for smarter mapping; the CLI default stays deterministic and offline-safe.
     run = () => enrichAssets({ options, client, generator });
   } else {
     const aemEnvId = resolveAemEnvId({ aemEnvId: options.aemEnvId });
@@ -459,6 +554,9 @@ export async function main(argv = process.argv.slice(2)) {
     });
     console.warn(`[agent] using DM creds from ${creds.source}`);
     console.warn(`[agent] targeting AEM author env ${aemEnvId} via the Assets Author API`);
+    // No classifier injected here → applyCategoryPlan uses the deterministic token-overlap
+    // classifier over the contract. The agent/LLM can call enrichAssets({classifier}) directly
+    // for smarter mapping; the CLI default stays deterministic and offline-safe.
     run = () => enrichAssets({ options, client, generator });
   }
 
@@ -497,13 +595,23 @@ export async function main(argv = process.argv.slice(2)) {
     writeFileSync(options.reportFile, JSON.stringify(report.toJSON(), null, 2));
   }
 
+  // Card gate: the landing page needs enough populated, well-formed category cards. A
+  // shortfall means the contract had an empty category or too few — fail loudly rather than
+  // author a sparse/broken grid (Lilly's "3 cards + dead Top Areas" failure).
+  const cardGate = checkCardGate(report, normalizeContract(options.categoryContract));
+  if (!cardGate.ok) {
+    console.error(`[agent] card gate FAILED: ${cardGate.reason}`);
+  } else if (report.cards) {
+    console.warn(`[agent] cards ready: ${report.cards.map((c) => `${c.slug}(${c.assetCount})`).join(', ')}`);
+  }
+
   // Auto-scope the worker to this customer after a live enrichment run.
   if (!options.dryRun && options.customerKey) {
     patchDemoCompany(options.customerKey, { dryRun: false });
   }
 
   console.log(`[agent] done: ${report.summaryLine()}`);
-  process.exit(report.exitCode());
+  process.exit(report.exitCode() || (cardGate.ok ? 0 : 1));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

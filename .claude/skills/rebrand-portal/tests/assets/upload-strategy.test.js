@@ -4,6 +4,7 @@ import {
 import {
   RepositoryUploadStrategy, createUploadStrategy,
 } from '../../scripts/assets/upload-strategy.js';
+import { BRING_IN_MAX_IMAGES } from '../../scripts/assets/constants.js';
 
 // ---------------------------------------------------------------------------
 // Fake client that captures calls
@@ -284,6 +285,18 @@ describe('RepositoryUploadStrategy', () => {
       sourcePage: 'https://x/ok',
     });
     expect(res.uploaded[0]).not.toHaveProperty('bytes');
+  });
+
+  it('caps uploads at BRING_IN_MAX_IMAGES even when the caller collected more', async () => {
+    const client = fakeClient();
+    const { fetchFn } = buildFetch();
+    const strategy = new RepositoryUploadStrategy({ client, fetchFn });
+    const images = Array.from({ length: BRING_IN_MAX_IMAGES + 42 }, (_, i) => ({
+      fileName: `img-${i}.png`, bytes: smallPng, contentType: 'image/png',
+    }));
+    const res = await strategy.uploadImages({ folderPath: '/content/dam/acme', images });
+    expect(res.uploaded).toHaveLength(BRING_IN_MAX_IMAGES);
+    expect(res.failures).toHaveLength(0);
   });
 
   it('ensureFolder creates folders through the repository API', async () => {

@@ -9,9 +9,23 @@ function cleanString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+/**
+ * Worker-proxy image URL for a representative asset — the ONLY renderable form for a DAM
+ * asset in the portal (raw delivery-*.adobeaemcloud.com 404s unauthenticated). Same shape
+ * the app's own components produce (blocks/search-results/components/picture.js): strip the
+ * file extension and encodeURIComponent the base name. Returns null when assetId is missing.
+ */
+export function cardImageUrl(rep, { width = 750 } = {}) {
+  const assetId = rep && cleanString(rep.assetId);
+  if (!assetId) return null;
+  const name = cleanString(rep.repoName) || cleanString(rep.title) || 'thumbnail';
+  const fileName = encodeURIComponent(name.replace(/\.[^/.]+$/, '') || 'thumbnail');
+  return `/api/adobe/assets/${assetId}/as/${fileName}.jpg?width=${width}`;
+}
+
 function representativeFor(plan, groupValue) {
   const { asset, fields = {}, skip } = plan;
-  return {
+  const rep = {
     productCategory: groupValue,
     assetId: cleanString(asset.assetId),
     assetPath: cleanString(asset.repoPath),
@@ -21,6 +35,8 @@ function representativeFor(plan, groupValue) {
     keywords: Array.isArray(fields.keywords) ? fields.keywords : [],
     source: skip ? 'already-enriched' : 'planned-enrichment',
   };
+  rep.cardImageUrl = cardImageUrl(rep);
+  return rep;
 }
 
 /**

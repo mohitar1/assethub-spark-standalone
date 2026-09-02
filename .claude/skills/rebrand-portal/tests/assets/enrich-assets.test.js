@@ -1,9 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { enrichAssets, mapWithConcurrency } from '../../scripts/assets/enrich-assets.js';
+import {
+  enrichAssets, mapWithConcurrency, normalizeContract, buildCardRows, checkCardGate,
+} from '../../scripts/assets/enrich-assets.js';
 import { createAssetMetadataGenerator } from '../../scripts/assets/generate.js';
 import { makeRes, makeClient } from './helpers.js';
 
 const silent = { info: () => {}, warn: () => {} };
+
+// Source-derived category contract (Step 4). Fixtures below carry filename/keyword/smart-tag
+// evidence for "products"; the deterministic classifier maps them into this contract.
+const CONTRACT = [
+  { slug: 'products', label: 'Products' },
+  { slug: 'lifestyle', label: 'Lifestyle' },
+  { slug: 'accessories', label: 'Accessories' },
+  { slug: 'machines', label: 'Machines' },
+];
 
 function baseOptions(overrides = {}) {
   return {
@@ -14,6 +25,7 @@ function baseOptions(overrides = {}) {
     bringIn: false,
     concurrency: 1,
     limit: null,
+    categoryContract: CONTRACT,
     ...overrides,
   };
 }
@@ -33,13 +45,21 @@ const generator = async () => ({
   keywords: ['product', 'hero', 'launch'],
 });
 
-// Defaults to already-processed: waitForAssetProcessed polls this same GET until
-// dam:assetState reaches "processed", so every fixture needs that field set (or every
-// test would poll for real, which is what a `metadata({ 'dam:assetState': 'not-yet' })`
-// override is for — see the "waits for asset processing" tests below).
+// waitForAssetProcessed polls jcr:content.json (NOT the metadata.json sub-node) for
+// dam:assetState, then does one final metadata.json read once processed. Every fixture
+// that goes through waitForAssetProcessed therefore needs a jcrContent() response
+// immediately before its metadata() response, one jcrContent() per poll iteration.
+function jcrContent(assetState = 'processed') {
+  return makeRes({ body: { 'dam:assetState': assetState } });
+}
+
+// metadata() itself no longer needs 'dam:assetState': 'processed' baked in by default —
+// that field is read from jcrContent() during polling, not from this response — but
+// several fixtures still pass dam:assetState here incidentally; it's harmless, just unread
+// by the poll.
 function metadata(assetMetadata = {}, repositoryMetadata = { 'dc:format': 'application/octet-stream' }) {
   return makeRes({
-    body: { 'dam:assetState': 'processed', ...assetMetadata, 'dc:format': repositoryMetadata['dc:format'] },
+    body: { ...assetMetadata, 'dc:format': repositoryMetadata['dc:format'] },
     headers: { ETag: '"v1"' },
   });
 }
@@ -72,7 +92,7 @@ describe('mapWithConcurrency', () => {
 
 describe('enrichAssets controller', () => {
   it('dry-run: generates a Sling metadata preview without writing', async () => {
-    const client = makeClient([searchPage(oneAsset), metadata()]);
+    const client = makeClient([searchPage(oneAsset), jcrContent(), metadata()]);
     const out = await enrichAssets({
       options: baseOptions({ dryRun: true }), client, generator, log: silent,
     });
@@ -86,7 +106,7 @@ describe('enrichAssets controller', () => {
       productCategory: 'products',
       title: 'Product Hero',
     });
-    expect(client.calls.map((c) => c.op)).toEqual(['search', 'sling']);
+    expect(client.calls.map((c) => c.op)).toEqual(['search', 'sling', 'sling']);
   });
 
   it('source-url dry-run builds category coverage from scraped assets without AEM writes', async () => {
@@ -128,7 +148,7 @@ describe('enrichAssets controller', () => {
   });
 
   it('skips assets already enriched for this customer and category', async () => {
-    const client = makeClient([searchPage(oneAsset), metadata({
+    const client = makeClient([searchPage(oneAsset), jcrContent(), metadata({
       company: 'santander',
       'dc:title': 'Existing',
       'dam:status': 'approved',
@@ -149,6 +169,7 @@ describe('enrichAssets controller', () => {
   it('does not skip an asset that is missing productCategory', async () => {
     const client = makeClient([
       searchPage(oneAsset),
+      jcrContent(),
       metadata({
         company: 'santander',
         'dc:title': 'Existing',
@@ -172,23 +193,41 @@ describe('enrichAssets controller', () => {
     expect(postCall.opts.body).toContain('.%2FproductCategory=products');
   });
 
-  it('fails category planning when no productCategory can be inferred', async () => {
+  it('mandatory assignment: an evidence-less asset is still assigned a contract category (not failed)', async () => {
+    // Category assignment is now mandatory (user decision: a low-confidence agent mapping
+    // beats a blank card). An asset with no strong evidence lands in a contract slug via the
+    // deterministic fallback and is written — it is NOT dropped as FAILED/unclassified.
     const asset = [{
       assetId: 'a1',
       repositoryMetadata: { 'repo:path': '/content/dam/santander/asset.bin', 'repo:name': 'asset.bin' },
     }];
-    const client = makeClient([searchPage(asset), metadata()]);
+    const client = makeClient([
+      searchPage(asset),
+      jcrContent(),
+      metadata(),
+      makeRes({ status: 200 }),
+      metadata({
+        company: 'santander',
+        'dc:title': 'Asset',
+        'dam:status': 'approved',
+        allowedCountries: 'global',
+        productCategory: 'products',
+      }),
+    ]);
     const out = await enrichAssets({
       options: baseOptions(), client, generator: async () => ({ title: 'Asset' }), log: silent,
     });
-    expect(out.report.counts().failed).toBe(1);
-    expect(client.calls.some((c) => c.op === 'sling' && c.opts.method === 'POST')).toBe(false);
-    expect(out.report.toJSON().categoryCoverage.unclassified).toEqual(['a1']);
+    expect(out.report.counts().failed).toBeUndefined();
+    expect(out.report.counts().enriched).toBe(1);
+    expect(out.report.toJSON().categoryCoverage.unclassified).toEqual([]);
+    const postCall = client.calls.find((c) => c.op === 'sling' && c.opts.method === 'POST');
+    expect(postCall.opts.body).toContain('.%2FproductCategory=');
   });
 
   it('live mode writes each asset through Sling POST and reports enriched', async () => {
     const client = makeClient([
       searchPage(oneAsset),
+      jcrContent(),
       metadata(),
       makeRes({ status: 200 }),
       metadata({
@@ -212,7 +251,7 @@ describe('enrichAssets controller', () => {
   });
 
   it('never overwrites existing metadata values', async () => {
-    const client = makeClient([searchPage(oneAsset), metadata({
+    const client = makeClient([searchPage(oneAsset), jcrContent(), metadata({
       'dc:title': 'Existing Title',
     }), makeRes({ status: 200 }), metadata({
       company: 'santander',
@@ -247,8 +286,9 @@ describe('enrichAssets controller', () => {
   it('waits for dam:assetState=processed, polling until it flips before reading metadata', async () => {
     const client = makeClient([
       searchPage(oneAsset),
-      metadata({ 'dam:assetState': 'processing' }),
-      metadata({ 'dam:assetState': 'processing' }),
+      jcrContent('processing'),
+      jcrContent('processing'),
+      jcrContent('processed'),
       metadata(),
       makeRes({ status: 200 }),
       metadata({
@@ -266,14 +306,16 @@ describe('enrichAssets controller', () => {
       log: silent,
     });
     expect(out.report.counts().enriched).toBe(1);
-    // 3 polling GETs (processing, processing, processed) + 1 post-write verify GET.
+    // 3 polling GETs (processing, processing, processed) + 1 metadata GET once processed
+    // + 1 post-write verify GET.
     const slingGets = client.calls.filter((c) => c.op === 'sling' && c.opts.method === 'GET');
-    expect(slingGets).toHaveLength(4);
+    expect(slingGets).toHaveLength(5);
   });
 
   it('fails the asset (does not write) when it never reaches processed before the poll timeout', async () => {
     const client = makeClient([
       searchPage(oneAsset),
+      jcrContent('processing'),
       metadata({ 'dam:assetState': 'processing' }),
     ]);
     const out = await enrichAssets({
@@ -292,6 +334,7 @@ describe('enrichAssets controller', () => {
   it('uses autogen:* fields as primary evidence over filename tokens once processed', async () => {
     const client = makeClient([
       searchPage(oneAsset),
+      jcrContent(),
       metadata({
         'autogen:title': 'Braided USB-C Cable',
         'autogen:description': 'A durable braided USB-C charging cable.',
@@ -318,6 +361,7 @@ describe('enrichAssets controller', () => {
   it('does not call asset publish after writing approved metadata', async () => {
     const client = makeClient([
       searchPage(oneAsset),
+      jcrContent(),
       metadata(),
       makeRes({ status: 200 }),
       metadata({
@@ -333,5 +377,101 @@ describe('enrichAssets controller', () => {
     });
     expect(out.report.counts().enriched).toBe(1);
     expect(client.calls.some((c) => c.op === 'publish')).toBe(false);
+  });
+});
+
+describe('normalizeContract', () => {
+  it('parses a comma-separated slug string into {slug,label}', () => {
+    expect(normalizeContract('dermatology,cancer,diabetes')).toEqual([
+      { slug: 'dermatology', label: 'Dermatology' },
+      { slug: 'cancer', label: 'Cancer' },
+      { slug: 'diabetes', label: 'Diabetes' },
+    ]);
+  });
+
+  it('accepts an array of {slug,label} and preserves labels, de-duping slugs', () => {
+    expect(normalizeContract([
+      { slug: 'Coffee', label: 'Coffee' },
+      { slug: 'coffee' },
+    ])).toEqual([{ slug: 'coffee', label: 'Coffee' }]);
+  });
+
+  it('returns [] for empty/nullish input', () => {
+    expect(normalizeContract(null)).toEqual([]);
+    expect(normalizeContract('')).toEqual([]);
+  });
+});
+
+describe('buildCardRows', () => {
+  const contract = [
+    { slug: 'dermatology', label: 'Dermatology' },
+    { slug: 'cancer', label: 'Cancer' },
+  ];
+  const representatives = {
+    items: {
+      dermatology: {
+        assetId: 'a1', repoName: 'eczema.jpg', description: 'Skin care imagery.', cardImageUrl: '/api/adobe/assets/a1/as/eczema.jpg?width=750',
+      },
+      cancer: {
+        assetId: 'a2', repoName: 'oncology.jpg', cardImageUrl: '/api/adobe/assets/a2/as/oncology.jpg?width=750',
+      },
+    },
+  };
+  const categoryCoverage = { categories: [{ slug: 'dermatology', assetCount: 14 }, { slug: 'cancer', assetCount: 4 }] };
+
+  it('emits one well-formed row per contract category (label, blurb, href, image)', () => {
+    const rows = buildCardRows({ contract, categoryCoverage, representatives });
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toEqual({
+      slug: 'dermatology',
+      label: 'Dermatology',
+      assetCount: 14,
+      blurb: 'Skin care imagery.',
+      href: '/en/search?facetFilters=%7B%22productCategory%22%3A%7B%22dermatology%22%3Atrue%7D%7D',
+      cardImageUrl: '/api/adobe/assets/a1/as/eczema.jpg?width=750',
+    });
+    expect(rows[1].blurb).toBe('Browse Cancer imagery.'); // default when no description
+  });
+
+  it('skips contract categories that have no representative', () => {
+    const rows = buildCardRows({
+      contract: [...contract, { slug: 'diabetes', label: 'Diabetes' }],
+      categoryCoverage,
+      representatives,
+    });
+    expect(rows.map((r) => r.slug)).toEqual(['dermatology', 'cancer']);
+  });
+});
+
+describe('checkCardGate', () => {
+  const contract = normalizeContract('a,b,c,d');
+  function reportWith(cards, missing = []) {
+    return { cards, representatives: { missing } };
+  }
+  const goodCard = (slug) => ({
+    slug, href: `/en/search?x=${slug}`, cardImageUrl: `/api/adobe/assets/${slug}/as/x.jpg?width=750`, assetCount: 3,
+  });
+
+  it('passes with enough well-formed cards and no missing categories', () => {
+    const report = reportWith(['a', 'b', 'c', 'd'].map(goodCard));
+    expect(checkCardGate(report, contract)).toEqual({ ok: true });
+  });
+
+  it('fails when a contract category has no assets', () => {
+    const report = reportWith(['a', 'b', 'c', 'd'].map(goodCard), ['e']);
+    expect(checkCardGate(report, contract).ok).toBe(false);
+  });
+
+  it('fails below the minimum card count', () => {
+    const report = reportWith(['a', 'b'].map(goodCard));
+    expect(checkCardGate(report, []).ok).toBe(false);
+  });
+
+  it('fails a card missing its href or image', () => {
+    const cards = ['a', 'b', 'c'].map(goodCard);
+    cards.push({
+      slug: 'd', href: '/x', cardImageUrl: null, assetCount: 1,
+    });
+    expect(checkCardGate(reportWith(cards), []).ok).toBe(false);
   });
 });

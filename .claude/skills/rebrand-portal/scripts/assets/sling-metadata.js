@@ -233,15 +233,39 @@ export async function getSlingAssetMetadata(client, repoPath) {
 }
 
 /**
- * Poll Sling metadata until AEM's asset-processing pipeline reports
- * dam:assetState === "processed" (or the timeout elapses). Enrichment must not read
- * autogen:* fields before this — they may be missing or stale mid-processing, and reading
- * early is exactly what forces a silent fallback to weaker filename-based evidence.
+ * AEM writes dam:assetState directly on jcr:content, NOT inside the jcr:content/metadata
+ * sub-node that getSlingAssetMetadata reads — confirmed against a live asset's
+ * jcr:content.-1.json, which shows "dam:assetState" as a sibling of "jcr:primaryType",
+ * one level above the "metadata" node. Polling metadata.json for this field never sees it
+ * change, so waitForAssetProcessed must read jcr:content.json separately.
+ */
+async function getAssetProcessingState(client, repoPath) {
+  const path = `${encodeSlingPath(repoPath)}/jcr:content.json`;
+  const res = await client.request('sling', {
+    method: 'GET',
+    path,
+    headers: { Accept: 'application/json' },
+    includeApiKey: false,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`GET Sling jcr:content ${repoPath} -> ${res.status} ${text}`.trim());
+  }
+  const json = await res.json();
+  return json?.[AUTOGEN_FIELD.ASSET_STATE];
+}
+
+/**
+ * Poll AEM's asset-processing pipeline until it reports dam:assetState === "processed"
+ * (or the timeout elapses). Enrichment must not read autogen:* fields before this — they
+ * may be missing or stale mid-processing, and reading early is exactly what forces a
+ * silent fallback to weaker filename-based evidence.
  *
- * @returns {Promise<{ processed: boolean, meta: Object }>} `meta` is the last read
- *   (whether or not it reached processed) so the caller always has metadata to work with —
- *   including in the timeout case, where `processed: false` tells the caller to treat
- *   autogen:* fields as unreliable and record the timeout rather than guess.
+ * @returns {Promise<{ processed: boolean, meta: Object }>} `meta` is the last-read Sling
+ *   metadata (from the separate metadata.json sub-node the caller actually consumes for
+ *   autogen:* fields), fetched once processing is confirmed — or once the timeout hits, in
+ *   which case `processed: false` tells the caller to treat autogen:* fields as unreliable
+ *   and record the timeout rather than guess.
  */
 export async function waitForAssetProcessed(client, repoPath, {
   timeoutMs = ASSET_PROCESSED_POLL_TIMEOUT_MS,
@@ -250,12 +274,16 @@ export async function waitForAssetProcessed(client, repoPath, {
   now = () => Date.now(),
 } = {}) {
   const deadline = now() + timeoutMs;
-  let meta = await getSlingAssetMetadata(client, repoPath);
-  while (meta.assetMetadata[AUTOGEN_FIELD.ASSET_STATE] !== ASSET_STATE_PROCESSED) {
-    if (now() >= deadline) return { processed: false, meta };
+  let state = await getAssetProcessingState(client, repoPath);
+  while (state !== ASSET_STATE_PROCESSED) {
+    if (now() >= deadline) {
+      const meta = await getSlingAssetMetadata(client, repoPath);
+      return { processed: false, meta };
+    }
     await sleepFn(intervalMs);
-    meta = await getSlingAssetMetadata(client, repoPath);
+    state = await getAssetProcessingState(client, repoPath);
   }
+  const meta = await getSlingAssetMetadata(client, repoPath);
   return { processed: true, meta };
 }
 
