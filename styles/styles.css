@@ -147,7 +147,8 @@
   --welcome-panel-bg: #0A0A0A;
   --welcome-panel-accent-rgb: 8 127 200;
   --welcome-panel-mark-image: url('/icons/urbn-beans.svg');
-  --welcome-tagline: '"Power your vibe,\Aeverywhere you go."';
+  --welcome-tagline: '"Power your vibe,
+everywhere you go."';
 }
 
 /* fallback fonts */
