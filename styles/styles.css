@@ -12,19 +12,19 @@
 
 :root {
   /* Brand palette (semantic tokens — single source of truth) */
-  --light-color: #F4E9DC;
-  --dark-color: #2C2C2C;
-  --text-color: #58181D;
-  --text-primary: #58181D;
-  --link-color: #58181D;
-  --link-hover-color: #00647D;
-  --primary-color: #00647D;
-  --primary-color-hover: #004d61;
-  --color-red: #A33532;
-  --color-dark-red: #95351D;
-  --accent-secondary: #DC6E52;
-  --accent-tertiary: #EBA439;
-  --secondary-color: #95351D;
+  --light-color: #F2F7FB;
+  --dark-color: #0B1E33;
+  --text-color: #0B1E33;
+  --text-primary: #0B1E33;
+  --link-color: #0093D0;
+  --link-hover-color: #00629B;
+  --primary-color: #0093D0;
+  --primary-color-hover: #00629B;
+  --color-red: #0093D0;
+  --color-dark-red: #00629B;
+  --accent-secondary: #00629B;
+  --accent-tertiary: #7FC4E8;
+  --secondary-color: #00629B;
 
   /* Neutral & shape tokens */
   --color-neutral-50: #fff;
@@ -60,14 +60,14 @@
 
   /* Semantic aliases */
   --background-color: var(--color-neutral-50);
-  --color-secondary-light-sky-blue: rgb(0 100 125 / 12%);
+  --color-secondary-light-sky-blue: rgb(0 147 208 / 12%);
   --color-secondary: var(--text-color);
   --color-medium-grey: var(--color-neutral-400);
   --color-dark-blue: var(--primary-color);
 
   /* fonts */
   --body-font-family: var(--type-base-font-family);
-  --heading-font-family: baskerville, serif;
+  --heading-font-family: var(--type-base-font-family);
 
   /* font sizes */
   --body-font-size-m: 18px;
@@ -93,13 +93,13 @@
 
   /* status badge colors */
   --status-not-started: var(--primary-color);
-  --status-not-started-bg: rgb(0 100 125 / 12%);
+  --status-not-started-bg: rgb(0 147 208 / 12%);
   --status-in-progress: var(--accent-tertiary);
-  --status-in-progress-bg: rgb(235 164 57 / 12%);
+  --status-in-progress-bg: rgb(127 196 232 / 12%);
   --status-completed: #7fb078;
   --status-completed-bg: rgb(127 176 120 / 12%);
   --status-cancelled: var(--color-red);
-  --status-cancelled-bg: rgb(163 53 50 / 12%);
+  --status-cancelled-bg: rgb(0 147 208 / 12%);
 
   /* focus ring */
   --focus-ring-color: var(--primary-color);
@@ -120,7 +120,7 @@
 
   /* action button colors */
   --button-primary: var(--primary-color);
-  --button-primary-hover: #004d61;
+  --button-primary-hover: var(--primary-color-hover);
 
   /* label colors */
   --label-color: var(--text-color);
@@ -141,6 +141,13 @@
   --line-height-05: 1.6;
   --line-height-06: 1.25;
   --line-height-07: 1.1;
+
+  /* Pfizer demo — welcome/login split-screen brand panel override */
+  --welcome-panel-bg: #0B1E33;
+  --welcome-panel-accent-rgb: 0 147 208;
+  --welcome-panel-mark-image: url('/icons/pfizer-beans.svg');
+  --welcome-tagline-line1: '"Breakthroughs';
+  --welcome-tagline-line2: 'that change patients\' lives."';
 }
 
 /* fallback fonts */
@@ -941,7 +948,7 @@ main .section.full-width > div {
 
 
 .homepage-bg {
-  background: var(--light-color) url('backgrounds/big.svg') no-repeat center center/cover;
+  background: var(--light-color);
   color: var(--text-color);
   padding: 16px;
   margin: 8px 0;
@@ -950,7 +957,7 @@ main .section.full-width > div {
 
 /* Frescopa landing hero: compact, elegant, beige; the search pill is the focal point */
 main .section.search-hero {
-  background: var(--light-color) url('backgrounds/big.svg') no-repeat center top / cover;
+  background: var(--light-color);
   color: var(--text-color);
   margin: 0;
   padding: 56px 0 48px;
@@ -1012,13 +1019,13 @@ main .section.search-hero .query-input-container {
 
 main .section.search-hero .query-input-bar {
   background: #fff;
-  box-shadow: 0 12px 30px rgb(88 24 29 / 14%);
+  box-shadow: 0 12px 30px rgb(11 30 51 / 14%);
 }
 
 /* Landing: Browse-by-category tiles */
 main .section.category-tiles {
   padding: 56px 72px 40px;
-  background: rgb(235 164 57 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
+  background: rgb(127 196 232 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
   text-align: center;
 }
 
@@ -1054,15 +1061,15 @@ main .section.category-tiles .cards > ul > li {
   flex-direction: column;
   text-align: left;
   background: var(--color-neutral-50);
-  border: 1px solid rgb(88 24 29 / 8%);
+  border: 1px solid rgb(11 30 51 / 8%);
   border-radius: 12px;
-  box-shadow: 0 8px 22px rgb(88 24 29 / 8%);
+  box-shadow: 0 8px 22px rgb(11 30 51 / 8%);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 main .section.category-tiles .cards > ul > li:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 26px rgb(88 24 29 / 12%);
+  box-shadow: 0 12px 26px rgb(11 30 51 / 12%);
 }
 
 /* Text-only tile (no image cell) collapses to its body — never reserve a blank
@@ -1614,23 +1621,23 @@ picture.missing img {
 }
 
 
-.frescopa-background-red {
+.brand-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.brand-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.brand-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.brand-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.brand-background-black {
   background-color: var(--dark-color);
 }
 
@@ -1643,7 +1650,7 @@ main > .section + .background {
   padding: 10px 0;
   margin-left: auto;
   margin-right: auto;
-  background: var(--light-color) url('backgrounds/big.svg') no-repeat center center/cover;
+  background: var(--light-color);
 }
 
 main > .section + .background > div {
@@ -1652,23 +1659,23 @@ main > .section + .background > div {
 }
 
 @media (width >= 900px) {
-.frescopa-background-red {
+.brand-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.brand-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.brand-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.brand-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.brand-background-black {
   background-color: var(--dark-color);
 }
 
