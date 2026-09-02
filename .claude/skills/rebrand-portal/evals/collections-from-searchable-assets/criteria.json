@@ -1,0 +1,35 @@
+{
+  "context": "Tests Step 6 (build collections from the now-searchable assets). The agent must drive .claude/skills/rebrand-portal/scripts/assets/create-collections.js (dry-run then live) rather than hand-rolling collection API calls or using the author API, must create company-scoped collections (stamped with the company key so the worker's DEMO_COMPANY collections filter can show/hide them), must not create an uncategorized/global collection, and must reuse the existing environment (no credential collection, no backend boot/deploy).",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Runs create-collections.js (not hand-rolled API calls)",
+      "max_score": 35,
+      "description": "The agent invokes .claude/skills/rebrand-portal/scripts/assets/create-collections.js (dry-run then live) with the company key; it does not curl/hand-roll the Adobe collection endpoints and does not use the author API for collections.",
+      "check": {
+        "type": "transcriptContains",
+        "value": ".claude/skills/rebrand-portal/scripts/assets/create-collections.js"
+      }
+    },
+    {
+      "name": "Collections are company-scoped",
+      "max_score": 30,
+      "description": "Each created collection is scoped to the company (stamped with the company key / custom:metadata.company) so the worker's collections company filter (DEMO_COMPANY) shows only this company's collections. The agent does not create an uncategorized or un-scoped/global collection that would leak across companies."
+    },
+    {
+      "name": "Reuses the existing environment; no credential collection or backend boot/deploy",
+      "max_score": 20,
+      "description": "The agent relies on cloudflare/.secrets and repo config; it does not ask for DM/Content Hub credentials, an AEM env id, or any secret, and does not re-run enrichment, boot a backend, or deploy to make collections appear."
+    },
+    {
+      "name": "Marks collections-created done only after verifying the visible outcome",
+      "max_score": 10,
+      "description": "The agent verifies the collections list the company's assets in the portal before setting collections-created to done in .internal/onboarding-state.json."
+    },
+    {
+      "name": "Plain language, no internal terms",
+      "max_score": 5,
+      "description": "No internal terms (tier, deploy, ACL, ContentAI, phase names) surfaced to the customer."
+    }
+  ]
+}

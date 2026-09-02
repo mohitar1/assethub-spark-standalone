@@ -1,0 +1,41 @@
+{
+  "context": "Guards that the DA copy (Step 3) is full-tree (including the public login folder and config) and verified path-by-path rather than by a document count. A count-only check previously let /acme/public and /acme/config come across empty while the total still passed, breaking login.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Uses the packaged copy script, not hand-rolled curl",
+      "max_score": 20,
+      "description": "The agent runs .claude/skills/rebrand-portal/scripts/da/copy-folder.sh (org/repo from git remote, companyKey acme) rather than composing its own curl copy calls.",
+      "check": {
+        "type": "transcriptContains",
+        "value": ".claude/skills/rebrand-portal/scripts/da/copy-folder.sh"
+      }
+    },
+    {
+      "name": "Full-tree copy including public and config",
+      "max_score": 30,
+      "description": "The agent expects every top-level entry copied into /acme, explicitly including the public (login/welcome) and config folders, not just the visible page tree."
+    },
+    {
+      "name": "Path-by-path verification, not a count",
+      "max_score": 30,
+      "description": "The agent relies on path-by-path verification (every source doc has a /acme counterpart) and rejects a count-only / 'at least N docs' check as proof of completeness."
+    },
+    {
+      "name": "Only a verified copy advances the step",
+      "max_score": 15,
+      "description": "Only exit 0 (copied and verified) marks da-content-copied done; a verification mismatch (exit 4) is treated as a failure to re-copy, not 'good enough'.",
+      "check": {
+        "type": "jsonPath",
+        "file": ".internal/onboarding-state.json",
+        "path": "steps.da-content-copied",
+        "equals": "done"
+      }
+    },
+    {
+      "name": "Plain language, no internal terms",
+      "max_score": 5,
+      "description": "No da-copy-folder.sh, public, config, exit code, or branch jargon exposed to the customer (I1)."
+    }
+  ]
+}

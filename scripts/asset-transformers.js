@@ -325,7 +325,7 @@ export function populateAssetFromMetadata(metadata) {
   const formattedSize = repoMeta?.['repo:size'] ? formatFileSize(repoMeta['repo:size']) : 'N/A';
 
   // Keywords: prefer Content Hub xcm keywords, fall back to dc:subject written by
-  // the customer-migration enrichment agent.
+  // the rebrand-portal enrichment agent.
   const dcSubjectKeywords = extractKeywords(assetMeta?.['dc:subject']);
   const xcmKeywords = extractKeywords(assetMeta?.['xcm:keywords']) || dcSubjectKeywords;
 
@@ -409,13 +409,13 @@ export function populateAssetFromContentAIHit(contentAIHit) {
     || repositoryMetadata['tiff:imageLength'];
 
   // Keywords: prefer Content Hub xcm keywords, fall back to dc:subject written by
-  // the customer-migration enrichment agent.
+  // the rebrand-portal enrichment agent.
   const dcSubjectKeywords = extractKeywords(assetMetadata['dc:subject']);
   const xcmKeywords = extractKeywords(assetMetadata['xcm:keywords']) || dcSubjectKeywords;
   const xcmMachineKeywords = extractKeywords(assetMetadata['xcm:machineKeywords']);
 
-  // Business-taxonomy fields written by the customer-migration enrichment agent
-  // (.claude/skills/customer-migration/scripts/assets/normalize.js
+  // Business-taxonomy fields written by the rebrand-portal enrichment agent
+  // (.claude/skills/rebrand-portal/scripts/assets/normalize.js
   // FIELD.PRODUCT_CATEGORY/CAMPAIGN/CHANNEL). Mapped straight through as plain
   // strings; absent on assets that predate enrichment.
   const productCategory = safeStringField(assetMetadata, 'productCategory');

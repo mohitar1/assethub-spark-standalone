@@ -1,12 +1,12 @@
 # Rebrand (Phase A): design plan
 
 This document is the design plan behind **Phase A** of
-`.claude/skills/customer-migration/SKILL.md`. It records the reasoning and
+`.claude/skills/rebrand-portal/SKILL.md`. It records the reasoning and
 evidence that shaped that phase, so future changes can be checked against
 the same reasoning rather than re-derived from scratch. (Phase A and the
 backend-onboarding Phase B were originally two separate skills,
 `catalyst-rebrand` and `onboard-customer-portal`; they were merged into
-the single `customer-migration` skill — this doc covers the rebrand half.)
+the single `rebrand-portal` skill — this doc covers the rebrand half.)
 
 ## Context
 

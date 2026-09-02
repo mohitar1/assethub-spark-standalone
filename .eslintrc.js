@@ -18,10 +18,10 @@ module.exports = {
   },
   overrides: [
     {
-      // Node CLI: the per-fork asset enrichment agent (customer-migration Phase C).
+      // Node CLI: the per-fork asset enrichment agent (rebrand-portal Phase C).
       files: [
-        '.claude/skills/customer-migration/scripts/assets/**/*.js',
-        '.claude/skills/customer-migration/tests/assets/**/*.js',
+        '.claude/skills/rebrand-portal/scripts/assets/**/*.js',
+        '.claude/skills/rebrand-portal/tests/assets/**/*.js',
       ],
       env: { node: true },
       rules: {

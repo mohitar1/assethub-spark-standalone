@@ -1,0 +1,35 @@
+{
+  "context": "Tests that Step 6 is automatic for full/assets-only flows once assets are searchable, so the agent does not miss collections or wait for another user prompt.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Does not stop after assets",
+      "max_score": 25,
+      "description": "The agent continues after confirming search/facet behavior instead of ending the turn as if assets alone complete the full demo."
+    },
+    {
+      "name": "Runs create-collections.js automatically",
+      "max_score": 35,
+      "description": "The agent invokes .claude/skills/rebrand-portal/scripts/assets/create-collections.js without requiring the user to ask separately.",
+      "check": {
+        "type": "transcriptContains",
+        "value": ".claude/skills/rebrand-portal/scripts/assets/create-collections.js"
+      }
+    },
+    {
+      "name": "Company-scoped collections only",
+      "max_score": 20,
+      "description": "The collections are stamped/scoped to the company and no global or uncategorized collection is created."
+    },
+    {
+      "name": "Marks done after visible verification",
+      "max_score": 15,
+      "description": "collections-created is marked done only after verifying the portal shows the new company collections with assets."
+    },
+    {
+      "name": "Plain language",
+      "max_score": 5,
+      "description": "No internal terms are surfaced to the customer."
+    }
+  ]
+}

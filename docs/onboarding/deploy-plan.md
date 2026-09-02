@@ -1,7 +1,7 @@
 # Backend deploy stage (Phase B, D.1–D.8): design plan
 
 This document is the design plan behind the **deploy** half of Phase B —
-steps D.1–D.8, implemented in `.claude/skills/customer-migration/deploy.md`
+steps D.1–D.8, implemented in `.claude/skills/rebrand-portal/deploy.md`
 (a companion file the skill opens only when a customer opts into
 deploying). It records the code-verified findings and full file inventory
 that shaped those steps.

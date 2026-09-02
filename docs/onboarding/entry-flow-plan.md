@@ -1,14 +1,14 @@
 # Entry flow: design plan
 
 This document is the design plan behind the **entry flow** and shared
-state model of `.claude/skills/customer-migration/SKILL.md` — the logic
+state model of `.claude/skills/rebrand-portal/SKILL.md` — the logic
 that runs first on every invocation and routes between the rebrand phase
 (`rebrand-plan.md`), the local-run phase (`local-run-plan.md`),
 and the deploy stage (`deploy-plan.md`).
 
 ## The problem it fixes
 
-`customer-migration` is one skill with two phases (rebrand, then backend),
+`rebrand-portal` is one skill with two phases (rebrand, then backend),
 but a customer may want only one: only the rebrand, only the backend
 running, or the rebrand already done (done earlier, by the old
 `catalyst-rebrand` skill, or manually in Catalyst).

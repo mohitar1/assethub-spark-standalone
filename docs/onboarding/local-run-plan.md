@@ -1,7 +1,7 @@
 # Backend local-run (Phase B, B.1–B.11): design plan
 
 This document is the design plan behind the **local-run** half of Phase B
-in `.claude/skills/customer-migration/SKILL.md` (steps B.1–B.11 — getting
+in `.claude/skills/rebrand-portal/SKILL.md` (steps B.1–B.11 — getting
 a fork booting locally with real search and a correctly reported auth
 state). It records the code-verified findings that shaped those steps.
 
@@ -9,7 +9,7 @@ The **deploy** half of Phase B (D.1–D.8, `deploy.md`) is documented
 separately in `deploy-plan.md`; the **rebrand** phase in
 `rebrand-plan.md`; and the entry flow that routes between phases
 in `entry-flow-plan.md`. (Phase B was originally a standalone
-`onboard-customer-portal` skill, since merged into `customer-migration`.)
+`onboard-customer-portal` skill, since merged into `rebrand-portal`.)
 
 ## Context — two scope findings that shaped local-run
 

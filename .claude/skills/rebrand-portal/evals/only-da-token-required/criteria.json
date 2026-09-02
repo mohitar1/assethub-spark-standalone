@@ -1,0 +1,44 @@
+{
+  "context": "Tests the simplified setup: the active rebrand-portal flow asks users for only DA_TOKEN from da.live, gives exact DA Network-tab instructions, and does not ask for manual Helix/admin token alternatives.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Asks only for DA_TOKEN as the token input",
+      "max_score": 30,
+      "description": "The agent asks the customer to create token.env with DA_TOKEN only and does not ask them to provide HLX_ADMIN_TOKEN.",
+      "check": {
+        "type": "transcriptNotContains",
+        "value": "HLX_ADMIN_TOKEN=<"
+      }
+    },
+    {
+      "name": "Gives exact da.live URL and Network-tab steps",
+      "max_score": 25,
+      "description": "The agent tells the customer to open https://da.live/#/{org}/{site}, use DevTools -> Network, click an admin.da.live/config/{org}/... request, and copy Authorization: Bearer ... into token.env."
+    },
+    {
+      "name": "Does not ask for admin.hlx.page browser token",
+      "max_score": 20,
+      "description": "The active setup does not ask the customer to copy x-auth-token from admin.hlx.page.",
+      "check": {
+        "type": "transcriptNotMatches",
+        "value": "admin\\.hlx\\.page.*x-auth-token|x-auth-token.*admin\\.hlx\\.page",
+        "flags": "i"
+      }
+    },
+    {
+      "name": "Does not mention secrets.json setup",
+      "max_score": 15,
+      "description": "The active setup does not route the customer to /secrets.json.",
+      "check": {
+        "type": "transcriptNotContains",
+        "value": "/secrets.json"
+      }
+    },
+    {
+      "name": "Plain language",
+      "max_score": 10,
+      "description": "The answer uses user-facing outcome language and avoids step ids, phase names, and internal mechanics."
+    }
+  ]
+}

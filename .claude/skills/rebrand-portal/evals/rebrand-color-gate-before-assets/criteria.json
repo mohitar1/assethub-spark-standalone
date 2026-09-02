@@ -1,0 +1,56 @@
+{
+  "context": "Tests that Step 4g's rebrand color verification is a hard gate before Step 5. A stale state file says rebrand is done, but fixture CSS still contains the old cream/filter colors and old action reds. The agent must fix/check those surfaces and must not run asset enrichment before the color gate is verified.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "Root palette and secondary buttons no longer use old brand colors",
+      "max_score": 25,
+      "description": "styles/styles.css no longer contains the old cream or old action red literals (#F4E9DC, #95351D, #7a2b17).",
+      "check": {
+        "type": "fileNotMatches",
+        "file": "styles/styles.css",
+        "value": "(?i)#(?:f4e9dc|95351d|7a2b17)"
+      }
+    },
+    {
+      "name": "Facets panel winning background is fixed",
+      "max_score": 20,
+      "description": "blocks/search-results/styles/facets.css no longer contains the old hardcoded facets/filter cream #FBF1EA.",
+      "check": {
+        "type": "fileNotMatches",
+        "file": "blocks/search-results/styles/facets.css",
+        "value": "(?i)#fbf1ea"
+      }
+    },
+    {
+      "name": "Search UI old cream/red literals are cleared",
+      "max_score": 20,
+      "description": "The search-results/search-bar/add-to-collection UI files in the fixture no longer contain the old cream or old action red literals.",
+      "check": {
+        "type": "fileNotMatches",
+        "file": null,
+        "value": "(?i)#(?:f4e9dc|fbf1ea|95351d|7a2b17)"
+      }
+    },
+    {
+      "name": "Does not start asset enrichment before the color gate",
+      "max_score": 20,
+      "description": "The agent does not invoke the enrichment command in the same turn while the color verification gate is still being repaired/verified.",
+      "check": {
+        "type": "transcriptNotMatches",
+        "value": "(^|[\\n`$ ])node\\s+\\.claude/skills/rebrand-portal/scripts/assets/enrich-assets\\.js",
+        "flags": "i"
+      }
+    },
+    {
+      "name": "Treats deployed preview color verification as required before assets",
+      "max_score": 10,
+      "description": "The agent explains that the deployed preview/facets-panel verification must pass before moving to asset enrichment, rather than treating local edits alone as enough."
+    },
+    {
+      "name": "Plain language, no internal terms",
+      "max_score": 5,
+      "description": "No internal terms are surfaced unnecessarily to the customer."
+    }
+  ]
+}
