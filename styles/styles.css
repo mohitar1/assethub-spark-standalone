@@ -9,22 +9,23 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+@import url('brand.css');
 
 :root {
   /* Brand palette (semantic tokens — single source of truth) */
-  --light-color: #F4E9DC;
-  --dark-color: #2C2C2C;
-  --text-color: #58181D;
-  --text-primary: #58181D;
-  --link-color: #58181D;
-  --link-hover-color: #00647D;
-  --primary-color: #00647D;
-  --primary-color-hover: #004d61;
-  --color-red: #A33532;
-  --color-dark-red: #95351D;
-  --accent-secondary: #DC6E52;
-  --accent-tertiary: #EBA439;
-  --secondary-color: #95351D;
+  --light-color: #F2F4F7;
+  --dark-color: #0A0A0A;
+  --text-color: #0A0A0A;
+  --text-primary: #0A0A0A;
+  --link-color: #087FC8;
+  --link-hover-color: #0668A0;
+  --primary-color: #087FC8;
+  --primary-color-hover: #0668A0;
+  --color-red: #D64545;
+  --color-dark-red: #0A0A0A;
+  --accent-secondary: #6DD2EB;
+  --accent-tertiary: #6DD2EB;
+  --secondary-color: #0A0A0A;
 
   /* Neutral & shape tokens */
   --color-neutral-50: #fff;
@@ -60,14 +61,14 @@
 
   /* Semantic aliases */
   --background-color: var(--color-neutral-50);
-  --color-secondary-light-sky-blue: rgb(0 100 125 / 12%);
+  --color-secondary-light-sky-blue: rgb(8 127 200 / 12%);
   --color-secondary: var(--text-color);
   --color-medium-grey: var(--color-neutral-400);
   --color-dark-blue: var(--primary-color);
 
   /* fonts */
-  --body-font-family: var(--type-base-font-family);
-  --heading-font-family: baskerville, serif;
+  --body-font-family: "Instrument Sans", var(--type-base-font-family);
+  --heading-font-family: "Arial Narrow", "Helvetica Neue Condensed", sans-serif;
 
   /* font sizes */
   --body-font-size-m: 18px;
@@ -93,13 +94,13 @@
 
   /* status badge colors */
   --status-not-started: var(--primary-color);
-  --status-not-started-bg: rgb(0 100 125 / 12%);
+  --status-not-started-bg: rgb(8 127 200 / 12%);
   --status-in-progress: var(--accent-tertiary);
-  --status-in-progress-bg: rgb(235 164 57 / 12%);
+  --status-in-progress-bg: rgb(109 210 235 / 12%);
   --status-completed: #7fb078;
   --status-completed-bg: rgb(127 176 120 / 12%);
   --status-cancelled: var(--color-red);
-  --status-cancelled-bg: rgb(163 53 50 / 12%);
+  --status-cancelled-bg: rgb(214 69 69 / 12%);
 
   /* focus ring */
   --focus-ring-color: var(--primary-color);
@@ -120,7 +121,7 @@
 
   /* action button colors */
   --button-primary: var(--primary-color);
-  --button-primary-hover: #004d61;
+  --button-primary-hover: var(--primary-color-hover);
 
   /* label colors */
   --label-color: var(--text-color);
@@ -141,6 +142,13 @@
   --line-height-05: 1.6;
   --line-height-06: 1.25;
   --line-height-07: 1.1;
+
+  /* welcome / sign-in split-screen panel */
+  --welcome-panel-bg: #0A0A0A;
+  --welcome-panel-accent-rgb: 8 127 200;
+  --welcome-panel-mark-image: url('/icons/urbn-beans.svg');
+  --welcome-tagline: '"Power your vibe,
+everywhere you go."';
 }
 
 /* fallback fonts */
@@ -208,9 +216,7 @@ body.appear {
 
 /* Prevent flash: match the dark left panel colour from first paint */
 body:has(.section.welcome) {
-  /* Welcome/login split-screen brand panel is themeable via these tokens (frescopa defaults);
-     a company demo overrides --welcome-panel-* + --welcome-tagline to rebrand the login. */
-  background-color: var(--welcome-panel-bg, #2f2318);
+  background-color: var(--welcome-panel-bg);
   overflow: hidden;
 }
 
@@ -236,14 +242,14 @@ body:has(.section.welcome) > main {
 
 /* ── Left: Brand Panel ────────────────────────────────────────── */
 
-/* Dark coffee background with the gold beans icon as a large decorative mark */
+/* Dark tech background with the URBN mark as a large decorative element */
 body:has(.section.welcome) > main::before {
   content: '';
-  background-color: var(--welcome-panel-bg, #2f2318);
+  background-color: var(--welcome-panel-bg);
   background-image:
-    radial-gradient(ellipse 80% 55% at 15% 110%, rgb(var(--welcome-panel-accent-rgb, 234 163 58) / 22%) 0%, transparent 100%),
-    radial-gradient(ellipse 60% 45% at 90% -5%,  rgb(var(--welcome-panel-accent-rgb, 234 163 58) / 10%) 0%, transparent 100%),
-    var(--welcome-panel-mark-image, url('/icons/frescopa-beans.svg'));
+    radial-gradient(ellipse 80% 55% at 15% 110%, rgb(var(--welcome-panel-accent-rgb) / 22%) 0%, transparent 100%),
+    radial-gradient(ellipse 60% 45% at 90% -5%,  rgb(var(--welcome-panel-accent-rgb) / 10%) 0%, transparent 100%),
+    var(--welcome-panel-mark-image);
   background-repeat: no-repeat, no-repeat, no-repeat;
   background-size: cover, cover, 42%;
   background-position: bottom left, top right, center 40%;
@@ -251,14 +257,14 @@ body:has(.section.welcome) > main::before {
 
 /* Tagline + brand label stacked at the bottom of the brand panel */
 body:has(.section.welcome) > main::after {
-  content: var(--welcome-tagline, '"The world\'s finest coffee,\Aat your fingertips."');
+  content: var(--welcome-tagline);
   white-space: pre;
-  font-family: baskerville, serif;
+  font-family: var(--heading-font-family);
   font-size: 1rem;
   font-style: italic;
   line-height: 1.6;
   letter-spacing: 0.01em;
-  color: rgb(244 233 220 / 55%);
+  color: rgb(255 255 255 / 55%);
   position: absolute;
   bottom: 48px;
   left: 0;
@@ -294,21 +300,20 @@ body:has(.section.welcome) > main::after {
   margin: 0;
 }
 
-/* Brand mark — larger on the auth panel. Brand-agnostic: targets any icon shortcode the
-   welcome doc carries (e.g. :frescopa-beans:, :<company>-beans:) so a rebrand needs no CSS edit. */
-.section.welcome p:has(.icon) {
+/* URBN brand mark — larger on the auth panel */
+.section.welcome p:has(.icon-urbn-beans) {
   margin: 0 0 var(--spacing-medium);
   max-width: none;
 }
 
-.section.welcome p .icon {
+.section.welcome .icon-urbn-beans {
   display: inline-flex;
   width: 96px;
   height: 96px;
 }
 
-.section.welcome p .icon img,
-.section.welcome p .icon svg {
+.section.welcome .icon-urbn-beans img,
+.section.welcome .icon-urbn-beans svg {
   width: 96px;
   height: 96px;
 }
@@ -744,16 +749,16 @@ button.button:disabled:hover {
 a.button.secondary,
 button.button.secondary,
 button.secondary {
-  background-color: #95351D;
-  border-color: #95351D;
+  background-color: var(--dark-color);
+  border-color: var(--dark-color);
   color: #fff;
 }
 
 a.button.secondary:hover,
 button.button.secondary:hover,
 button.secondary:hover {
-  background-color: #7a2b17;
-  border-color: #7a2b17;
+  background-color: #000;
+  border-color: #000;
   color: #fff;
 }
 
@@ -934,16 +939,16 @@ main .section.full-width > div {
 
 
 .homepage-bg {
-  background: var(--light-color) url('backgrounds/big.svg') no-repeat center center/cover;
+  background: var(--light-color);
   color: var(--text-color);
   padding: 16px;
   margin: 8px 0;
   border-radius: 12px;
 }
 
-/* Frescopa landing hero: compact, elegant, beige; the search pill is the focal point */
+/* URBN landing hero: compact hero, cool neutral surface; the search pill is the focal point */
 main .section.search-hero {
-  background: var(--light-color) url('backgrounds/big.svg') no-repeat center top / cover;
+  background: var(--light-color);
   color: var(--text-color);
   margin: 0;
   padding: 56px 0 48px;
@@ -991,7 +996,7 @@ main .section.search-hero .default-content-wrapper p:has(.icon) {
   line-height: 0;
 }
 
-/* Search bar sits transparently on the beige hero */
+/* Search bar sits transparently on the neutral hero */
 main .section.search-hero .search-bar-wrapper {
   width: 100%;
   margin-top: 20px;
@@ -1005,13 +1010,13 @@ main .section.search-hero .query-input-container {
 
 main .section.search-hero .query-input-bar {
   background: #fff;
-  box-shadow: 0 12px 30px rgb(88 24 29 / 14%);
+  box-shadow: 0 12px 30px rgb(10 10 10 / 14%);
 }
 
 /* Landing: Browse-by-category tiles */
 main .section.category-tiles {
   padding: 56px 72px 40px;
-  background: rgb(235 164 57 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
+  background: rgb(109 210 235 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
   text-align: center;
 }
 
@@ -1047,15 +1052,15 @@ main .section.category-tiles .cards > ul > li {
   flex-direction: column;
   text-align: left;
   background: var(--color-neutral-50);
-  border: 1px solid rgb(88 24 29 / 8%);
+  border: 1px solid rgb(10 10 10 / 8%);
   border-radius: 12px;
-  box-shadow: 0 8px 22px rgb(88 24 29 / 8%);
+  box-shadow: 0 8px 22px rgb(10 10 10 / 8%);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 main .section.category-tiles .cards > ul > li:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 26px rgb(88 24 29 / 12%);
+  box-shadow: 0 12px 26px rgb(10 10 10 / 12%);
 }
 
 /* Icon/logo art (e.g. "Top Brands") only — real photo tiles like
@@ -1597,23 +1602,23 @@ picture.missing img {
 }
 
 
-.frescopa-background-red {
+.urbn-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.urbn-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.urbn-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.urbn-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.urbn-background-black {
   background-color: var(--dark-color);
 }
 
@@ -1626,7 +1631,7 @@ main > .section + .background {
   padding: 10px 0;
   margin-left: auto;
   margin-right: auto;
-  background: var(--light-color) url('backgrounds/big.svg') no-repeat center center/cover;
+  background: var(--light-color);
 }
 
 main > .section + .background > div {
@@ -1635,23 +1640,23 @@ main > .section + .background > div {
 }
 
 @media (width >= 900px) {
-.frescopa-background-red {
+.urbn-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.urbn-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.urbn-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.urbn-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.urbn-background-black {
   background-color: var(--dark-color);
 }
 
