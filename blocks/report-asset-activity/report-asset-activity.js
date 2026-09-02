@@ -11,28 +11,28 @@ import { buildAssetDetailsUrl } from '../../scripts/asset-id-utils.js';
 import showToast from '../../scripts/toast/toast.js';
 import { hasPermission, PERMISSIONS } from '../../scripts/auth/permissions.js';
 
-// Brand-derived chart palette — built around the Fréscopa theme (teal --primary-color
-// #00647D, maroon --text-color #58181D) plus harmonious supporting tones, so charts
+// Brand-derived chart palette — built around the Lilly theme (red --primary-color
+// #D31710, near-black --text-color #191919) plus harmonious supporting tones, so charts
 // match the rest of the app instead of using a generic/Google default palette.
-// Primary teal is reserved for `download` (the dominant action in this report).
+// Primary red is reserved for `download` (the dominant action in this report).
 const BRAND_SEQUENCE = [
-  '#00647D', // brand teal (primary)
-  '#A35E4B', // terracotta
-  '#C99A3F', // warm gold
-  '#58181D', // brand maroon (text-color)
-  '#3D8FA3', // light teal
-  '#6E7E5B', // sage
-  '#8A6D3B', // bronze
-  '#4F6472', // slate
+  '#D31710', // brand red (primary)
+  '#8F8F8F', // neutral grey
+  '#3D3D3D', // charcoal
+  '#191919', // brand near-black (text-color)
+  '#E0736C', // light red
+  '#666666', // slate grey
+  '#A11109', // dark red
+  '#B8B8B8', // pale grey
 ];
 const PALETTE = {
-  download: '#00647D', // primary teal — dominant action
-  view: '#3D8FA3', // light teal
-  'share-link-copy': '#C99A3F', // warm gold
-  'dm-url-copy': '#A35E4B', // terracotta
-  'collection-add': '#58181D', // brand maroon
-  internal: '#00647D',
-  external: '#3D8FA3',
+  download: '#D31710', // primary red — dominant action
+  view: '#E0736C', // light red
+  'share-link-copy': '#8F8F8F', // neutral grey
+  'dm-url-copy': '#3D3D3D', // charcoal
+  'collection-add': '#191919', // brand near-black
+  internal: '#D31710',
+  external: '#E0736C',
   unknown: '#8F8F8F', // neutral grey (matches --color-neutral-600)
 };
 const FALLBACK_COLORS = BRAND_SEQUENCE;

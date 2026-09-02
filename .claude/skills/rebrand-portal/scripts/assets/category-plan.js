@@ -44,6 +44,41 @@ const CATEGORY_RULES = [
     label: 'Campaigns',
     terms: ['campaign', 'campaigns', 'promotion', 'promo', 'seasonal', 'sale', 'offer'],
   },
+  {
+    slug: 'alzheimers',
+    label: "Alzheimer's Disease",
+    terms: ['alzheimer', 'alzheimers', 'dementia'],
+  },
+  {
+    slug: 'cancer',
+    label: 'Cancer',
+    terms: ['cancer', 'oncology', 'tumor', 'chemotherapy', 'lung-cancer', 'thyroid-cancer'],
+  },
+  {
+    slug: 'diabetes',
+    label: 'Diabetes',
+    terms: ['diabetes', 'diabetic', 'blood-sugar', 'blood_sugar', 'insulin', 'glucose'],
+  },
+  {
+    slug: 'dermatology',
+    label: 'Dermatology',
+    terms: ['dermatology', 'dermatitis', 'eczema', 'psoriasis', 'lupus', 'alopecia', 'skin-condition', 'skin_condition'],
+  },
+  {
+    slug: 'obesity',
+    label: 'Obesity',
+    terms: ['obesity', 'weight-loss', 'weight_loss', 'weight-management'],
+  },
+  {
+    slug: 'autoimmune',
+    label: 'Autoimmune',
+    terms: ['autoimmune'],
+  },
+  {
+    slug: 'migraine',
+    label: 'Migraine',
+    terms: ['migraine'],
+  },
 ];
 
 function cleanString(value) {
@@ -69,7 +104,14 @@ export function humanizeCategorySlug(slug) {
 
 function autogenSubjectTerms(metadata = {}) {
   const value = metadata[AUTOGEN_FIELD.SUBJECT];
-  const list = Array.isArray(value) ? value : (typeof value === 'string' && value.trim() ? [value] : []);
+  let list;
+  if (Array.isArray(value)) {
+    list = value;
+  } else if (typeof value === 'string' && value.trim()) {
+    list = [value];
+  } else {
+    list = [];
+  }
   return list.map((v) => String(v).trim().toLowerCase()).filter(Boolean);
 }
 
@@ -108,15 +150,15 @@ function categoryFromEvidence(asset, metadata, fields) {
   const text = evidenceText(asset, metadata, fields);
   for (const rule of CATEGORY_RULES) {
     if (rule.terms.some((term) => text.includes(term))) {
+      // autogen:subject is AEM's own asset-processing output, not a guess — a match
+      // sourced from it is higher confidence than the same rule matching only on
+      // page/heading/filename text.
+      const subjectTerms = autogenSubjectTerms(metadata);
+      const matchesSubject = rule.terms.some((term) => subjectTerms.some((t) => t.includes(term)));
       return {
         slug: rule.slug,
         label: rule.label,
-        // autogen:subject is AEM's own asset-processing output, not a guess — a match
-        // sourced from it is higher confidence than the same rule matching only on
-        // page/heading/filename text.
-        confidence: rule.terms.some((term) => autogenSubjectTerms(metadata).some((t) => t.includes(term)))
-          ? 'high'
-          : 'medium',
+        confidence: matchesSubject ? 'high' : 'medium',
         reason: 'source-evidence',
       };
     }
