@@ -99,7 +99,7 @@
   --status-completed: #7fb078;
   --status-completed-bg: rgb(127 176 120 / 12%);
   --status-cancelled: var(--color-red);
-  --status-cancelled-bg: rgb(163 53 50 / 12%);
+  --status-cancelled-bg: rgb(0 147 208 / 12%);
 
   /* focus ring */
   --focus-ring-color: var(--primary-color);
