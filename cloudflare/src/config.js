@@ -19,7 +19,7 @@ const config = {
   // the configured customer. Default is 'frescopa' (our own demo repo). When running the
   // enrichment agent for a prospect (e.g. 'santander'), the agent auto-patches this value
   // after a successful run. Value is the customer key, NOT the logged-in viewer's company.
-  DEMO_COMPANY: 'frescopa',
+  DEMO_COMPANY: 'urbn',
 
   // Content base path for a foldered demo. DA content is shared across all branches of a
   // repo, so a per-company demo copies the site into /<companyKey> and serves it from there.
@@ -27,7 +27,7 @@ const config = {
   // sets this to '/<companyKey>' TOGETHER with DEMO_COMPANY above (same key). The worker
   // uses it for the root redirect, the unauthenticated login/public route, and LOGIN_PAGE;
   // the browser derives the same base from the URL (scripts/locale-utils.js).
-  DEMO_BASE_PATH: '',
+  DEMO_BASE_PATH: '/urbn',
 
   // Content Optimization Agent environment. COA is called with the same DM
   // S2S technical account/token as Dynamic Media, so this must match whatever

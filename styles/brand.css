@@ -1,0 +1,15 @@
+:root {
+  --heading-font-family: "Arial Narrow", "Helvetica Neue Condensed", sans-serif;
+  --body-font-family: "Instrument Sans", "Space Grotesk", sans-serif;
+  --background-color: #F2F4F7;
+  --text-color: #0A0A0A;
+  --link-color: #087FC8;
+  --link-hover-color: #0668A0;
+  --section-padding: 0px;
+  --heading-size-xxl: 48px;
+  --heading-size-xl: 36px;
+  --heading-size-l: 28px;
+  --heading-size-m: 22px;
+  --heading-size-s: 18px;
+  --heading-size-xs: 16px;
+}

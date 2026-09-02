@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="URBN">
+  <g fill="#087FC8">
+    <circle cx="88" cy="90" r="46"/>
+    <circle cx="140" cy="150" r="46"/>
+  </g>
+  <text x="120" y="222" text-anchor="middle" font-family="Arial Narrow, Helvetica Neue Condensed, sans-serif" font-size="34" font-weight="700" letter-spacing="1" fill="#087FC8">urbn</text>
+</svg>

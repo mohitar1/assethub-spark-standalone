@@ -185,12 +185,12 @@
 }
 
 .notification-row:hover {
-  background-color: rgb(0 100 125 / 8%);
+  background-color: rgb(8 127 200 / 8%);
 }
 
 .notification-row-unread {
   /* faint brand-primary wash so unread reads as subtly highlighted, not a heavy block */
-  background-color: rgb(0 100 125 / 4%);
+  background-color: rgb(8 127 200 / 4%);
 }
 
 .notification-row-unread .notification-subject {
@@ -225,7 +225,7 @@
   height: 12px;
   background-color: var(--button-primary);
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgb(0 100 125 / 15%);
+  box-shadow: 0 0 0 3px rgb(8 127 200 / 15%);
 }
 
 /* Priority Indicator */

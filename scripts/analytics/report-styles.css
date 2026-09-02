@@ -29,7 +29,7 @@
   /* Shadows */
   --report-shadow-sm: 0 2px 8px rgb(0 0 0 / 10%);
   --report-shadow-md: 0 4px 12px rgb(0 0 0 / 15%);
-  --report-shadow-focus: 0 0 0 3px rgb(0 100 125 / 15%);
+  --report-shadow-focus: 0 0 0 3px rgb(8 127 200 / 15%);
   
   /* Border Radius */
   --report-radius-sm: 6px;
