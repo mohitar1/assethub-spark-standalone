@@ -233,6 +233,29 @@ export async function getSlingAssetMetadata(client, repoPath) {
 }
 
 /**
+ * AEM writes `dam:assetState` directly on the asset's `jcr:content` node, NOT inside the
+ * `jcr:content/metadata` sub-node that `getSlingAssetMetadata` reads. Polling
+ * `jcr:content/metadata.json` for `dam:assetState` never finds it and always times out —
+ * verified against a live asset whose `jcr:content` had `"dam:assetState":"processed"`
+ * while `jcr:content/metadata.json` had no such key at all.
+ */
+async function getAssetProcessingState(client, repoPath) {
+  const path = `${encodeSlingPath(repoPath)}/jcr:content.json`;
+  const res = await client.request('sling', {
+    method: 'GET',
+    path,
+    headers: { Accept: 'application/json' },
+    includeApiKey: false,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`GET Sling jcr:content ${repoPath} -> ${res.status} ${text}`.trim());
+  }
+  const json = await res.json();
+  return json?.[AUTOGEN_FIELD.ASSET_STATE];
+}
+
+/**
  * Poll Sling metadata until AEM's asset-processing pipeline reports
  * dam:assetState === "processed" (or the timeout elapses). Enrichment must not read
  * autogen:* fields before this — they may be missing or stale mid-processing, and reading
@@ -250,12 +273,16 @@ export async function waitForAssetProcessed(client, repoPath, {
   now = () => Date.now(),
 } = {}) {
   const deadline = now() + timeoutMs;
-  let meta = await getSlingAssetMetadata(client, repoPath);
-  while (meta.assetMetadata[AUTOGEN_FIELD.ASSET_STATE] !== ASSET_STATE_PROCESSED) {
-    if (now() >= deadline) return { processed: false, meta };
+  let state = await getAssetProcessingState(client, repoPath);
+  while (state !== ASSET_STATE_PROCESSED) {
+    if (now() >= deadline) {
+      const meta = await getSlingAssetMetadata(client, repoPath);
+      return { processed: false, meta };
+    }
     await sleepFn(intervalMs);
-    meta = await getSlingAssetMetadata(client, repoPath);
+    state = await getAssetProcessingState(client, repoPath);
   }
+  const meta = await getSlingAssetMetadata(client, repoPath);
   return { processed: true, meta };
 }
 

@@ -44,6 +44,41 @@ const CATEGORY_RULES = [
     label: 'Campaigns',
     terms: ['campaign', 'campaigns', 'promotion', 'promo', 'seasonal', 'sale', 'offer'],
   },
+  {
+    slug: 'alzheimers',
+    label: "Alzheimer's Disease",
+    terms: ['alzheimer', 'alzheimers', 'dementia'],
+  },
+  {
+    slug: 'cancer',
+    label: 'Cancer',
+    terms: ['cancer', 'oncology', 'tumor', 'chemotherapy', 'lung-cancer', 'thyroid-cancer'],
+  },
+  {
+    slug: 'diabetes',
+    label: 'Diabetes',
+    terms: ['diabetes', 'diabetic', 'blood-sugar', 'blood_sugar', 'insulin', 'glucose'],
+  },
+  {
+    slug: 'dermatology',
+    label: 'Dermatology',
+    terms: ['dermatology', 'dermatitis', 'eczema', 'psoriasis', 'lupus', 'alopecia', 'skin-condition', 'skin_condition'],
+  },
+  {
+    slug: 'obesity',
+    label: 'Obesity',
+    terms: ['obesity', 'weight-loss', 'weight_loss', 'weight-management'],
+  },
+  {
+    slug: 'autoimmune',
+    label: 'Autoimmune',
+    terms: ['autoimmune'],
+  },
+  {
+    slug: 'migraine',
+    label: 'Migraine',
+    terms: ['migraine'],
+  },
 ];
 
 function cleanString(value) {

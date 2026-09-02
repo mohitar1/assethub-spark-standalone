@@ -134,19 +134,34 @@ describe('sling-metadata', () => {
 });
 
 describe('waitForAssetProcessed', () => {
+  // dam:assetState lives on the asset's jcr:content node itself, NOT inside the
+  // jcr:content/metadata sub-node that getSlingAssetMetadata reads — verified against a
+  // live asset whose jcr:content had "dam:assetState":"processed" while
+  // jcr:content/metadata.json had no such key. So the poll reads jcr:content.json, and
+  // only fetches the full jcr:content/metadata.json once (processed or timed out).
+  function stateRes(assetState) {
+    return makeRes({ body: assetState === undefined ? {} : { 'dam:assetState': assetState } });
+  }
+
   it('returns immediately when the asset is already processed', async () => {
-    const client = makeClient([metadataRes({ 'dam:assetState': 'processed', 'dc:title': 'A' })]);
+    const client = makeClient([
+      stateRes('processed'),
+      metadataRes({ 'dc:title': 'A' }),
+    ]);
     const { processed, meta } = await waitForAssetProcessed(client, '/content/dam/acme/a.jpg');
     expect(processed).toBe(true);
     expect(meta.assetMetadata['dc:title']).toBe('A');
-    expect(client.calls).toHaveLength(1);
+    expect(client.calls).toHaveLength(2);
+    expect(client.calls[0].opts.path).toBe('/content/dam/acme/a.jpg/jcr:content.json');
+    expect(client.calls[1].opts.path).toBe('/content/dam/acme/a.jpg/jcr:content/metadata.json');
   });
 
   it('polls until dam:assetState flips to processed', async () => {
     const client = makeClient([
-      metadataRes({ 'dam:assetState': 'processing' }),
-      metadataRes({ 'dam:assetState': 'processing' }),
-      metadataRes({ 'dam:assetState': 'processed', 'dc:title': 'A' }),
+      stateRes('processing'),
+      stateRes('processing'),
+      stateRes('processed'),
+      metadataRes({ 'dc:title': 'A' }),
     ]);
     const { processed, meta } = await waitForAssetProcessed(client, '/content/dam/acme/a.jpg', {
       timeoutMs: 1000,
@@ -156,11 +171,12 @@ describe('waitForAssetProcessed', () => {
     });
     expect(processed).toBe(true);
     expect(meta.assetMetadata['dc:title']).toBe('A');
-    expect(client.calls).toHaveLength(3);
+    expect(client.calls).toHaveLength(4);
   });
 
   it('gives up at the timeout and reports not-processed with the last read metadata', async () => {
     const client = makeClient([
+      stateRes('processing'),
       metadataRes({ 'dam:assetState': 'processing' }),
     ]);
     const { processed, meta } = await waitForAssetProcessed(client, '/content/dam/acme/a.jpg', {
@@ -171,11 +187,12 @@ describe('waitForAssetProcessed', () => {
     });
     expect(processed).toBe(false);
     expect(meta.assetMetadata['dam:assetState']).toBe('processing');
-    expect(client.calls).toHaveLength(1);
+    expect(client.calls).toHaveLength(2);
   });
 
   it('treats a missing dam:assetState (no field at all) as not processed', async () => {
     const client = makeClient([
+      stateRes(undefined),
       metadataRes({}),
     ]);
     const { processed } = await waitForAssetProcessed(client, '/content/dam/acme/a.jpg', {

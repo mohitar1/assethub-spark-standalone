@@ -33,15 +33,31 @@ const generator = async () => ({
   keywords: ['product', 'hero', 'launch'],
 });
 
-// Defaults to already-processed: waitForAssetProcessed polls this same GET until
-// dam:assetState reaches "processed", so every fixture needs that field set (or every
-// test would poll for real, which is what a `metadata({ 'dam:assetState': 'not-yet' })`
-// override is for — see the "waits for asset processing" tests below).
-function metadata(assetMetadata = {}, repositoryMetadata = { 'dc:format': 'application/octet-stream' }) {
+// dam:assetState lives on the asset's jcr:content node itself, not inside the
+// jcr:content/metadata sub-node — so waitForAssetProcessed does a separate GET
+// (jcr:content.json) for the state before reading the full jcr:content/metadata.json.
+// `metadata()` returns BOTH responses as a pair (spread into the client queue), defaulting
+// to already-processed. Use `stateRes('not-yet')` standalone for tests that need the poll
+// to keep going (see the "waits for asset processing" tests below).
+function stateRes(assetState = 'processed') {
+  return makeRes({ body: assetState === undefined ? {} : { 'dam:assetState': assetState } });
+}
+
+function metadataOnly(assetMetadata = {}, repositoryMetadata = { 'dc:format': 'application/octet-stream' }) {
   return makeRes({
-    body: { 'dam:assetState': 'processed', ...assetMetadata, 'dc:format': repositoryMetadata['dc:format'] },
+    body: { ...assetMetadata, 'dc:format': repositoryMetadata['dc:format'] },
     headers: { ETag: '"v1"' },
   });
+}
+
+// Pre-write plan read: waitForAssetProcessed's state check + the full metadata GET.
+function metadata(assetMetadata = {}, repositoryMetadata = { 'dc:format': 'application/octet-stream' }) {
+  return [stateRes('processed'), metadataOnly(assetMetadata, repositoryMetadata)];
+}
+
+// Post-write verify: a single direct getSlingAssetMetadata GET (no polling involved).
+function verifyRes(assetMetadata = {}, repositoryMetadata = { 'dc:format': 'application/octet-stream' }) {
+  return metadataOnly(assetMetadata, repositoryMetadata);
 }
 
 function htmlRes(html) {
@@ -72,7 +88,7 @@ describe('mapWithConcurrency', () => {
 
 describe('enrichAssets controller', () => {
   it('dry-run: generates a Sling metadata preview without writing', async () => {
-    const client = makeClient([searchPage(oneAsset), metadata()]);
+    const client = makeClient([searchPage(oneAsset), ...metadata()]);
     const out = await enrichAssets({
       options: baseOptions({ dryRun: true }), client, generator, log: silent,
     });
@@ -86,7 +102,7 @@ describe('enrichAssets controller', () => {
       productCategory: 'products',
       title: 'Product Hero',
     });
-    expect(client.calls.map((c) => c.op)).toEqual(['search', 'sling']);
+    expect(client.calls.map((c) => c.op)).toEqual(['search', 'sling', 'sling']);
   });
 
   it('source-url dry-run builds category coverage from scraped assets without AEM writes', async () => {
@@ -128,7 +144,7 @@ describe('enrichAssets controller', () => {
   });
 
   it('skips assets already enriched for this customer and category', async () => {
-    const client = makeClient([searchPage(oneAsset), metadata({
+    const client = makeClient([searchPage(oneAsset), ...metadata({
       company: 'santander',
       'dc:title': 'Existing',
       'dam:status': 'approved',
@@ -149,14 +165,14 @@ describe('enrichAssets controller', () => {
   it('does not skip an asset that is missing productCategory', async () => {
     const client = makeClient([
       searchPage(oneAsset),
-      metadata({
+      ...metadata({
         company: 'santander',
         'dc:title': 'Existing',
         'dam:status': 'approved',
         allowedCountries: 'global',
       }),
       makeRes({ status: 200 }),
-      metadata({
+      verifyRes({
         company: 'santander',
         'dc:title': 'Existing',
         'dam:status': 'approved',
@@ -177,7 +193,7 @@ describe('enrichAssets controller', () => {
       assetId: 'a1',
       repositoryMetadata: { 'repo:path': '/content/dam/santander/asset.bin', 'repo:name': 'asset.bin' },
     }];
-    const client = makeClient([searchPage(asset), metadata()]);
+    const client = makeClient([searchPage(asset), ...metadata()]);
     const out = await enrichAssets({
       options: baseOptions(), client, generator: async () => ({ title: 'Asset' }), log: silent,
     });
@@ -189,9 +205,9 @@ describe('enrichAssets controller', () => {
   it('live mode writes each asset through Sling POST and reports enriched', async () => {
     const client = makeClient([
       searchPage(oneAsset),
-      metadata(),
+      ...metadata(),
       makeRes({ status: 200 }),
-      metadata({
+      verifyRes({
         company: 'santander',
         'dc:title': 'Product Hero',
         'dam:status': 'approved',
@@ -212,9 +228,9 @@ describe('enrichAssets controller', () => {
   });
 
   it('never overwrites existing metadata values', async () => {
-    const client = makeClient([searchPage(oneAsset), metadata({
+    const client = makeClient([searchPage(oneAsset), ...metadata({
       'dc:title': 'Existing Title',
-    }), makeRes({ status: 200 }), metadata({
+    }), makeRes({ status: 200 }), verifyRes({
       company: 'santander',
       'dc:title': 'Existing Title',
       'dam:status': 'approved',
@@ -247,11 +263,12 @@ describe('enrichAssets controller', () => {
   it('waits for dam:assetState=processed, polling until it flips before reading metadata', async () => {
     const client = makeClient([
       searchPage(oneAsset),
-      metadata({ 'dam:assetState': 'processing' }),
-      metadata({ 'dam:assetState': 'processing' }),
-      metadata(),
+      stateRes('processing'),
+      stateRes('processing'),
+      stateRes('processed'),
+      metadataOnly(),
       makeRes({ status: 200 }),
-      metadata({
+      verifyRes({
         company: 'santander',
         'dc:title': 'Product Hero',
         'dam:status': 'approved',
@@ -266,15 +283,17 @@ describe('enrichAssets controller', () => {
       log: silent,
     });
     expect(out.report.counts().enriched).toBe(1);
-    // 3 polling GETs (processing, processing, processed) + 1 post-write verify GET.
+    // 3 state-check GETs (processing, processing, processed) + 1 full-metadata GET
+    // (post-processed read) + 1 post-write verify GET.
     const slingGets = client.calls.filter((c) => c.op === 'sling' && c.opts.method === 'GET');
-    expect(slingGets).toHaveLength(4);
+    expect(slingGets).toHaveLength(5);
   });
 
   it('fails the asset (does not write) when it never reaches processed before the poll timeout', async () => {
     const client = makeClient([
       searchPage(oneAsset),
-      metadata({ 'dam:assetState': 'processing' }),
+      stateRes('processing'),
+      metadataOnly({ 'dam:assetState': 'processing' }),
     ]);
     const out = await enrichAssets({
       options: baseOptions({ assetProcessedPoll: fastPoll({ timeoutMs: 0 }) }),
@@ -292,13 +311,13 @@ describe('enrichAssets controller', () => {
   it('uses autogen:* fields as primary evidence over filename tokens once processed', async () => {
     const client = makeClient([
       searchPage(oneAsset),
-      metadata({
+      ...metadata({
         'autogen:title': 'Braided USB-C Cable',
         'autogen:description': 'A durable braided USB-C charging cable.',
         'autogen:subject': ['cable', 'usb-c'],
       }),
       makeRes({ status: 200 }),
-      metadata({
+      verifyRes({
         company: 'santander',
         'dc:title': 'Braided USB-C Cable',
         'dam:status': 'approved',
@@ -318,9 +337,9 @@ describe('enrichAssets controller', () => {
   it('does not call asset publish after writing approved metadata', async () => {
     const client = makeClient([
       searchPage(oneAsset),
-      metadata(),
+      ...metadata(),
       makeRes({ status: 200 }),
-      metadata({
+      verifyRes({
         company: 'santander',
         'dc:title': 'Product Hero',
         'dam:status': 'approved',
