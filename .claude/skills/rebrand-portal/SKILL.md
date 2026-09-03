@@ -161,11 +161,20 @@ new gates such as Step 4g's color verification before assets.
 
 ## Entry flow — run first, every invocation
 
-0. **State Step 1 first, before any question.** On a brand-new request
-   (no state file, or `demo-confirmed` not yet `done`), say the one plain
-   sentence from Step 1 — what will happen, in outcome language — before
-   asking Q1/Q2 or anything else. Never open with a question; the customer
-   should hear what's about to happen before being asked to decide anything.
+0. **State Step 1 first, then confirm the company name.**
+   On a brand-new request (no state file, or `demo-confirmed` not yet
+   `done`): say the one plain sentence from Step 1 (what will happen, in
+   outcome language), then resolve and **confirm** `customer.name` (Step 2)
+   before doing anything else. Never open with a question, and never
+   silently default or guess the company name/slug from the source URL
+   (e.g. inferring "microsoft" from a microsoft.com link) — if a tool error
+   or missing info blocks asking everything at once, fall back to asking
+   one thing at a time in order (Step 1 statement → company name), never
+   skip ahead. **Do not ask about assets here** (see Entry flow point 2
+   below) — Steps 1–4 (confirm, branch, DA copy, rebrand/publish/PR) need
+   nothing about asset source or timing; asking Q1/Q2 this early front-loads
+   a decision the customer can't yet see the payoff for, and interrupts a
+   flow that would otherwise run straight through to the open PR.
 
 1. **Load and verify state.** If `.internal/onboarding-state.json` exists,
    read it, but before trusting a step marked `done`, spot-check one
@@ -181,22 +190,30 @@ new gates such as Step 4g's color verification before assets.
    copied docs, PR scope, or the facets panel can still carry stale base
    branding.
 
-2. **Ask the customer-facing question(s) below** (skip any question the
-   request already answers unambiguously). Plain outcome language, no
-   internal terms (I1). Never ask "demo vs real portal" — the dedicated
-   path is disabled; every request is a demo. If the customer explicitly
-   asks for their own real, separate portal, say plainly that a dedicated
-   environment is temporarily unavailable and you'll show it as a demo
-   instead — a fresh copy of the site under their company name — then
+2. **Ask Q1/Q2 immediately before Step 5, not in the entry flow** (skip any
+   question the request already answers unambiguously). Plain outcome
+   language, no internal terms (I1). Never ask "demo vs real portal" — the
+   dedicated path is disabled; every request is a demo. If the customer
+   explicitly asks for their own real, separate portal, say plainly that a
+   dedicated environment is temporarily unavailable and you'll show it as a
+   demo instead — a fresh copy of the site under their company name — then
    proceed. Never ask a "full vs. branding-only" question either — every
    demo always includes assets; the only open questions are *where the
    assets come from* and *when enrichment runs*.
 
+   If the original request already answered Q1/Q2 unambiguously (e.g. "the
+   assets are already in AEM Assets, enrich them"), record the answer in
+   state up front and skip straight through Steps 1–4 to Step 5 without
+   re-asking — the point is to not ask *before the customer needs to
+   decide*, not to force a redundant re-ask when they already decided.
+
    **Q1 — asset source (always ask unless the request already says).**
-   - "Are `<Brand>`'s assets already uploaded in Adobe?" → `assetsLane` =
+   Address the customer as "you"/"your" — the person answering is who you're
+   asking, not a third party being described.
+   - "Are your assets already uploaded in AEM Assets?" → `assetsLane` =
      `enrich-existing`.
-   - "Should I pull sample assets in from `<Brand>`'s website?" (needs a
-     source URL) → `assetsLane` = `bring-in`; `assetsEnrichNow` = `true`
+   - "Should I pull in some sample assets from your website instead?" (needs
+     a source URL) → `assetsLane` = `bring-in`; `assetsEnrichNow` = `true`
      (bring-in always enriches after upload — there's no sensible reason
      to upload samples and leave them unlabeled).
 
@@ -212,18 +229,13 @@ new gates such as Step 4g's color verification before assets.
 
    Never label an option with a step/phase name or a bare mechanic
    ("rebrand only," "publish"); every option states a concrete result the
-   customer could see.
+   customer could see. Never say "DAM folder," "Adobe" (as a stand-in for
+   the asset system — say "AEM Assets"), or any other internal-system term
+   in the option text — I1 applies to the templates above too, not just to
+   ad-libbed phrasing.
 
-   **Use the Q1/Q2 wording above verbatim — do not paraphrase, relabel, or
-   invent your own header** (e.g. a "Asset source" heading, or reasoning
-   like "scoped to `<Brand>`" / "DAM folder" / "bring-in always enriches"
-   surfaced in the option text). That wording is internal mechanics and
-   violates I1 even when the underlying question is the right one to ask.
-   The templates above are already customer-safe; substituting your own
-   phrasing is the defect, not the question itself.
-
-3. **Run the sequence** above from the first non-`done` step. Honor the
-   hard gate. Do not narrate the step list back to the customer.
+3. **Run the sequence** from the first non-`done` step. Honor the hard
+   gate. Do not narrate the step list back to the customer.
 
 ## Agent invocation examples (operator-facing)
 
@@ -392,7 +404,9 @@ pending and fix Step 4.
 ## Step 5 — Upload and enrich the company's assets
 
 **Preflight gate: all Step 4g checks must have passed in this session
-before any `--dry-run` or live enrichment.** Reuses the existing environment
+before any `--dry-run` or live enrichment.** If `assetsLane`/`assetsEnrichNow`
+aren't already known from the original request, ask Q1/Q2 now (Entry flow
+point 2) — this is where those answers are first needed. Reuses the existing environment
 (no provisioning): the controller
 `scripts/assets/enrich-assets.js` resolves DM creds from
 `cloudflare/.secrets` and the AEM env id from `cloudflare/src/config.js`.
