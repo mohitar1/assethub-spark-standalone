@@ -12,19 +12,19 @@
 
 :root {
   /* Brand palette (semantic tokens — single source of truth) */
-  --light-color: #F4E9DC;
-  --dark-color: #2C2C2C;
-  --text-color: #58181D;
-  --text-primary: #58181D;
-  --link-color: #58181D;
-  --link-hover-color: #00647D;
-  --primary-color: #00647D;
-  --primary-color-hover: #004d61;
-  --color-red: #A33532;
-  --color-dark-red: #95351D;
-  --accent-secondary: #DC6E52;
-  --accent-tertiary: #EBA439;
-  --secondary-color: #95351D;
+  --light-color: #F3F2F1;
+  --dark-color: #201F1E;
+  --text-color: #201F1E;
+  --text-primary: #201F1E;
+  --link-color: #0067B8;
+  --link-hover-color: #004E8C;
+  --primary-color: #0067B8;
+  --primary-color-hover: #004E8C;
+  --color-red: #D13438;
+  --color-dark-red: #A4262C;
+  --accent-secondary: #00A4EF;
+  --accent-tertiary: #FFB900;
+  --secondary-color: #2D2D2D;
 
   /* Neutral & shape tokens */
   --color-neutral-50: #fff;
@@ -66,8 +66,8 @@
   --color-dark-blue: var(--primary-color);
 
   /* fonts */
-  --body-font-family: var(--type-base-font-family);
-  --heading-font-family: baskerville, serif;
+  --body-font-family: "Segoe UI", "Segoe UI Variable Text", "Helvetica Neue", helvetica, arial, sans-serif;
+  --heading-font-family: "Segoe UI", "Segoe UI Variable Text", "Helvetica Neue", helvetica, arial, sans-serif;
 
   /* font sizes */
   --body-font-size-m: 18px;
@@ -121,6 +121,13 @@
   /* action button colors */
   --button-primary: var(--primary-color);
   --button-primary-hover: #004d61;
+
+  /* welcome/login split-screen brand panel — Microsoft demo override */
+  --welcome-panel-bg: #201F1E;
+  --welcome-panel-accent-rgb: 0 164 239;
+  --welcome-panel-mark-image: url('/icons/microsoft-beans.svg');
+  --welcome-tagline-line1: '"Empowering every person,';
+  --welcome-tagline-line2: 'and every organization, to achieve more."';
 
   /* label colors */
   --label-color: var(--text-color);
@@ -260,12 +267,12 @@ body:has(.section.welcome) > main::before {
 body:has(.section.welcome) > main::after {
   content: var(--welcome-tagline-line1, '"The world\'s finest coffee,') "\A" var(--welcome-tagline-line2, 'at your fingertips."');
   white-space: pre;
-  font-family: baskerville, serif;
+  font-family: var(--body-font-family);
   font-size: 1rem;
-  font-style: italic;
+  font-style: normal;
   line-height: 1.6;
   letter-spacing: 0.01em;
-  color: rgb(244 233 220 / 55%);
+  color: rgb(255 255 255 / 70%);
   position: absolute;
   bottom: 48px;
   left: 0;
@@ -948,7 +955,7 @@ main .section.full-width > div {
   border-radius: 12px;
 }
 
-/* Frescopa landing hero: compact, elegant, beige; the search pill is the focal point */
+/* Landing hero: compact, elegant surface; the search pill is the focal point */
 main .section.search-hero {
   background: var(--light-color) url('backgrounds/big.svg') no-repeat center top / cover;
   color: var(--text-color);
@@ -1614,23 +1621,23 @@ picture.missing img {
 }
 
 
-.frescopa-background-red {
+.microsoft-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.microsoft-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.microsoft-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.microsoft-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.microsoft-background-black {
   background-color: var(--dark-color);
 }
 
@@ -1652,23 +1659,23 @@ main > .section + .background > div {
 }
 
 @media (width >= 900px) {
-.frescopa-background-red {
+.microsoft-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.microsoft-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.microsoft-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.microsoft-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.microsoft-background-black {
   background-color: var(--dark-color);
 }
 
