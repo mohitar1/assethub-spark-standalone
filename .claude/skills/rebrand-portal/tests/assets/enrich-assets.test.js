@@ -139,6 +139,38 @@ describe('enrichAssets controller', () => {
     expect(out.metadataPreview).toContain('/content/dam/santander/hero.png');
   });
 
+  it('materializes DA card images when --org/--repo are set (dry-run: no network write)', async () => {
+    const client = makeClient([searchPage(oneAsset), jcrContent(), metadata()]);
+    const out = await enrichAssets({
+      options: baseOptions({
+        dryRun: true, org: 'acme-org', repo: 'acme-repo',
+      }),
+      client,
+      generator,
+      log: silent,
+    });
+    const rep = out.report.toJSON().representatives.items.products;
+    expect(rep.cardImageUrl).toContain('[dry-run]');
+    expect(rep.cardImageUrl).toContain('media_products');
+    // A dry run must never touch the DA upload endpoint.
+    expect(client.calls.every((c) => c.op !== 'da-upload')).toBe(true);
+  });
+
+  it('leaves cardImageUrl unset when --org/--repo are not provided (no proxy fallback)', async () => {
+    const client = makeClient([searchPage(oneAsset), jcrContent(), metadata()]);
+    const out = await enrichAssets({
+      options: baseOptions({ dryRun: true }),
+      client,
+      generator,
+      log: silent,
+    });
+    const rep = out.report.toJSON().representatives.items.products;
+    expect(rep.cardImageUrl).toBeUndefined();
+    // The card gate then correctly flags this card as broken (missing image).
+    const gate = checkCardGate(out.report.toJSON(), CONTRACT);
+    expect(gate.ok).toBe(false);
+  });
+
   it('stops cleanly when the folder has no assets', async () => {
     const client = makeClient([searchPage([])]);
     const out = await enrichAssets({
@@ -410,10 +442,10 @@ describe('buildCardRows', () => {
   const representatives = {
     items: {
       dermatology: {
-        assetId: 'a1', repoName: 'eczema.jpg', description: 'Skin care imagery.', cardImageUrl: '/api/adobe/assets/a1/as/eczema.jpg?width=750',
+        assetId: 'a1', repoName: 'eczema.jpg', description: 'Skin care imagery.', cardImageUrl: 'https://content.da.live/org/repo/company/en/media_dermatology.jpg',
       },
       cancer: {
-        assetId: 'a2', repoName: 'oncology.jpg', cardImageUrl: '/api/adobe/assets/a2/as/oncology.jpg?width=750',
+        assetId: 'a2', repoName: 'oncology.jpg', cardImageUrl: 'https://content.da.live/org/repo/company/en/media_cancer.jpg',
       },
     },
   };
@@ -426,11 +458,13 @@ describe('buildCardRows', () => {
       slug: 'dermatology',
       label: 'Dermatology',
       assetCount: 14,
-      blurb: 'Skin care imagery.',
+      blurb: 'Dermatology product and campaign imagery.',
       href: '/en/search?facetFilters=%7B%22productCategory%22%3A%7B%22dermatology%22%3Atrue%7D%7D',
-      cardImageUrl: '/api/adobe/assets/a1/as/eczema.jpg?width=750',
+      cardImageUrl: 'https://content.da.live/org/repo/company/en/media_dermatology.jpg',
     });
-    expect(rows[1].blurb).toBe('Browse Cancer imagery.'); // default when no description
+    // Blurb is always a short authored-style sentence, never rep.description (which is
+    // autogen:description evidence, not customer-facing card copy — see buildCardRows doc).
+    expect(rows[1].blurb).toBe('Cancer product and campaign imagery.');
   });
 
   it('skips contract categories that have no representative', () => {
@@ -444,26 +478,25 @@ describe('buildCardRows', () => {
 });
 
 describe('checkCardGate', () => {
-  const contract = normalizeContract('a,b,c,d');
   function reportWith(cards, missing = []) {
     return { cards, representatives: { missing } };
   }
   const goodCard = (slug) => ({
-    slug, href: `/en/search?x=${slug}`, cardImageUrl: `/api/adobe/assets/${slug}/as/x.jpg?width=750`, assetCount: 3,
+    slug, href: `/en/search?x=${slug}`, cardImageUrl: `https://content.da.live/org/repo/company/en/media_${slug}.jpg`, assetCount: 3,
   });
 
   it('passes with enough well-formed cards and no missing categories', () => {
-    const report = reportWith(['a', 'b', 'c', 'd'].map(goodCard));
-    expect(checkCardGate(report, contract)).toEqual({ ok: true });
+    const report = reportWith(['a', 'b', 'c', 'd', 'e'].map(goodCard));
+    expect(checkCardGate(report, normalizeContract('a,b,c,d,e'))).toEqual({ ok: true });
   });
 
   it('fails when a contract category has no assets', () => {
-    const report = reportWith(['a', 'b', 'c', 'd'].map(goodCard), ['e']);
-    expect(checkCardGate(report, contract).ok).toBe(false);
+    const report = reportWith(['a', 'b', 'c', 'd', 'e'].map(goodCard), ['f']);
+    expect(checkCardGate(report, normalizeContract('a,b,c,d,e,f')).ok).toBe(false);
   });
 
-  it('fails below the minimum card count', () => {
-    const report = reportWith(['a', 'b'].map(goodCard));
+  it('fails below the minimum card count (floor is 5)', () => {
+    const report = reportWith(['a', 'b', 'c', 'd'].map(goodCard));
     expect(checkCardGate(report, []).ok).toBe(false);
   });
 

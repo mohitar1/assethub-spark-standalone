@@ -246,6 +246,20 @@ split it across turns:
    labels to stable lowercase slugs and keep `{slug, label, evidence}` for
    each category in the working notes handed to Step 5.
 
+   **Category floor — propose at least 5 real candidates.** This initial
+   contract must name **at least 5** real, source-derived candidate
+   categories before handing off to Step 5 (`MIN_CARDS` in
+   `scripts/assets/constants.js` is `5` — the same floor Step 5's card gate
+   enforces on the surviving, actually-enriched categories). If genuine
+   derivation from the source site yields fewer than 5 real candidates, say
+   so plainly and widen derivation — check more nav sections, product pages,
+   disease/category pages, business-line listings — before handing off; don't
+   hand Step 5 a sub-5 contract and expect it to backfill the gap later. This
+   is a *candidate* floor, not a guarantee of survival: Step 5 may still find
+   that one of these candidates has zero real assets after scraping, in
+   which case Step 5's own floor rule (`docs/step-5-assets.md`) governs
+   whether to widen, drop, or use a last-resort placeholder for that one.
+
    Ask the customer to choose categories only when the source site is
    genuinely ambiguous after inspection. Otherwise state the decision
    plainly: "I found these usable categories from the source site: <derived
@@ -309,8 +323,9 @@ split it across turns:
    so it is what makes the preview's company filter, `/<company>` routing,
    and `/<company>/public/welcome` login actually work.
    `.claude/skills/rebrand-portal/scripts/assets/enrich-assets.js` also writes both keys in Step 5, but
-   do it here too so a frontend-only demo (no assets) still gets a scoped,
-   working preview. Mark `demo-company-set` `done`.
+   do it here too so the preview is scoped and working immediately after
+   Step 4, even when asset enrichment is deferred to a later step. Mark
+   `demo-company-set` `done`.
 6. **Land as one PR** — on `customer.demoBranch`. Finish tokens, assets,
    content, **and the `config.js` scope edit** first, stage everything,
    then commit → push → open the PR as one sequence. **The PR diff MUST

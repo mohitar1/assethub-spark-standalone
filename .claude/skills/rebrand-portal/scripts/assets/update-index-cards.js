@@ -11,13 +11,16 @@
  *
  *   carousel slide / card tile:
  *     <div>
- *       <div><picture>…<img src="/api/adobe/assets/<id>/as/<name>.jpg?width=750" …></picture></div>
+ *       <div><picture><source srcset="<daSourceUrl>"><img src="<daSourceUrl>" …></picture></div>
  *       <div><h3>Label</h3><p>blurb<br><strong><a href="<facet>">Browse →</a></strong></p></div>
  *     </div>
  *
- * Images are the worker DAM proxy URL (report.cards[].cardImageUrl) — never a raw
- * delivery-*.adobeaemcloud.com URL (that 404s unauthenticated). The rendered <picture> is
- * left untouched by cards.js (see blocks/cards/cards.js) for /api/adobe/assets/ sources.
+ * Images are DA-hosted page images (report.cards[].cardImageUrl — a content.da.live source
+ * URL uploaded by da-card-images.js), authored with ordinary <picture>/<source srcset>/<img>
+ * markup exactly like any other authored image in this template. On preview/publish, Helix
+ * rewrites this into its own public media_<hash>.<ext> path automatically. This is NOT the
+ * worker's `/api/adobe/assets/...` proxy — that path depends on the visitor's session cookie
+ * and is broken for a statically published doc (verified live, even for a signed-in user).
  *
  * Count is whatever report.cards yields — no fixed 5/2. The caller decides how many rows go
  * to the carousel vs the secondary cards section (topAreas), defaulting to all-in-carousel.
@@ -38,11 +41,11 @@ function escapeHtml(value) {
  *   link; a "Top" cards tile can be just image + linked heading. Default true.
  */
 export function cardRowHtml(card, { withBrowseLink = true } = {}) {
-  const img = card.cardImageUrl;
+  const img = escapeHtml(card.cardImageUrl);
   const alt = escapeHtml(card.label);
   const href = escapeHtml(card.href);
   const label = escapeHtml(card.label);
-  const picture = `<picture><img loading="lazy" alt="${alt}" src="${escapeHtml(img)}"></picture>`;
+  const picture = `<picture><source srcset="${img}"><source srcset="${img}" media="(min-width: 600px)"><img loading="lazy" alt="${alt}" src="${img}"></picture>`;
   if (withBrowseLink) {
     const blurb = escapeHtml(card.blurb || '');
     return `<div><div>${picture}</div>`

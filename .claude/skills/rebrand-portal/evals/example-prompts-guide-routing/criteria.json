@@ -1,21 +1,21 @@
 {
-  "context": "Tests that example prompts in rebrand-portal guidance route users into the right workflow: source site required, full demos include assets and collections, frontend-only stops before assets, assets-later includes collections, and vague prompts ask for the missing source site.",
+  "context": "Tests that example prompts in rebrand-portal guidance route users into the right workflow: source site required, every demo includes assets (enriched now or deferred, never skipped), deferred enrichment resumes into collections, and vague prompts ask for the missing source site.",
   "type": "weighted_checklist",
   "checklist": [
     {
-      "name": "Full demo with existing assets",
+      "name": "Demo with existing assets enriched now",
       "max_score": 20,
-      "description": "Examples include a full demo prompt with a source site and assets already in Adobe.",
+      "description": "Examples include a demo prompt with a source site and assets already in Adobe, enriched right away.",
       "check": {
         "type": "fileContains",
         "file": ".claude/skills/rebrand-portal/README.md",
-        "value": "The assets are already in Adobe."
+        "value": "The assets are already in Adobe, enrich them."
       }
     },
     {
-      "name": "Full demo with sample asset source",
+      "name": "Demo with sample asset source",
       "max_score": 20,
-      "description": "Examples include a full demo prompt with a source site and a separate source page for sample assets.",
+      "description": "Examples include a demo prompt with a source site and a separate source page for sample assets.",
       "check": {
         "type": "fileContains",
         "file": ".claude/skills/rebrand-portal/README.md",
@@ -23,13 +23,13 @@
       }
     },
     {
-      "name": "Frontend-only prompt stops before assets",
+      "name": "Deferred-enrichment prompt never skips assets entirely",
       "max_score": 20,
-      "description": "Examples include a prompt that creates the visual/content copy but stops before loading assets.",
+      "description": "Examples include a prompt that rebrands now and leaves enrichment for a later step, not one that skips assets altogether.",
       "check": {
         "type": "fileContains",
         "file": ".claude/skills/rebrand-portal/README.md",
-        "value": "but stop before loading assets."
+        "value": "but leave enrichment for a later step."
       }
     },
     {

@@ -145,10 +145,17 @@ export const ASSET_PROCESSED_POLL_TIMEOUT_MS = 60 * 1000;
 
 export const STATUS_APPROVED = 'approved';
 
-// Minimum number of populated category cards for a credible landing page. Not a fixed
-// target — the card count follows the source-derived contract — but below this the page
-// looks too thin, so the enrichment gate fails rather than publishing a sparse grid.
-export const MIN_CARDS = 4;
+// Minimum number of populated category cards for a credible landing page — a hard floor,
+// not a soft target. Applies at two points: Step 4 must propose at least this many real,
+// source-derived candidate categories before handoff to Step 5; Step 5's card gate then
+// enforces the same floor on the surviving, actually-enriched categories. Below this the
+// enrichment gate fails rather than publishing a sparse grid or silently dropping a
+// category to reach a smaller number (verified live: a category with zero real assets on
+// the source site — e.g. a B2B/formulary-only business line with no public gallery — must
+// not be dropped if doing so breaches this floor; widen source discovery for a real
+// replacement first, and use a clearly-flagged placeholder only as a last resort once
+// discovery is genuinely exhausted).
+export const MIN_CARDS = 5;
 
 // The DAM content root. The Assets HTTP API mirrors this tree under /api/assets.
 export const DAM_ROOT = '/content/dam';

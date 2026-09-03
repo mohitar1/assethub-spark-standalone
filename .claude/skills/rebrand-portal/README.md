@@ -31,25 +31,25 @@
 
 ## Example Prompts
 
-- Full demo with assets already in Adobe:
+- Demo with assets already in Adobe, enriched right away:
 
 ```text
-Create a demo portal for Acme using https://www.acme.com for the visual style and content direction. The assets are already in Adobe.
+Create a demo portal for Acme using https://www.acme.com for the visual style and content direction. The assets are already in Adobe, enrich them.
 ```
 
-- Full demo by pulling sample assets:
+- Demo by pulling sample assets:
 
 ```text
 Create a demo portal for Acme using https://www.acme.com for the visual style and content direction. Pull sample assets from https://www.acme.com/products.
 ```
 
-- Visual/content copy first, assets later:
+- Rebrand now, enrich later:
 
 ```text
-Create Acme's demo portal using https://www.acme.com for the visual style and content direction, but stop before loading assets.
+Create Acme's demo portal using https://www.acme.com for the visual style and content direction, but leave enrichment for a later step.
 ```
 
-- Assets later:
+- Enrichment later, resumed:
 
 ```text
 Now load Acme's assets from Adobe and create the collections.

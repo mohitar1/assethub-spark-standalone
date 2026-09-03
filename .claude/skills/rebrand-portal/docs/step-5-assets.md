@@ -19,13 +19,19 @@ searchable by what's written about each and filterable by facets
 (Category, Campaign, Channel, Keywords) — and scope the portal to show
 **only** this company's assets. Customer-facing wording stays outcomes-only
 (I1): "bringing in <Brand>'s assets and making them easy to find by
-searching and filtering on what's in each one." Two lanes:
+searching and filtering on what's in each one." `customer.assetsLane`
+(Entry flow Q1) picks the lane:
 
-- **Enrich-existing (default)** — the assets already sit in the company's
-  AEM folder; this labels them so they surface in search and facets.
-- **Bring-in (opt-in)** — the customer named a source website; pull sample
-  images and linked documents from it into the folder first using the AEM UI's
-  repository blob-upload API, then label them the same way.
+- **Enrich-existing** (`assetsLane = enrich-existing`) — the assets
+  already sit in the company's AEM folder; this labels them so they
+  surface in search and facets. Runs now if `assetsEnrichNow = true`
+  (Entry flow Q2); otherwise `assets-uploaded` marks `done` and
+  enrichment itself stays `deferred` until a later request.
+- **Bring-in** (`assetsLane = bring-in`) — the customer named a source
+  website; pull sample images and linked documents from it into the
+  folder first using the AEM UI's repository blob-upload API, then label
+  them the same way. Always runs enrichment immediately after upload —
+  `assetsEnrichNow` is always `true` for this lane.
 
 ## Existing environment — no collection, no provisioning
 
@@ -153,9 +159,39 @@ verticals) and no second list to keep in sync. Every asset is mapped to
 title/description/keywords, filename, source page) — a low-confidence mapping
 is preferred over a blank card, so there is no "unclassified/FAILED" bucket in
 normal operation. Because assignment is mandatory, every populated contract
-category has a representative and the card set is complete. A contract category
-that ends up with zero assets fails the **card gate** (below) — widen source
-discovery rather than shipping an empty card.
+category has a representative and the card set is complete.
+
+**Category floor: minimum 5 real categories, hard floor — this is a gate, not
+a target.** `MIN_CARDS` in `scripts/assets/constants.js` is `5`. This is
+checked at two points, not one:
+
+1. **Step 4 (before this step runs)** must already have proposed at least 5
+   real, source-derived candidate categories — see the corresponding rule in
+   `docs/step-4-rebrand.md`.
+2. **Here, after scraping/classification**, the card gate fails outright if
+   the *surviving* real-category count drops below 5. If a contract category
+   ends up with zero assets:
+   - **First — do not drop it.** Widen source discovery across multiple real
+     candidate URLs on the source site (different nav sections, product/
+     category pages, disease-and-conditions-style pages, etc.) — verified
+     live on a real demo: a category with no obvious gallery page still
+     needed 5 separate source-URL attempts across different site sections
+     before its real absence was confirmed. Don't stop at one try.
+   - **If dropping the category would take the total below 5**, the drop is
+     not allowed until a real replacement category is found — keep widening
+     discovery, or find an additional real category to add in its place.
+   - **Only if discovery is genuinely exhausted** (multiple real attempts
+     already made, not skipped) **and** the floor still can't be reached with
+     real categories — a clearly-flagged placeholder/dummy category is the
+     last-resort fallback to reach 5. It must be visibly marked as a
+     placeholder in the report/internal notes so it is never later mistaken
+     for a real, source-derived category.
+   - **Always ask the user** before dropping a category vs. using a
+     placeholder — never auto-decide either way.
+   - Re-running the metadata classifier on the same already-scraped assets
+     does **not** substitute for widening discovery — it only reclassifies
+     assets already downloaded; it cannot manufacture coverage for a category
+     with zero assets to draw from.
 
 ## Author the landing cards from `report.cards`
 
@@ -178,23 +214,56 @@ block's rows from `report.cards`, keeping the wrappers. Each row is authored in
 the exact shape the base index uses: image cell (col 0) + heading + blurb +
 facet `Browse →` link (col 1).
 
-- **Count is whatever the contract yields** — the carousel absorbs any N.
-  There is no fixed 5/2 target. The **card gate** in the enrichment run already
+- **Count is whatever the contract yields, above the 5-category floor** — the
+  carousel absorbs any N ≥ 5. The **card gate** in the enrichment run already
   fails when a contract category has zero assets or fewer than `MIN_CARDS`
-  cards exist, so a sparse page can't ship; fix coverage (widen source
-  discovery / the contract) rather than authoring a thin grid.
+  (5) cards exist, so a sparse page can't ship; fix coverage (widen source
+  discovery — see the category-floor rule above) rather than authoring a thin
+  grid.
+- **Card blurbs are short, authored-style sentences — never a slice of
+  `autogen:description`.** `autogen:description` is per-asset pixel-
+  description evidence for classification only (see
+  `docs/asset-enrichment.md`); it was never meant to be customer-facing card
+  copy. Slicing/truncating it into a blurb produced garbled mid-sentence
+  fragments on a real demo (`"adding con"`, `"Subtle wi"`). Generate a fresh,
+  independent sentence per category in the template's existing style (e.g.
+  "Cancer therapy product and campaign imagery.").
+- **A secondary curated section with no reliable per-item source image is
+  dropped by default, not filled with a mismatched stand-in.** E.g. a "Top
+  Brands"/"Featured" section naming specific products/brands: if there's no
+  real 1:1 image for each named item, drop the section entirely rather than
+  reuse a category image as a generic stand-in or leave it pointing at a
+  stale placeholder from an unrelated base-template repo (verified live:
+  Pfizer's "Top Brands" section pointed at
+  `content.da.live/aem-showcase/assethub-spark/...` — a different org/repo
+  than the company's own branch). State this as the default when confirming
+  with the user, don't re-derive it from scratch each run.
 - Every card row has a facet `href` and a `cardImageUrl` by construction (the
   gate enforces it) — a card can't be link-less or image-less.
 - The card href facet slug equals the asset's `productCategory` (both are the
   contract slug); never rewrite only the visible label.
-- **Images are the worker proxy path, never a raw delivery URL.**
-  `cardImageUrl` is `/api/adobe/assets/<assetId>/as/<fileName>.jpg?width=<N>`
-  (the exact pattern `blocks/search-results/components/picture.js` produces) —
-  relative, authenticated via the visitor's session cookie. A raw
-  `https://delivery-*.adobeaemcloud.com/adobe/assets/...` URL 404s for every
-  real visitor; the report never emits one. (`blocks/cards/cards.js` leaves
-  `/api/adobe/assets/` images untouched so they aren't re-optimized into a
-  broken Helix URL.)
+- **Images are DA-hosted page images — never the worker proxy.**
+  `cardImageUrl` is a `https://content.da.live/<org>/<repo>/<companyKey>/en/
+  media_<categorySlug>.<ext>` URL, uploaded once per contract category by
+  `.claude/skills/rebrand-portal/scripts/assets/da-card-images.js` during
+  enrichment (fetches the representative asset's real bytes via the same
+  IMS-authenticated client used elsewhere in this tool, then PUTs them to
+  DA's source API as an ordinary page image). Author it with normal
+  `<picture><source srcset>…<img></picture>` markup — the same shape any
+  other authored image in this template uses. On preview/publish, Helix
+  automatically rewrites this into its own public `media_<hash>.<ext>` path;
+  that is the real, non-auth-gated URL a visitor's browser loads.
+
+  **The worker proxy (`/api/adobe/assets/<assetId>/as/<fileName>.jpg?width=
+  <N>`) is never used for card images, full stop — verified broken live.**
+  It depends on the *visitor's* session cookie at render time; a statically
+  published DA doc has no visitor session, so the cards rendered
+  alt-text/broken-image on a real demo — not just for an unauthenticated
+  visitor, but for a signed-in user too. That proxy pattern is still correct
+  everywhere else in the running app (`blocks/search-results/components/
+  picture.js`, `blocks/cards/cards.js`, etc. — those render inside the
+  authenticated portal shell, a genuinely different code path); this
+  restriction is scoped to landing-card images only.
 
 Publish the updated company-scoped `/<companyKey>/en/index` after rewriting the
 rows. The visible outcome is real customer imagery on every landing card —
@@ -238,6 +307,11 @@ returned success:
    secondary section) uses its `cardImageUrl` from `report.cards`; no
    base-brand placeholder icons, stale imagery, or missing-image circles
    remain. Each card image belongs to the same category the card links to.
+   **Check the rendered `<img>` src on the published page**: it must be a
+   Helix `media_<hash>.<ext>` path (proof Helix actually processed the
+   uploaded bytes). A literal `content.da.live/...` or `/api/adobe/assets/...`
+   src surviving in the *published* page is a fail — it means publish didn't
+   run, or the old worker-proxy pattern crept back in.
 5. **Every landing tile — carousel and secondary — is authored from
    `report.cards`.** The page carries exactly the two canonical blocks
    (`carousel tiles` + `cards`), both regenerated from the report; there are
@@ -256,7 +330,7 @@ pass.
 **Completion report** (I1, outcomes only): which assets are now in the
 portal and searchable; that filtering works (name the facets that lit up);
 that the demo shows only this company's assets; any per-asset items that
-couldn't be brought in. Do not stop here for `full` or `assets-only` flows:
+couldn't be brought in. Once enrichment actually runs, do not stop here:
 continue directly to Step 6 and create the ready-made collections. The demo
 is shareable **without merging** — the portal link serves the rebranded,
 company-scoped portal; that link is the deliverable. Promoting to production

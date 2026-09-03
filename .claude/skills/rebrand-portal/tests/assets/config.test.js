@@ -5,7 +5,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  slugify, parseEnvFile, parseArgs, validateOptions, resolveCreds, resolveAemEnvId,
+  slugify, parseEnvFile, parseArgs, validateOptions, resolveCreds, resolveAemEnvId, resolveDaToken,
 } from '../../scripts/assets/config.js';
 
 describe('config', () => {
@@ -133,6 +133,49 @@ describe('config', () => {
         mkdirSync(join(dir, 'cloudflare/src'), { recursive: true });
         writeFileSync(join(dir, 'cloudflare/src/config.js'), "export default { AEM_ENV_ID: 'p5-e6' };\n");
         expect(resolveAemEnvId({ repoRoot: dir, env: {} })).toBe('p5-e6');
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  describe('resolveDaToken', () => {
+    it('reads DA_TOKEN from the given token file', () => {
+      const dir = mkdtempSync(join(tmpdir(), 'agent-datoken-'));
+      const file = join(dir, 'token.env');
+      try {
+        writeFileSync(file, 'DA_TOKEN=abc123\n');
+        expect(resolveDaToken({ daTokenFile: file })).toBe('abc123');
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it('defaults to token.env at repoRoot when daTokenFile is not given', () => {
+      const dir = mkdtempSync(join(tmpdir(), 'agent-datoken-default-'));
+      try {
+        writeFileSync(join(dir, 'token.env'), 'DA_TOKEN=xyz789\n');
+        expect(resolveDaToken({ repoRoot: dir })).toBe('xyz789');
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it('returns null (never throws) when the file is missing', () => {
+      const dir = mkdtempSync(join(tmpdir(), 'agent-datoken-missing-'));
+      try {
+        expect(resolveDaToken({ daTokenFile: join(dir, 'missing.env') })).toBeNull();
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it('returns null when the file exists but has no DA_TOKEN key', () => {
+      const dir = mkdtempSync(join(tmpdir(), 'agent-datoken-empty-'));
+      const file = join(dir, 'token.env');
+      try {
+        writeFileSync(file, 'SOME_OTHER_KEY=value\n');
+        expect(resolveDaToken({ daTokenFile: file })).toBeNull();
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }

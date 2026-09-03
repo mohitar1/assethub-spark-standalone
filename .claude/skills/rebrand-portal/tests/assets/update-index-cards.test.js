@@ -10,20 +10,22 @@ const cardA = {
   label: 'Dermatology',
   blurb: 'Skin condition imagery.',
   href: '/en/search?facetFilters=%7B%22productCategory%22%3A%7B%22dermatology%22%3Atrue%7D%7D',
-  cardImageUrl: '/api/adobe/assets/a1/as/eczema.jpg?width=750',
+  cardImageUrl: 'https://content.da.live/org/repo/company/en/media_dermatology.jpg',
 };
 const cardB = {
   slug: 'cancer',
   label: 'Cancer',
   blurb: 'Oncology imagery.',
   href: '/en/search?facetFilters=cancer',
-  cardImageUrl: '/api/adobe/assets/a2/as/onc.jpg?width=750',
+  cardImageUrl: 'https://content.da.live/org/repo/company/en/media_cancer.jpg',
 };
 
 describe('cardRowHtml', () => {
   it('authors image cell + heading + blurb + facet Browse link', () => {
     const html = cardRowHtml(cardA);
-    expect(html).toContain('src="/api/adobe/assets/a1/as/eczema.jpg?width=750"');
+    expect(html).toContain(`src="${cardA.cardImageUrl}"`);
+    expect(html).toContain(`srcset="${cardA.cardImageUrl}"`);
+    expect(html).not.toContain('/api/adobe/assets/');
     expect(html).toContain('<h3>Dermatology</h3>');
     expect(html).toContain('Skin condition imagery.');
     expect(html).toContain(`<a href="${cardA.href}">Browse →</a>`);

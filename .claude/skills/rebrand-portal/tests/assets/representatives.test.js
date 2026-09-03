@@ -1,32 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildProductCategoryRepresentatives, cardImageUrl } from '../../scripts/assets/representatives.js';
-
-describe('cardImageUrl', () => {
-  it('builds the worker-proxy image URL (strip ext, encode name, ?width)', () => {
-    expect(cardImageUrl({ assetId: 'urn:aaid:aem:abc', repoName: 'woman walking.avif' }))
-      .toBe('/api/adobe/assets/urn:aaid:aem:abc/as/woman%20walking.jpg?width=750');
-  });
-
-  it('falls back to title, then thumbnail, for the file name', () => {
-    expect(cardImageUrl({ assetId: 'id1', title: 'Hero Shot' }))
-      .toBe('/api/adobe/assets/id1/as/Hero%20Shot.jpg?width=750');
-    expect(cardImageUrl({ assetId: 'id2' }))
-      .toBe('/api/adobe/assets/id2/as/thumbnail.jpg?width=750');
-  });
-
-  it('returns null without an assetId', () => {
-    expect(cardImageUrl({ repoName: 'x.jpg' })).toBeNull();
-    expect(cardImageUrl(null)).toBeNull();
-  });
-
-  it('is attached to each representative', () => {
-    const report = buildProductCategoryRepresentatives([{
-      asset: { assetId: 'a1', repoPath: '/content/dam/acme/hero.jpg', repoName: 'hero.jpg' },
-      fields: { title: 'Hero', productCategory: 'coffee' },
-    }]);
-    expect(report.items.coffee.cardImageUrl).toBe('/api/adobe/assets/a1/as/hero.jpg?width=750');
-  });
-});
+import { buildProductCategoryRepresentatives } from '../../scripts/assets/representatives.js';
 
 describe('buildProductCategoryRepresentatives', () => {
   it('selects the first asset per productCategory and reports missing expected groups', () => {
@@ -84,5 +57,9 @@ describe('buildProductCategoryRepresentatives', () => {
       assetId: 'a3',
       productCategory: 'suv',
     });
+    // cardImageUrl is NOT set here — it's materialized later by da-card-images.js after a
+    // real DA upload. Setting it in this selection step was the old worker-proxy pattern,
+    // which is removed (verified broken live for statically published landing cards).
+    expect(report.items.hatchback.cardImageUrl).toBeUndefined();
   });
 });

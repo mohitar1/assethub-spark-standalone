@@ -209,5 +209,7 @@ brand). Only then is the rebrand done.
 **Completion report** (I1, outcomes only): what's rebranded and confirmed
 on the portal link (no merge needed); the new brand name and content
 highlights; any follow-up (e.g. a placeholder logo pending the real
-asset). Then, unless `intent` is `full`, ask whether to load the assets in
-now or stop here — stopping is a valid end state (I4).
+asset). Then continue straight into Step 5 with the asset answers already
+gathered in the Entry flow (Q1/Q2) — if `assetsEnrichNow` is `false`,
+upload (if applicable) and stop there; stopping with enrichment deferred
+is a valid end state (I4).

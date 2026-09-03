@@ -1,11 +1,13 @@
 {
-  "schemaVersion": 3,
-  "intent": "assets-only",
+  "schemaVersion": 4,
+  "intent": "full",
   "customer": {
     "name": "Disney",
     "companyKey": "disney",
     "demoBranch": "demo/disney",
-    "daFolder": "/disney"
+    "daFolder": "/disney",
+    "assetsLane": "enrich-existing",
+    "assetsEnrichNow": false
   },
   "steps": {
     "demo-confirmed": "done",

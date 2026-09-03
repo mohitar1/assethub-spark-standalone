@@ -1,5 +1,5 @@
 {
-  "context": "Tests that Step 6 is automatic for full/assets-only flows once assets are searchable, so the agent does not miss collections or wait for another user prompt.",
+  "context": "Tests that Step 6 is automatic once assets are searchable (whether enrichment ran immediately or was resumed after being deferred), so the agent does not miss collections or wait for another user prompt.",
   "type": "weighted_checklist",
   "checklist": [
     {

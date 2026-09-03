@@ -111,8 +111,15 @@ node .claude/skills/rebrand-portal/scripts/assets/enrich-assets.js \
   [--limit <n>] \
   [--secrets-file cloudflare/.secrets] \
   [--aem-env-id pNNN-eNNN] \
-  [--report-file <path.json>]
+  [--report-file <path.json>] \
+  [--org <githubOrg>] [--repo <githubRepo>] [--da-token-file token.env]
 ```
+
+`--org`/`--repo` (the same GitHub org/repo as the DA content, resolved from
+the git remote) and `--da-token-file` (default `token.env`) enable card-image
+upload to DA (`da-card-images.js`). Without them, card images are skipped and
+the card gate fails on missing images — pass these whenever cards need to be
+authored.
 
 `--categories` is the source-derived category contract from Step 4 (comma-separated slugs,
 e.g. `--categories dermatology,cancer,diabetes,obesity,alzheimers`). Every asset is mapped
@@ -190,16 +197,25 @@ Important fields:
 - `counts`: enriched, skipped, and failed asset counts
 - `assets`: per-asset outcome and failure reason
 - `categoryCoverage.categories`: categories that have at least one asset
-- `representatives.items`: one usable asset per category — includes `cardImageUrl`, the
-  worker proxy URL used directly as the card image
+- `representatives.items`: one usable asset per category — includes `cardImageUrl`, a
+  DA-hosted page-image source URL (uploaded by `da-card-images.js` from the asset's real
+  bytes), used directly in `<picture>/<img>` card markup
 - `cards`: **ready-to-author landing card rows**, one per contract category. Each row has
   `label`, `blurb`, `href` (facet-filter search URL), and `cardImageUrl`. The landing page
-  edit consumes these directly — no URL construction by hand, no raw delivery host.
+  edit consumes these directly — no URL construction by hand, no raw delivery host, and
+  never the worker's `/api/adobe/assets/...` proxy (verified broken for a statically
+  published card — it depends on the visitor's session cookie, which a published DA doc
+  never has).
 
 **Card gate.** After building `cards`, the tool fails (non-zero exit) unless every contract
-category has ≥1 asset, at least `MIN_CARDS` cards exist, and every card row has both an
+category has ≥1 asset, at least `MIN_CARDS` (5) cards exist, and every card row has both an
 `href` and a `cardImageUrl`. A card cannot exist without a facet link and an image — this
-structurally prevents the "blank tile / dead un-clickable card" failure.
+structurally prevents the "blank tile / dead un-clickable card" failure. The floor is hard:
+5 real, source-derived categories minimum, both at Step 4's initial contract proposal and
+here at Step 5's post-enrichment gate. A zero-asset category is not simply dropped if that
+would breach the floor — widen source discovery for a real replacement first; a clearly-
+flagged placeholder category is only a last resort once real discovery is genuinely
+exhausted, and only after asking the user.
 
 Example:
 
@@ -218,7 +234,7 @@ Example:
         "assetPath": "/content/dam/acme/hero.jpg",
         "repoName": "hero.jpg",
         "title": "Hero",
-        "cardImageUrl": "/api/adobe/assets/urn:aaid:aem:.../as/hero.jpg?width=750"
+        "cardImageUrl": "https://content.da.live/org/repo/acme/en/media_derived-slug.jpg"
       }
     }
   },
@@ -227,9 +243,9 @@ Example:
       "slug": "derived-slug",
       "label": "Derived Label",
       "assetCount": 12,
-      "blurb": "Derived Label imagery.",
+      "blurb": "Derived Label product and campaign imagery.",
       "href": "/en/search?facetFilters=%7B%22productCategory%22%3A%7B%22derived-slug%22%3Atrue%7D%7D",
-      "cardImageUrl": "/api/adobe/assets/urn:aaid:aem:.../as/hero.jpg?width=750"
+      "cardImageUrl": "https://content.da.live/org/repo/acme/en/media_derived-slug.jpg"
     }
   ]
 }

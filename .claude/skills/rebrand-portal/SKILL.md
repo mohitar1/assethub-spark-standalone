@@ -45,10 +45,13 @@ into the demo path.
   portal.) The result is fully viewable straight from the open PR.
   **Merging is not required and not preferred.** Only call something "live
   in production" once merged; never gate demo completion on a merge.
-- **I4 — Deferring the assets step is a valid, complete end state.** A
-  customer who only wants the look/content copy (not assets yet) is *done*
-  when that's done. Never hold the demo open waiting on work the customer
-  didn't ask for.
+- **I4 — Deferring asset enrichment is a valid, complete end state.**
+  Every demo runs `full` (rebrand + assets are both always in scope), but
+  if the customer answers Entry flow Q2 with "leave enrichment for a later
+  step," the demo is *done* once rebrand + upload (if applicable) land —
+  don't hold the demo open chasing enrichment the customer explicitly
+  deferred. This is different from *never* wanting assets — that option no
+  longer exists; deferral only postpones *when* enrichment runs.
 - **I5 — Never destroy a pull request or its branch.** Never run
   `gh pr close`, `git push --delete`, `git branch -D`, `--delete-branch`,
   or anything that closes/deletes a PR or a branch that has (or had) a PR
@@ -82,11 +85,15 @@ re-plan, or reorder it — run it and mark each step `done` as you go.
    `/<company>` routing, and login base), publish `/<company>`, open one
    PR (Step 4).
 5. **`assets-uploaded` → `assets-enriched` → `search-scoped`** — upload
-   and enrich the company's assets so they're searchable, scoped to the
-   company (Step 5).
+   (if the assets aren't already in the company's folder) and, unless the
+   customer chose to defer it (Entry flow Q2), enrich the company's assets
+   so they're searchable, scoped to the company (Step 5).
 6. **`collections-created`** — once the company's assets are searchable,
    group them into ready-made collections (one per category), each scoped
    to the company so it shows/hides with the demo company filter (Step 6).
+   Runs whenever enrichment actually completes — immediately for an
+   enrich-now demo, or on the later follow-up request if enrichment was
+   deferred.
 
 > **⛔ The one hard gate.** You may NOT invoke the design tool
 > (`excat-complete-design-expert`) or edit any styling file until both
@@ -104,13 +111,15 @@ shape from memory:**
 
 ```json
 {
-  "schemaVersion": 3,
-  "intent": "full | frontend-only | assets-only",
+  "schemaVersion": 4,
+  "intent": "full",
   "customer": {
     "name": null,
     "companyKey": null,
     "demoBranch": null,
-    "daFolder": null
+    "daFolder": null,
+    "assetsLane": null,
+    "assetsEnrichNow": null
   },
   "steps": {
     "demo-confirmed": "pending",
@@ -128,12 +137,19 @@ shape from memory:**
 }
 ```
 
-Step values are `pending`, `done`, `blocked`, or `not-requested`
-(assets steps and `collections-created` are `not-requested` when `intent`
-is `frontend-only`).
+Every demo is `full` — there is no other `intent` value. Step values are
+`pending`, `done`, `blocked`, or `deferred` (`assets-enriched`,
+`search-scoped`, and `collections-created` are `deferred` when the
+customer chose to leave enrichment for a later step — see Entry flow Q2 —
+and resume to `pending` on a later "now enrich the assets" follow-up
+request).
 `customer.companyKey` is the slug of `customer.name` (lowercase, hyphens);
-`daFolder` is `/<companyKey>`. Asset credentials and the AEM env id are
-**not** in state — they live in the existing environment (Step 5).
+`daFolder` is `/<companyKey>`. `customer.assetsLane` is
+`enrich-existing` or `bring-in` (Entry flow Q1); `customer.assetsEnrichNow`
+is `true`/`false` (Entry flow Q2 — always `true` for `bring-in`, since
+pulling in samples with no labeling afterward isn't a sensible outcome).
+Asset credentials and the AEM env id are **not** in state — they live in
+the existing environment (Step 5).
 
 ## Skill source of truth
 
@@ -159,29 +175,34 @@ new gates such as Step 4g's color verification before assets.
    copied docs, PR scope, or the facets panel can still carry stale base
    branding.
 
-2. **Ask one customer-facing question** (unless the request already makes
-   it unambiguous). Plain outcome language, no internal terms (I1). Never
-   ask "demo vs real portal" — the dedicated path is disabled; every
-   request is a demo. If the customer explicitly asks for their own real,
-   separate portal, say plainly that a dedicated environment is
-   temporarily unavailable and you'll show it as a demo instead — a fresh
-   copy of the site under their company name — then proceed.
+2. **Ask the customer-facing question(s) below** (skip any question the
+   request already answers unambiguously). Plain outcome language, no
+   internal terms (I1). Never ask "demo vs real portal" — the dedicated
+   path is disabled; every request is a demo. If the customer explicitly
+   asks for their own real, separate portal, say plainly that a dedicated
+   environment is temporarily unavailable and you'll show it as a demo
+   instead — a fresh copy of the site under their company name — then
+   proceed. Never ask a "full vs. branding-only" question either — every
+   demo always includes assets; the only open questions are *where the
+   assets come from* and *when enrichment runs*.
 
-   Offer only outcomes the state supports. On a fresh request:
-   - "Set up <Brand>'s own copy of the site under its name, match the look
-     and content direction from <Brand>'s website, and load in <Brand>'s own
-     assets so they're easy to find by searching, filtering, and browsing
-     collections" → `intent` = `full`.
-   - "Just set up <Brand>'s copy with <Brand>'s look and content direction
-     from <Brand>'s website for now — I'll load <Brand>'s assets and
-     collections in a later step" → `intent` = `frontend-only` (assets steps
-     and `collections-created` → `not-requested`).
-   - "Something else" (free text).
+   **Q1 — asset source (always ask unless the request already says).**
+   - "Are `<Brand>`'s assets already uploaded in Adobe?" → `assetsLane` =
+     `enrich-existing`.
+   - "Should I pull sample assets in from `<Brand>`'s website?" (needs a
+     source URL) → `assetsLane` = `bring-in`; `assetsEnrichNow` = `true`
+     (bring-in always enriches after upload — there's no sensible reason
+     to upload samples and leave them unlabeled).
 
-   On a resumed request where the rebrand is already verified `done`,
-   offer instead: "Load in <Brand>'s own assets so they're searchable and
-   grouped into collections" → `intent` = `assets-only` (route straight to
-   Step 5, then Step 6).
+   **Q2 — enrichment timing (ask only when Q1 = `enrich-existing`, unless
+   the request already says).**
+   - "Should I also label them now so they're searchable, or leave that
+     for a later step?" → `assetsEnrichNow` = `true` or `false`.
+
+   On a resumed request where rebrand is already verified `done` and
+   `assetsEnrichNow` was `false`, no question is needed for a follow-up
+   like "now enrich Acme's assets and build the collections" — just set
+   `assetsEnrichNow` = `true` and route straight to Step 5, then Step 6.
 
    Never label an option with a step/phase name or a bare mechanic
    ("rebrand only," "publish"); every option states a concrete result the
@@ -196,15 +217,17 @@ Use these to route user prompts; do not recite this table to the customer.
 
 | User says | Route |
 |---|---|
-| "Create a demo portal for Acme using `https://www.acme.com` for the visual style and content direction. The assets are already in Adobe." | `full`; source site present; enrich existing assets; automatically create collections after assets verify. |
-| "Create a demo portal for Acme using `https://www.acme.com` for the visual style and content direction. Pull sample assets from `https://www.acme.com/products`." | `full`; source site present; bring in sample assets from the named asset source; enrich; automatically create collections after assets verify. |
-| "Create Acme's demo portal using `https://www.acme.com` for the visual style and content direction, but stop before loading assets." | `frontend-only`; source site present; assets and collections are `not-requested`. |
-| "Now load Acme's assets from Adobe and create the collections." | `assets-only`; resume at Step 5; enrich existing assets; automatically run Step 6 after assets verify. |
+| "Create a demo portal for Acme using `https://www.acme.com` for the visual style and content direction. The assets are already in Adobe, enrich them." | Source site present; `assetsLane = enrich-existing`, `assetsEnrichNow = true`; enrich existing assets; automatically create collections after assets verify. |
+| "Create a demo portal for Acme using `https://www.acme.com` for the visual style and content direction. The assets are already in Adobe." | Source site present; `assetsLane = enrich-existing`; ask Q2 (enrich now or leave for later) — don't assume. |
+| "Create a demo portal for Acme using `https://www.acme.com` for the visual style and content direction. Pull sample assets from `https://www.acme.com/products`." | Source site present; `assetsLane = bring-in`, `assetsEnrichNow = true` (bring-in always enriches); automatically create collections after assets verify. |
+| "Create Acme's demo portal using `https://www.acme.com` for the visual style and content direction, but leave enrichment for a later step." | Source site present; ask Q1 if not already answered; `assetsEnrichNow = false`; rebrand + upload (if applicable) land, `assets-enriched`/`search-scoped`/`collections-created` stay `deferred`. |
+| "Now enrich Acme's assets and create the collections." | Resume: `assetsEnrichNow = true`; route straight to Step 5, then Step 6. |
 | "Rebrand this for Acme." | Missing required source site; ask for Acme's source site so the look and content direction can be matched. |
 
-Every full/assets route ends with collections unless the state says
-`intent` is `frontend-only`. Do not wait for the customer to ask for
-collections after assets are searchable.
+Every route ends with collections once enrichment actually runs — either
+immediately, or on the later follow-up if the customer deferred it. Do
+not wait for the customer to ask for collections after assets are
+searchable.
 
 ## Operator setup (not customer-facing)
 
@@ -260,11 +283,26 @@ CLI still needs explicit hook registration. See `hooks/README.md`.
 
 # The steps — summaries + where the full detail lives
 
-Each step below is a **summary only**. The full, mandatory checklist for a
-step lives in its `docs/step-*.md` file. **Before executing a step, read
-its doc — do not run the step from the summary alone.** Paths are given
-repo-relative (as `.claude/skills/rebrand-portal/docs/...`) so they resolve
-whether cwd is the repo root or the skill dir, matching the existing
+Each step below is a **summary only — it is deliberately incomplete.** The
+full, mandatory checklist for a step lives in its `docs/step-*.md` file, and
+that checklist contains gates, exit-code rules, and verification items that
+are **not** repeated in the summary. Acting from the summary alone will skip
+them and is a defect.
+
+> ⛔ **MANDATORY READ GATE — applies to every step below.** The FIRST action
+> you take when you enter a step is to **Read that step's `docs/step-*.md`
+> file in full** (use the Read tool on the path in the step's 📄 line). Do
+> **not** run any command, edit any file, delegate to any tool, or write any
+> customer-facing message for a step until you have read its doc **in this
+> session**. The summary is a table of contents, not the instructions. If you
+> find yourself about to act on a step and have not read its doc this turn,
+> stop and read it first. This is the single most important rule in this
+> file — the step docs carry the failure-derived checks that the evals
+> assert, and skipping them reproduces exactly the live breakages they exist
+> to prevent.
+
+Paths are repo-relative (`.claude/skills/rebrand-portal/docs/...`) so they
+resolve whether cwd is the repo root or the skill dir, matching the existing
 `docs/asset-enrichment.md` reference style.
 
 ---
@@ -275,7 +313,7 @@ Tell the customer in one plain sentence what will happen (copy the site
 under their name, give it their look/content, share a portal link; the
 original is never changed — I1). Mark `demo-confirmed` `done`.
 
-📄 Full detail: `.claude/skills/rebrand-portal/docs/step-1-2-branch.md`
+▶ **Read now, before acting:** `.claude/skills/rebrand-portal/docs/step-1-2-branch.md`
 
 ## Step 2 — Company and branch (`branch-resolved`)
 
@@ -286,7 +324,7 @@ brand branch first and ASK continue-vs-new if one is found — never silently
 reuse, recreate, or delete it (I5).** Record `customer.demoBranch`; mark
 `branch-resolved` `done`.
 
-📄 Full detail: `.claude/skills/rebrand-portal/docs/step-1-2-branch.md`
+▶ **Read now, before acting:** `.claude/skills/rebrand-portal/docs/step-1-2-branch.md`
 
 ---
 
@@ -300,8 +338,8 @@ empty. Path-by-path verification, extensions preserved (access sheets must
 land as `.json`, not `.xlsx`). On success set `customer.daFolder =
 "/<companyKey>"` and mark `da-content-copied` `done`.
 
-📄 Full detail (script contract, exit codes, sheet-format & nav checks):
-`.claude/skills/rebrand-portal/docs/step-3-da-copy.md`
+▶ **Read now, before acting** (script contract, exit codes, sheet-format &
+nav checks): `.claude/skills/rebrand-portal/docs/step-3-da-copy.md`
 
 ---
 
@@ -318,8 +356,8 @@ merge — I3; never close/delete — I5). Token setup is Step 4a (`token.env`,
 `DA_TOKEN` only). Marks `rebranded`, `demo-company-set`, `published`,
 `landed-via-pr`.
 
-📄 Full detail (preflight, 4a token setup, 4b–4f delegation, all checklists):
-`.claude/skills/rebrand-portal/docs/step-4-rebrand.md`
+▶ **Read now, before acting** (preflight, 4a token setup, 4b–4f delegation,
+all checklists): `.claude/skills/rebrand-portal/docs/step-4-rebrand.md`
 
 ## Step 4g — Verification (hard gate before Step 5)
 
@@ -332,7 +370,7 @@ facets-panel colors across every interactive state; folder-scope. If a
 resumed state claims rebrand `done` but any 4g check fails, leave `assets-*`
 pending and fix Step 4.
 
-📄 Full detail (every checklist item + known repeat misses):
+▶ **Read now, before acting** (every checklist item + known repeat misses):
 `.claude/skills/rebrand-portal/docs/step-4g-verification.md`
 
 ---
@@ -353,20 +391,23 @@ fewer than `MIN_CARDS` cards. Author the copied `/<companyKey>/en/index`
 carousel + cards rows from `report.cards` (via `update-index-cards.js`),
 preserving the block wrappers. Scope the portal via config.js.
 Marks `assets-uploaded`, `assets-enriched`, `search-scoped`. Then continue
-to Step 6 automatically (unless `intent` is `frontend-only`).
+to Step 6 automatically — unless `assetsEnrichNow` is `false`, in which
+case leave `assets-enriched`/`search-scoped`/`collections-created`
+`deferred` and stop here (I4).
 
-📄 Full detail (lanes, controller flags, enrichment path, card visuals,
-verification): `.claude/skills/rebrand-portal/docs/step-5-assets.md`
+▶ **Read now, before acting** (lanes, controller flags, enrichment path,
+card visuals, verification): `.claude/skills/rebrand-portal/docs/step-5-assets.md`
 
 ---
 
 ## Step 6 — Build collections from the searchable assets (`collections-created`)
 
-Runs **automatically after** `assets-enriched` + `search-scoped` for `full`
-and `assets-only` flows — one collection per `productCategory`, company-
-scoped, via `scripts/assets/create-collections.js` (existing env, DM
-collections API, always `--dry-run` first). Leave `not-requested` only when
-`intent` is `frontend-only`. Marks `collections-created`.
+Runs **automatically after** `assets-enriched` + `search-scoped` complete
+— one collection per `productCategory`, company-scoped, via
+`scripts/assets/create-collections.js` (existing env, DM collections API,
+always `--dry-run` first). Leave `deferred` only while
+`assets-enriched`/`search-scoped` are themselves `deferred`. Marks
+`collections-created`.
 
-📄 Full detail (controller flags, company-filter stamping, verification):
-`.claude/skills/rebrand-portal/docs/step-6-collections.md`
+▶ **Read now, before acting** (controller flags, company-filter stamping,
+verification): `.claude/skills/rebrand-portal/docs/step-6-collections.md`

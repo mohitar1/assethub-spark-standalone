@@ -6,11 +6,12 @@ organized — one collection per category (the same `productCategory` slugs
 the home cards and category coverage report use). Customer-facing wording stays
 outcomes-only (I1): "grouping <Brand>'s assets into collections so they're
 ready to browse by category." Runs **automatically after**
-`assets-enriched` and `search-scoped` are `done` for `full` and
-`assets-only` flows — do not wait for a separate user request once assets
-are searchable. The assets must be approved and index-visible before they
-can be collected. Leave `collections-created` `not-requested` only when
-`intent` is `frontend-only`.
+`assets-enriched` and `search-scoped` are `done` — do not wait for a
+separate user request once assets are searchable. The assets must be
+approved and index-visible before they can be collected. Leave
+`collections-created` `deferred` only while `assets-enriched`/
+`search-scoped` are themselves `deferred` (the customer chose to leave
+enrichment for a later step — Entry flow Q2).
 
 ## Existing environment — no provisioning
 
@@ -95,7 +96,7 @@ Confirm the **visible outcome** in the running portal:
    company and would be hidden if `DEMO_COMPANY` pointed elsewhere.
 
 Mark `collections-created` `done` once all pass (skip and leave
-`not-requested` when `intent` is `frontend-only`).
+`deferred` when enrichment itself is `deferred`).
 
 **Completion report** (I1, outcomes only): which collections now exist and
 what each groups; that they carry only this company's assets. The portal

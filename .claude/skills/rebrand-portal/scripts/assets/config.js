@@ -10,6 +10,7 @@ import { resolve } from 'node:path';
 const FLAG_WITH_VALUE = new Set([
   'customer-key', 'dam-path', 'source-url', 'secrets-file', 'limit',
   'concurrency', 'report-file', 'fixture', 'aem-env-id', 'categories',
+  'org', 'repo', 'da-token-file',
 ]);
 
 const BOOLEAN_FLAGS = new Set(['dry-run', 'force', 'bring-in']);
@@ -129,6 +130,13 @@ export function parseArgs(argv) {
     // --categories dermatology,cancer,diabetes,obesity,alzheimers. normalizeContract() in
     // enrich-assets.js parses this into [{slug,label}].
     categoryContract: null,
+    // DA org/repo (same as the GitHub org/repo — resolved by the calling flow from the git
+    // remote, same as scripts/da/copy-folder.sh's <org> <repo> args) and the token file
+    // (default token.env at repo root) — needed to upload representative card images to DA
+    // (see da-card-images.js). Card-image upload is skipped (not fatal) if these aren't set.
+    org: null,
+    repo: null,
+    daTokenFile: null,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -155,6 +163,9 @@ export function parseArgs(argv) {
         case 'fixture': opts.fixture = value; break;
         case 'aem-env-id': opts.aemEnvId = value; break;
         case 'categories': opts.categoryContract = value; break;
+        case 'org': opts.org = value; break;
+        case 'repo': opts.repo = value; break;
+        case 'da-token-file': opts.daTokenFile = value; break;
         default: break;
       }
     }
@@ -166,6 +177,18 @@ export function parseArgs(argv) {
   if (opts.sourceUrl) opts.bringIn = true;
 
   return opts;
+}
+
+/**
+ * Read DA_TOKEN from a dotenv-style file (default token.env at repo root — the same file
+ * Step 4a's ensure-eds-tokens.sh writes/verifies). Returns null (never throws) when absent
+ * or empty — card-image upload is best-effort, not a hard requirement to enrich metadata.
+ */
+export function resolveDaToken({ daTokenFile, repoRoot = process.cwd() } = {}) {
+  const file = daTokenFile || resolve(repoRoot, 'token.env');
+  if (!existsSync(file)) return null;
+  const parsed = parseEnvFile(readFileSync(file, 'utf8'));
+  return parsed.DA_TOKEN || null;
 }
 
 export function validateOptions(opts) {

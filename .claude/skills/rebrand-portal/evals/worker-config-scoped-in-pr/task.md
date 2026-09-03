@@ -13,14 +13,15 @@ Both must equal the company key (`acme`). If the migration never edits
 `config.js`, the deployed preview worker keeps the wrong company
 (`frescopa`) and root-only routing/login — the exact failure that breaks
 the company filter, the preview navigation, and the login page. This step
-(`demo-company-set`, Step 4 item 5) is mandatory even for a
-frontend-only demo (no assets), and the change **must be committed to the
-PR** — a local-only edit does not reach the deployed worker.
+(`demo-company-set`, Step 4 item 5) is mandatory even when asset
+enrichment is deferred to a later step, and the change **must be
+committed to the PR** — a local-only edit does not reach the deployed
+worker.
 
 ## Setup
 
 - Fixture state: rebrand done, at the `demo-company-set` step
-  (`intent: frontend-only`, `companyKey: acme`).
+  (`intent: full`, `assetsEnrichNow: false`, `companyKey: acme`).
 - Fixture `cloudflare/src/config.js` still has the production defaults
   (`DEMO_COMPANY: 'frescopa'`, `DEMO_BASE_PATH: ''`).
 

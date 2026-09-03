@@ -15,7 +15,8 @@ This guards against the agent dragging the demo into backend-onboarding
 ## Setup
 
 - State shows the rebrand already verified `done` (demo branch + PR
-  landed); `intent` is `assets-only`.
+  landed); enrichment was deferred (`assetsEnrichNow: false`) and the
+  customer is now resuming to load assets.
 - The repo is the shared showcase repo; `cloudflare/.secrets` exists with
   the DM credentials already populated.
 

@@ -19,7 +19,8 @@ So the rebrand scope (Step 4) must:
 ## Setup
 
 - Fixture state: DA content copied into `/acme`, now at the rebrand step
-  (`rebranded: pending`, `intent: frontend-only`, `companyKey: acme`).
+  (`rebranded: pending`, `intent: full`, `assetsEnrichNow: true`,
+  `companyKey: acme`).
 
 ## User prompt
 

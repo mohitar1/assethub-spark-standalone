@@ -22,7 +22,8 @@ import {
 } from './sling-metadata.js';
 import { Report, OUTCOME } from './report.js';
 import { createAssetMetadataGenerator } from './generate.js';
-import { buildProductCategoryRepresentatives, cardImageUrl } from './representatives.js';
+import { buildProductCategoryRepresentatives } from './representatives.js';
+import { materializeCardImages } from './da-card-images.js';
 import {
   applyCategoryPlan,
   buildCategoryCoverage,
@@ -40,7 +41,7 @@ import {
 } from './constants.js';
 import { mapWithConcurrency } from './concurrency.js';
 import {
-  parseArgs, validateOptions, resolveCreds, resolveAemEnvId,
+  parseArgs, validateOptions, resolveCreds, resolveAemEnvId, resolveDaToken,
 } from './config.js';
 
 export { mapWithConcurrency };
@@ -69,8 +70,15 @@ export function normalizeContract(input) {
 /**
  * Build ready-to-author landing card rows — one per contract category (any N). Each row
  * carries exactly what a carousel slide / cards tile needs: label, blurb, facet href, and
- * the worker-proxy image URL of the category's representative asset. The DA-index edit
- * consumes these directly; no per-run URL construction.
+ * the DA-hosted image URL of the category's representative asset (see da-card-images.js —
+ * uploaded to DA and materialized onto representatives.items[slug].cardImageUrl BEFORE this
+ * is called). The DA-index edit consumes these directly; no per-run URL construction.
+ *
+ * Blurbs are short, independently-authored sentences in the template's existing style
+ * (e.g. "Cancer therapy product and campaign imagery.") — NEVER a raw or truncated slice of
+ * an asset's autogen:description. autogen:description is per-asset pixel-description
+ * evidence for classification only (see docs/asset-enrichment.md); truncating it into card
+ * copy produced garbled mid-sentence fragments on a real demo ("adding con", "Subtle wi").
  */
 export function buildCardRows({ contract = [], categoryCoverage = {}, representatives = {} }) {
   const counts = new Map((categoryCoverage.categories || []).map((c) => [c.slug, c.assetCount]));
@@ -86,14 +94,14 @@ export function buildCardRows({ contract = [], categoryCoverage = {}, representa
       const entry = contract.find((c) => c.slug === slug);
       const rep = reps[slug];
       const label = (entry && entry.label) || humanizeCategorySlug(slug);
-      const blurb = rep.description || `Browse ${label} imagery.`;
+      const blurb = `${label} product and campaign imagery.`;
       return {
         slug,
         label,
         assetCount: counts.get(slug) || 0,
         blurb,
         href: categorySearchUrl(slug),
-        cardImageUrl: rep.cardImageUrl || cardImageUrl(rep),
+        cardImageUrl: rep.cardImageUrl || null,
       };
     });
 }
@@ -111,7 +119,14 @@ export function checkCardGate(report, contract = []) {
     return { ok: false, reason: `contract categories with no assets: ${missing.join(', ')}` };
   }
   if (cards.length < MIN_CARDS) {
-    return { ok: false, reason: `only ${cards.length} card(s); need at least ${MIN_CARDS}. Widen source discovery or the category contract.` };
+    return {
+      ok: false,
+      reason: `only ${cards.length} card(s); need at least ${MIN_CARDS} real, source-derived `
+        + 'categories. Do not drop a zero-asset category if that would breach this floor — '
+        + 'widen source discovery for a real replacement category first, ask the user before '
+        + 'dropping vs. using a placeholder, and use a clearly-flagged placeholder category '
+        + 'only once real discovery is genuinely exhausted.',
+    };
   }
   const broken = cards.filter((c) => !c.href || !c.cardImageUrl).map((c) => c.slug);
   if (broken.length) {
@@ -367,9 +382,32 @@ export async function enrichAssets({
   });
   const categoryCoverage = buildCategoryCoverage(withMetadataPlans);
   report.setCategoryCoverage(categoryCoverage);
-  const representatives = buildProductCategoryRepresentatives(withMetadataPlans, {
+  let representatives = buildProductCategoryRepresentatives(withMetadataPlans, {
     expectedCategories: contract.map((c) => c.slug),
   });
+
+  // Materialize each representative's card image as a DA-hosted page image (never the
+  // worker proxy — see da-card-images.js for why). Best-effort: a failure here means that
+  // card's cardImageUrl stays null and the card gate below reports it as broken, rather
+  // than silently falling back to the broken proxy pattern.
+  if (options.org && options.repo && customerKey) {
+    const { items, failures } = await materializeCardImages({
+      client,
+      daToken: options.daToken,
+      org: options.org,
+      repo: options.repo,
+      companyKey: customerKey,
+      representatives,
+      dryRun: options.dryRun,
+    });
+    representatives = { ...representatives, items };
+    failures.forEach((f) => {
+      log.warn?.(`[agent] card image upload failed for category "${f.slug}": ${f.error}`);
+    });
+  } else {
+    log.warn?.('[agent] --org/--repo not set (or no DA_TOKEN) — skipping card image upload; cards will have no image and the card gate will fail on them');
+  }
+
   report.setRepresentatives(representatives);
   // Ready-to-author landing card rows (one per contract category, any N) — the DA-index
   // edit consumes these directly. Built from coverage + representatives, no hand URLs.
@@ -554,6 +592,10 @@ export async function main(argv = process.argv.slice(2)) {
     });
     console.warn(`[agent] using DM creds from ${creds.source}`);
     console.warn(`[agent] targeting AEM author env ${aemEnvId} via the Assets Author API`);
+    options.daToken = resolveDaToken({ daTokenFile: options.daTokenFile });
+    if (options.org && options.repo && !options.daToken) {
+      console.warn('[agent] --org/--repo set but no DA_TOKEN found (token.env) — card image upload will be skipped');
+    }
     // No classifier injected here → applyCategoryPlan uses the deterministic token-overlap
     // classifier over the contract. The agent/LLM can call enrichAssets({classifier}) directly
     // for smarter mapping; the CLI default stays deterministic and offline-safe.

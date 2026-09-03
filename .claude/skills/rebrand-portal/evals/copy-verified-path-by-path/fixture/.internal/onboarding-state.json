@@ -1,11 +1,13 @@
 {
-  "schemaVersion": 3,
-  "intent": "frontend-only",
+  "schemaVersion": 4,
+  "intent": "full",
   "customer": {
     "name": "Acme",
     "companyKey": "acme",
     "demoBranch": "demo/acme",
-    "daFolder": null
+    "daFolder": null,
+    "assetsLane": "enrich-existing",
+    "assetsEnrichNow": true
   },
   "steps": {
     "demo-confirmed": "done",
@@ -15,9 +17,9 @@
     "demo-company-set": "pending",
     "published": "pending",
     "landed-via-pr": "pending",
-    "assets-uploaded": "not-requested",
-    "assets-enriched": "not-requested",
-    "search-scoped": "not-requested",
-    "collections-created": "not-requested"
+    "assets-uploaded": "pending",
+    "assets-enriched": "pending",
+    "search-scoped": "pending",
+    "collections-created": "pending"
   }
 }
