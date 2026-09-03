@@ -161,6 +161,12 @@ new gates such as Step 4g's color verification before assets.
 
 ## Entry flow — run first, every invocation
 
+0. **State Step 1 first, before any question.** On a brand-new request
+   (no state file, or `demo-confirmed` not yet `done`), say the one plain
+   sentence from Step 1 — what will happen, in outcome language — before
+   asking Q1/Q2 or anything else. Never open with a question; the customer
+   should hear what's about to happen before being asked to decide anything.
+
 1. **Load and verify state.** If `.internal/onboarding-state.json` exists,
    read it, but before trusting a step marked `done`, spot-check one
    concrete fact against the repo (e.g. `rebranded` done → does the demo
@@ -207,6 +213,14 @@ new gates such as Step 4g's color verification before assets.
    Never label an option with a step/phase name or a bare mechanic
    ("rebrand only," "publish"); every option states a concrete result the
    customer could see.
+
+   **Use the Q1/Q2 wording above verbatim — do not paraphrase, relabel, or
+   invent your own header** (e.g. a "Asset source" heading, or reasoning
+   like "scoped to `<Brand>`" / "DAM folder" / "bring-in always enriches"
+   surfaced in the option text). That wording is internal mechanics and
+   violates I1 even when the underlying question is the right one to ask.
+   The templates above are already customer-safe; substituting your own
+   phrasing is the defect, not the question itself.
 
 3. **Run the sequence** above from the first non-`done` step. Honor the
    hard gate. Do not narrate the step list back to the customer.
