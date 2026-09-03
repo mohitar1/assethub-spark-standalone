@@ -60,7 +60,7 @@
 
   /* Semantic aliases */
   --background-color: var(--color-neutral-50);
-  --color-secondary-light-sky-blue: rgb(0 100 125 / 12%);
+  --color-secondary-light-sky-blue: rgb(9 126 44 / 12%);
   --color-secondary: var(--text-color);
   --color-medium-grey: var(--color-neutral-400);
   --color-dark-blue: var(--primary-color);
@@ -93,13 +93,13 @@
 
   /* status badge colors */
   --status-not-started: var(--primary-color);
-  --status-not-started-bg: rgb(0 100 125 / 12%);
+  --status-not-started-bg: rgb(9 126 44 / 12%);
   --status-in-progress: var(--accent-tertiary);
-  --status-in-progress-bg: rgb(235 164 57 / 12%);
+  --status-in-progress-bg: rgb(81 160 37 / 12%);
   --status-completed: #7fb078;
   --status-completed-bg: rgb(127 176 120 / 12%);
   --status-cancelled: var(--color-red);
-  --status-cancelled-bg: rgb(163 53 50 / 12%);
+  --status-cancelled-bg: rgb(227 0 15 / 12%);
 
   /* focus ring */
   --focus-ring-color: var(--primary-color);
@@ -1019,13 +1019,13 @@ main .section.search-hero .query-input-container {
 
 main .section.search-hero .query-input-bar {
   background: #fff;
-  box-shadow: 0 12px 30px rgb(88 24 29 / 14%);
+  box-shadow: 0 12px 30px rgb(11 31 16 / 14%);
 }
 
 /* Landing: Browse-by-category tiles */
 main .section.category-tiles {
   padding: 56px 72px 40px;
-  background: rgb(235 164 57 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
+  background: rgb(81 160 37 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
   text-align: center;
 }
 
@@ -1061,15 +1061,15 @@ main .section.category-tiles .cards > ul > li {
   flex-direction: column;
   text-align: left;
   background: var(--color-neutral-50);
-  border: 1px solid rgb(88 24 29 / 8%);
+  border: 1px solid rgb(11 31 16 / 8%);
   border-radius: 12px;
-  box-shadow: 0 8px 22px rgb(88 24 29 / 8%);
+  box-shadow: 0 8px 22px rgb(11 31 16 / 8%);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 main .section.category-tiles .cards > ul > li:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 26px rgb(88 24 29 / 12%);
+  box-shadow: 0 12px 26px rgb(11 31 16 / 12%);
 }
 
 /* Text-only tile (no image cell) collapses to its body — never reserve a blank
