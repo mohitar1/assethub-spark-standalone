@@ -1019,13 +1019,13 @@ main .section.search-hero .query-input-container {
 
 main .section.search-hero .query-input-bar {
   background: #fff;
-  box-shadow: 0 12px 30px rgb(88 24 29 / 14%);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 14%);
 }
 
 /* Landing: Browse-by-category tiles */
 main .section.category-tiles {
   padding: 56px 72px 40px;
-  background: rgb(235 164 57 / 8%); /* --accent-tertiary tint, for section-to-section color rhythm */
+  background: rgb(0 103 184 / 6%); /* --primary-color tint, for section-to-section color rhythm */
   text-align: center;
 }
 
