@@ -12,19 +12,19 @@
 
 :root {
   /* Brand palette (semantic tokens — single source of truth) */
-  --light-color: #F4E9DC;
-  --dark-color: #2C2C2C;
-  --text-color: #58181D;
-  --text-primary: #58181D;
-  --link-color: #58181D;
-  --link-hover-color: #00647D;
-  --primary-color: #00647D;
-  --primary-color-hover: #004d61;
-  --color-red: #A33532;
-  --color-dark-red: #95351D;
-  --accent-secondary: #DC6E52;
-  --accent-tertiary: #EBA439;
-  --secondary-color: #95351D;
+  --light-color: #EAF3EC;
+  --dark-color: #0B1F10;
+  --text-color: #0B1F10;
+  --text-primary: #0B1F10;
+  --link-color: #097E2C;
+  --link-hover-color: #065C20;
+  --primary-color: #097E2C;
+  --primary-color-hover: #065C20;
+  --color-red: #E3000F;
+  --color-dark-red: #B4000C;
+  --accent-secondary: #E3000F;
+  --accent-tertiary: #51A025;
+  --secondary-color: #E3000F;
 
   /* Neutral & shape tokens */
   --color-neutral-50: #fff;
@@ -120,11 +120,18 @@
 
   /* action button colors */
   --button-primary: var(--primary-color);
-  --button-primary-hover: #004d61;
+  --button-primary-hover: var(--primary-color-hover);
 
   /* label colors */
   --label-color: var(--text-color);
   --label-secondary: var(--color-neutral-600);
+
+  /* Welcome/login split-screen brand panel overrides (Heineken) */
+  --welcome-panel-bg: #0B1F10;
+  --welcome-panel-accent-rgb: 227 0 15;
+  --welcome-panel-mark-image: url('/icons/heineken-beans.svg');
+  --welcome-tagline-line1: '"Brewed with passion,';
+  --welcome-tagline-line2: 'enjoyed the world over."';
 
   /* search UI typography tokens */
   --font-size-00: 10px;
@@ -1614,23 +1621,23 @@ picture.missing img {
 }
 
 
-.frescopa-background-red {
+.section-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.section-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.section-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.section-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.section-background-black {
   background-color: var(--dark-color);
 }
 
@@ -1652,23 +1659,23 @@ main > .section + .background > div {
 }
 
 @media (width >= 900px) {
-.frescopa-background-red {
+.section-background-red {
   background-color: var(--color-red);
 }
 
-.frescopa-background-yellow {
+.section-background-yellow {
   background-color: var(--accent-tertiary);
 }
 
-.frescopa-background-blue {
+.section-background-blue {
   background-color: var(--primary-color);
 }
 
-.frescopa-background-beige {
+.section-background-beige {
   background-color: var(--light-color);
 }
 
-.frescopa-background-black {
+.section-background-black {
   background-color: var(--dark-color);
 }
 
