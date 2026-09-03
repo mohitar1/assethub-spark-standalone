@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1391" height="378" viewBox="0 0 1391 378">
+  <g id="Heineken_Logotype" data-name="Heineken Logotype" transform="translate(17760 11303)">
+    <rect id="area" width="1391" height="378" transform="translate(-17760 -11303)" fill="#fff" opacity="0"/>
+    <g id="Logo" transform="translate(-17760 -11301)">
+      <rect id="area-2" data-name="area" width="1391" height="373.925" fill="none" opacity="0"/>
+      <path id="Star" d="M97.5,0l24.5,62.9,67-4.3-53,42.6,25.8,62.4-59.8-37-59.8,37,25.8-62.4-53-42.6,67,4.3Z" transform="translate(485.564 20)" fill="#E3000F" stroke="rgba(0,0,0,0)" stroke-width="1"/>
+      <text id="Heineken" x="377" y="330" font-family="Georgia, 'Times New Roman', serif" font-size="150" font-weight="700" fill="#097E2C">Heineken</text>
+      <rect id="Underline" width="1000" height="6" transform="translate(377 345)" fill="#097E2C"/>
+    </g>
+  </g>
+</svg>
