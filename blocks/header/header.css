@@ -650,6 +650,7 @@ header nav .nav-tools {
 header nav .nav-tools .nav-icons-wrapper {
   display: flex;
   flex-direction: row;
+  align-items: center;
   gap: 10px;
 }
 
@@ -685,6 +686,9 @@ header nav .nav-tools .nav-reports-icon button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  height: 40px;
+  width: 40px;
+  box-sizing: border-box;
 }
 
 header nav .nav-tools .nav-cart-icon button:focus,
@@ -707,16 +711,9 @@ header nav .nav-tools .nav-download-icon button img,
 header nav .nav-tools .nav-message-icon button img,
 header nav .nav-tools .nav-reports-icon button img {
   display: block;
-  height: 36px;
-  width: 36px;
+  height: 28px;
+  width: 28px;
   transition: opacity 0.2s ease;
-}
-
-/* Reports and download SVGs have thinner inner artwork than bell/cart */
-header nav .nav-tools .nav-download-icon button img,
-header nav .nav-tools .nav-reports-icon button img {
-  height: 38px;
-  width: 38px;
 }
 
 header nav .nav-tools .nav-cart-icon button:hover img {
