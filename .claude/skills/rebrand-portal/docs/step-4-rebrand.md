@@ -168,6 +168,13 @@ split it across turns:
         SVG renders an empty circle / broken image (verified live on the
         login page — two broken marks). Never leave a shortcode that
         resolves to a missing icon; confirm both files exist before publish.
+        **Never add a per-company CSS size override for the nav logo** (e.g.
+        a new `.icon-<companyKey>-icon` selector) — `header.css`'s
+        `.nav-brand .icon img` rule already constrains by `max-height`
+        against `--nav-bar-height` so any logo aspect ratio (wide wordmark
+        or square mark) fits the header row; a brand-specific pixel
+        override is a sign the shared rule regressed, not something this
+        step should work around (Step 4g checks this).
      2. **Swap the icon shortcode in EVERY DA doc that carries it** — the
         base brand's logo appears in **multiple** places: the DA `nav` doc,
         the DA **`footer`** doc, AND the login/`welcome` page, as EDS icon
@@ -335,6 +342,34 @@ split it across turns:
    **opening** the PR (not merging) is the finish line — the branch
    preview serves it; do not merge, never close/delete it (I5). If CI
    blocks, only fix checks that fail on your branch but pass on `main`.
+   **Immediately after `gh pr create` returns, give the customer the PR
+   URL it prints** (plain sentence, e.g. "Here's the pull request: <url>")
+   — this is the shareable result (I3), not an internal artifact, so I1
+   does not apply to it.
+
+   **Then poll for the deploy job and hand over the actual portal URL, not
+   just the Actions run link.** The "Deploy branch worker" job's log line
+   contains the exact route the worker deploys to — the customer-facing
+   portal URL — so parse it instead of making the customer read the log
+   themselves:
+   ```
+   gh pr checks <PR> --watch   # wait for deploy to reach a terminal state
+   RUN_ID=$(gh run list --branch customer.demoBranch -L 1 --json databaseId --jq '.[0].databaseId')
+   HOST=$(gh run view "$RUN_ID" --log 2>/dev/null \
+     | grep -m1 -- '--route' \
+     | grep -oE '\-\-route "[^"]+"' \
+     | sed -E 's/--route "//; s|/\*"$||')
+   ```
+   `$HOST` is the live portal host (verified: yields e.g.
+   `demo-microsoft.dev.frescopamedia.com`, no quotes/no trailing `/*`).
+   Report it plainly: "Here's the pull request: <pr-url>. The live preview
+   is deploying — once it finishes you can open it here:
+   `https://$HOST/<companyKey>/en/`."
+   If the deploy job hasn't completed yet (log line absent), say building
+   is still in progress and give the Actions run URL as a fallback watch
+   link, framed as "you can watch the build here: <url>" — don't block the
+   rest of Step 4 on deploy completion, this is a one-time follow-up
+   message once it lands.
 
 Mark `rebranded`, `demo-company-set`, `published`, and `landed-via-pr`
 `done` as each completes.

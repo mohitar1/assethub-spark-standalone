@@ -20,6 +20,23 @@ searching returns **only** this company's assets. Run the asset-color
 sweep against that **preview URL** (not the local tree, not after a
 merge).
 
+**Local testing without Entra login.** The deployed PR worker is the
+verification target above and needs no login bypass — Entra login works
+there. Only reach for this when checking something *before* a PR/deploy
+exists (e.g. mid-edit, no live preview yet): `cloudflare/src/auth.js`
+carries a commented-out bypass block (search `DISABLE_AUTHENTICATION`) that
+short-circuits `withAuthentication` with a fake local-dev user when
+`DISABLE_AUTHENTICATION=true` is set for `npm run dev` (see `local.sh`).
+To use it: uncomment the block, run locally, test, then **immediately
+re-comment it before doing anything else** — never leave it uncommented
+between turns. **Never `git commit`, `git add`, or `git push` while it is
+uncommented** — a `PreToolUse` hook
+(`hooks/guard-auth-bypass-commit.sh`) blocks those commands whenever the
+block is active in the working tree as a second line of defense, but don't
+rely on the hook instead of re-commenting promptly. This bypass is a
+local-dev convenience only; it must never appear in a diff, a commit, or a
+PR.
+
 **Background-color applied check — a hard gate, before the residue
 sweep.** The residue sweep below catches leftover old-brand values; it
 does NOT catch a new-brand token that excat wrote into `styles/styles.css`
@@ -151,6 +168,22 @@ broken image) and the panel in the NEW brand colour; a single off-brand
 column means the `welcome` section style was flattened (fix the rewrite).
 Also fetch `/<companyKey>/public/welcome.plain.html` and assert it still
 contains `<div class="welcome">`.
+
+**Header logo-size check (the overflow guard).** The template's brand-logo
+CSS (`header .nav-brand .icon img`) constrains the logo by `max-height`
+against `--nav-bar-height`, not a fixed `width` + `height: auto` — this is
+deliberate: a fixed width with `height: auto` renders a square-aspect logo
+(e.g. a four-square 1:1 mark) far taller than the 72px header, spilling
+over the hero title beneath it (verified live). **Never re-fix this by
+adding a per-company override selector** (e.g. `.icon-<companyKey>-icon`)
+sized in pixels for this one logo's aspect ratio — that papers over the
+next brand with a different aspect ratio instead of fixing the shared
+rule. If the logo still overflows on the preview, the shared
+`max-height`/`max-width` rule in `header.css` regressed; fix it there, not
+with a brand-specific selector. On the preview screenshot (taken for the
+brand-residue check above), confirm the header logo's rendered height is
+visibly within the header bar and does not touch or cover the hero
+title/search bar below it.
 
 **Facets-panel verification is mandatory before assets.** Open the
 deployed PR worker URL, not only the raw AEM content origin, at a desktop
