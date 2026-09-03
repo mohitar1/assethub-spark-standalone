@@ -321,6 +321,11 @@ header nav .nav-brand img {
   height: auto;
 }
 
+header nav .nav-brand .icon-microsoft-icon img {
+  width: 36px;
+  height: 36px;
+}
+
 /* Brand logo authored as an EDS icon (:microsoft-icon:) - let it render full size */
 header .nav-brand p {
   margin: 0;
@@ -342,6 +347,16 @@ header .nav-brand .icon img,
 header .nav-brand .icon svg {
   width: 150px;
   height: auto;
+}
+
+/* microsoft-icon is a square 1:1 mark, not a wide wordmark like the base
+   template's logo — the generic 150px width rule above scales it to 150px
+   tall, blowing out the header row. Cap it to a small square that fits the
+   nav-bar-height rhythm. */
+header .nav-brand .icon-microsoft-icon img,
+header .nav-brand .icon-microsoft-icon svg {
+  width: 36px;
+  height: 36px;
 }
 
 /* sections */
