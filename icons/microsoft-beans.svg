@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="329" height="230" viewBox="0 0 329 230" role="img" aria-label="Microsoft">
+  <g transform="translate(74.5, 15)">
+    <rect x="0" y="0" width="90" height="90" fill="#F25022"/>
+    <rect x="100" y="0" width="90" height="90" fill="#7FBA00"/>
+    <rect x="0" y="100" width="90" height="90" fill="#00A4EF"/>
+    <rect x="100" y="100" width="90" height="90" fill="#FFB900"/>
+  </g>
+</svg>

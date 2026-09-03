@@ -11,28 +11,28 @@ import { buildAssetDetailsUrl } from '../../scripts/asset-id-utils.js';
 import showToast from '../../scripts/toast/toast.js';
 import { hasPermission, PERMISSIONS } from '../../scripts/auth/permissions.js';
 
-// Brand-derived chart palette — built around the Fréscopa theme (teal --primary-color
-// #00647D, maroon --text-color #58181D) plus harmonious supporting tones, so charts
+// Brand-derived chart palette — built around the Microsoft theme (blue --primary-color
+// #0067B8, dark neutral --text-color #201F1E) plus harmonious supporting tones, so charts
 // match the rest of the app instead of using a generic/Google default palette.
-// Primary teal is reserved for `download` (the dominant action in this report).
+// Primary blue is reserved for `download` (the dominant action in this report).
 const BRAND_SEQUENCE = [
-  '#00647D', // brand teal (primary)
-  '#A35E4B', // terracotta
-  '#C99A3F', // warm gold
-  '#58181D', // brand maroon (text-color)
-  '#3D8FA3', // light teal
-  '#6E7E5B', // sage
+  '#0067B8', // brand blue (primary)
+  '#00A4EF', // light blue
+  '#FFB900', // warm gold
+  '#201F1E', // brand dark neutral (text-color)
+  '#7FBA00', // green
+  '#004E8C', // deep blue
   '#8A6D3B', // bronze
   '#4F6472', // slate
 ];
 const PALETTE = {
-  download: '#00647D', // primary teal — dominant action
-  view: '#3D8FA3', // light teal
-  'share-link-copy': '#C99A3F', // warm gold
-  'dm-url-copy': '#A35E4B', // terracotta
-  'collection-add': '#58181D', // brand maroon
-  internal: '#00647D',
-  external: '#3D8FA3',
+  download: '#0067B8', // primary blue — dominant action
+  view: '#00A4EF', // light blue
+  'share-link-copy': '#FFB900', // warm gold
+  'dm-url-copy': '#7FBA00', // green
+  'collection-add': '#201F1E', // brand dark neutral
+  internal: '#0067B8',
+  external: '#00A4EF',
   unknown: '#8F8F8F', // neutral grey (matches --color-neutral-600)
 };
 const FALLBACK_COLORS = BRAND_SEQUENCE;
