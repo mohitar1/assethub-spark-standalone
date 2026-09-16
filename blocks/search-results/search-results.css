@@ -53,7 +53,7 @@ main > .section > div:has(.search-results) {
   font-family: var(--body-font-family, sans-serif);
 }
 
-/* Link styles — no frescopa underline inside search UI */
+/* Link styles — no underline inside search UI */
 .search-results a:any-link,
 .search-collection-results a:any-link,
 .search-collection-results-wrapper a:any-link {
